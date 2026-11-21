@@ -1,0 +1,29 @@
+---
+// src/pages/budgets/editor.astro
+// HU-06: Constructor jerárquico de presupuestos por capítulos.
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import BudgetBuilder from '../../components/BudgetBuilder.astro';
+import Toast from '../../components/Toast.astro';
+---
+
+<Layout title="Constructor de Presupuesto — ObraFlow">
+	<Header />
+
+	<main class="budget-editor-main">
+		<BudgetBuilder />
+	</main>
+
+	<Toast />
+</Layout>
+
+<style>
+	.budget-editor-main {
+		flex: 1;
+		width: 100%;
+		overflow: visible;
+		display: flex;
+		flex-direction: column;
+		background-color: #F8FAFC;
+	}
+</style>

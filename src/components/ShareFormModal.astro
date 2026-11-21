@@ -1,0 +1,783 @@
+---
+// src/components/ShareFormModal.astro
+// Modal para Compartir y Embeber el Formulario Web Público (HU-02)
+const defaultSlug = "andina-sas";
+---
+
+<div
+	id="share-form-modal-wrap"
+	class="modal-backdrop-wrap"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="share-modal-title"
+>
+	<!-- Backdrop Blur -->
+	<div id="share-modal-backdrop" class="modal-backdrop-blur"></div>
+
+	<!-- Modal Container -->
+	<div class="modal-card-box share-modal-box">
+		<!-- Header -->
+		<div class="modal-header">
+			<div class="title-wrap">
+				<div class="header-icon globe-icon">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="12" r="10"></circle>
+						<line x1="2" y1="12" x2="22" y2="12"></line>
+						<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+					</svg>
+				</div>
+				<div>
+					<div class="title-with-pill">
+						<h2 id="share-modal-title" class="title-text">Compartir Formulario Web</h2>
+						<span class="p1-pill">HU-02</span>
+					</div>
+					<p class="subtitle-text">Captación de leads con fotos y cotización automática</p>
+				</div>
+			</div>
+
+			<button id="close-share-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
+		<!-- Body -->
+		<div class="share-modal-body">
+			<!-- Option 1: Direct Public Link -->
+			<div class="share-card-option">
+				<div class="option-header">
+					<div class="option-title-group">
+						<span class="option-number">1</span>
+						<div>
+							<h3 class="option-title">Enlace Público Directo</h3>
+							<p class="option-desc">Para Instagram Bio, WhatsApp Business, correos o mensajes directos.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="link-input-group">
+					<input
+						type="text"
+						id="direct-url-input"
+						readonly
+						class="share-input font-mono"
+						value={`/f/${defaultSlug}`}
+					/>
+					<button
+						type="button"
+						id="copy-direct-link-btn"
+						class="btn-copy-action"
+						title="Copiar enlace al portapapeles"
+					>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+						</svg>
+						<span id="copy-direct-label">Copiar Enlace</span>
+					</button>
+
+					<a
+						id="open-direct-link-btn"
+						href={`/f/${defaultSlug}`}
+						target="_blank"
+						class="btn-open-action"
+						title="Abrir formulario en nueva pestaña"
+					>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+							<polyline points="15 3 21 3 21 9"></polyline>
+							<line x1="10" y1="14" x2="21" y2="3"></line>
+						</svg>
+						<span>Abrir</span>
+					</a>
+				</div>
+			</div>
+
+			<!-- Option 2: Embed Iframe Code -->
+			<div class="share-card-option">
+				<div class="option-header">
+					<div class="option-title-group">
+						<span class="option-number">2</span>
+						<div>
+							<h3 class="option-title">Código Iframe Embebible</h3>
+							<p class="option-desc">Inserta este fragmento en tu sitio web (WordPress, Wix o HTML). Oculta el encabezado superior con <code class="code-badge">?embed=true</code>.</p>
+						</div>
+					</div>
+					<button
+						type="button"
+						id="copy-iframe-code-btn"
+						class="btn-copy-code"
+						title="Copiar código HTML"
+					>
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+						</svg>
+						<span id="copy-iframe-label">Copiar Iframe</span>
+					</button>
+				</div>
+
+				<div class="code-block-wrap">
+					<textarea
+						id="iframe-snippet-code"
+						readonly
+						rows="3"
+						class="code-textarea font-mono"
+					>&lt;iframe src="/f/andina-sas?embed=true" width="100%" height="760" frameborder="0" style="border:none; border-radius:12px; width:100%; max-width:700px; margin:0 auto; display:block;"&gt;&lt;/iframe&gt;</textarea>
+				</div>
+			</div>
+
+			<!-- Option 3: Quick Live Preview -->
+			<div class="preview-section">
+				<div class="preview-header-bar">
+					<button type="button" id="toggle-preview-btn" class="preview-toggle-btn">
+						<span id="preview-toggle-icon" class="preview-eye-icon">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+								<circle cx="12" cy="12" r="3"></circle>
+							</svg>
+						</span>
+						<span id="preview-toggle-label">Ver Vista Previa Rápida Embebida</span>
+					</button>
+					<span class="preview-note">Interactúa con el formulario tal como lo verá tu cliente</span>
+				</div>
+
+				<div id="preview-frame-container" class="preview-frame-box hidden">
+					<div class="preview-browser-bar">
+						<span class="browser-dot red"></span>
+						<span class="browser-dot yellow"></span>
+						<span class="browser-dot green"></span>
+						<span id="browser-url-bar" class="browser-address">https://tuempresa.com/cotizacion-online</span>
+					</div>
+					<iframe
+						id="share-preview-iframe"
+						src=""
+						data-src={`/f/${defaultSlug}?embed=true`}
+						class="embedded-preview-iframe"
+						loading="lazy"
+						title="Vista previa del formulario embebido"
+					></iframe>
+				</div>
+			</div>
+		</div>
+
+		<!-- Footer -->
+		<div class="modal-footer">
+			<div class="footer-hint">
+				<span class="pulse-indicator"></span>
+				<span>Los leads enviados desde este formulario aparecerán automáticamente en tu columna <strong>"Nuevo Lead"</strong> con etiqueta <strong>Web</strong>.</span>
+			</div>
+			<button id="close-share-footer-btn" type="button" class="btn-cancel">
+				Cerrar
+			</button>
+		</div>
+	</div>
+</div>
+
+<style>
+	.modal-backdrop-wrap {
+		position: fixed;
+		inset: 0;
+		z-index: 60;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s ease-out;
+	}
+
+	.modal-backdrop-wrap.active {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.modal-backdrop-blur {
+		position: fixed;
+		inset: 0;
+		background-color: rgba(2, 6, 23, 0.7);
+		backdrop-filter: blur(5px);
+	}
+
+	.modal-card-box {
+		position: relative;
+		width: 100%;
+		max-width: 36rem;
+		background-color: #FFFFFF;
+		border-radius: 1.125rem;
+		border: 1px solid #E2E8F0;
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		max-height: 92vh;
+		animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	.share-modal-box {
+		max-width: 40rem;
+	}
+
+	.modal-header {
+		padding: 1.125rem 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		border-bottom: 1px solid #F1F5F9;
+	}
+
+	.title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.header-icon.globe-icon {
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.625rem;
+		background-color: #EFF6FF;
+		border: 1px solid #BFDBFE;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #2563EB;
+		flex-shrink: 0;
+	}
+
+	.title-with-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.title-text {
+		font-size: 1.1875rem;
+		font-weight: 800;
+		color: #0F172A;
+		line-height: 1.2;
+	}
+
+	.p1-pill {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		background-color: #FFF7ED;
+		color: #C2410C;
+		border: 1px solid #FFEDD5;
+		padding: 0.125rem 0.45rem;
+		border-radius: 9999px;
+	}
+
+	.subtitle-text {
+		font-size: 0.75rem;
+		color: #475569;
+		margin-top: 0.125rem;
+	}
+
+	.btn-close {
+		width: 2.75rem;
+		height: 2.75rem;
+		min-width: 2.75rem;
+		min-height: 2.75rem;
+		border-radius: 0.625rem;
+		color: #64748B;
+		background: none;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-close:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+	}
+
+	.btn-close:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.share-modal-body {
+		padding: 1.25rem 1.5rem;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.share-card-option {
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1rem 1.125rem;
+	}
+
+	.option-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.75rem;
+		gap: 0.75rem;
+	}
+
+	.option-title-group {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.625rem;
+	}
+
+	.option-number {
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 9999px;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		font-size: 0.75rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.option-title {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.option-desc {
+		font-size: 0.75rem;
+		color: #475569;
+		margin-top: 0.125rem;
+		line-height: 1.35;
+	}
+
+	.code-badge {
+		background-color: #E2E8F0;
+		color: #334155;
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+	}
+
+	.link-input-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.share-input {
+		flex: 1;
+		min-height: 2.75rem;
+		padding: 0.625rem 0.75rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.625rem;
+		font-size: 0.8125rem;
+		color: #0F172A;
+		font-weight: 600;
+		outline: none;
+	}
+
+	.share-input:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+	}
+
+	.btn-copy-action {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 2.75rem;
+		padding: 0.625rem 1rem;
+		border-radius: 0.625rem;
+		background-color: #F97316;
+		color: #FFFFFF;
+		border: none;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+		transition: background-color 0.15s;
+	}
+
+	.btn-copy-action:hover {
+		background-color: #EA580C;
+	}
+
+	.btn-copy-action:focus-visible {
+		outline: 2px solid #EA580C;
+		outline-offset: 2px;
+	}
+
+	.btn-copy-code {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 2.25rem;
+		padding: 0.375rem 0.75rem;
+		border-radius: 0.5rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		color: #334155;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	.btn-copy-code:hover {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+	}
+
+	.btn-copy-code:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.btn-open-action {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 2.75rem;
+		padding: 0.625rem 0.875rem;
+		border-radius: 0.625rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		color: #334155;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-open-action:hover {
+		background-color: #F1F5F9;
+	}
+
+	.btn-open-action:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.btn-open-action:hover {
+		background-color: #F1F5F9;
+	}
+
+	.code-block-wrap {
+		position: relative;
+	}
+
+	.code-textarea {
+		width: 100%;
+		padding: 0.625rem 0.75rem;
+		background-color: #0F172A;
+		color: #38BDF8;
+		border: 1px solid #1E293B;
+		border-radius: 0.625rem;
+		font-size: 0.75rem;
+		line-height: 1.4;
+		outline: none;
+		resize: none;
+	}
+
+	/* Preview Section */
+	.preview-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.preview-header-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.preview-toggle-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.75rem;
+		background-color: #EFF6FF;
+		border: 1.5px solid #BFDBFE;
+		color: #1D4ED8;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		padding: 0.625rem 1rem;
+		border-radius: 0.625rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.preview-toggle-btn:hover {
+		background-color: #DBEAFE;
+	}
+
+	.preview-toggle-btn:focus-visible {
+		outline: 2px solid #2563EB;
+		outline-offset: 2px;
+	}
+
+	.preview-note {
+		font-size: 0.75rem;
+		color: #475569;
+	}
+
+	.preview-frame-box {
+		border: 1px solid #CBD5E1;
+		border-radius: 0.875rem;
+		overflow: hidden;
+		background-color: #FFFFFF;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+	}
+
+	.preview-browser-bar {
+		background-color: #E2E8F0;
+		padding: 0.5rem 0.75rem;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		border-bottom: 1px solid #CBD5E1;
+	}
+
+	.browser-dot {
+		width: 0.625rem;
+		height: 0.625rem;
+		border-radius: 9999px;
+	}
+
+	.browser-dot.red { background-color: #EF4444; }
+	.browser-dot.yellow { background-color: #F59E0B; }
+	.browser-dot.green { background-color: #10B981; }
+
+	.browser-address {
+		margin-left: 0.5rem;
+		font-size: 0.6875rem;
+		font-family: var(--font-mono);
+		background-color: #FFFFFF;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.25rem;
+		color: #475569;
+		flex: 1;
+		max-width: 20rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.embedded-preview-iframe {
+		width: 100%;
+		height: 420px;
+		border: none;
+		display: block;
+		background-color: #F8FAFC;
+	}
+
+	/* Modal Footer */
+	.modal-footer {
+		padding: 0.875rem 1.5rem;
+		border-top: 1px solid #F1F5F9;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		background-color: #FFFFFF;
+	}
+
+	.footer-hint {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		color: #475569;
+		line-height: 1.35;
+	}
+
+	.pulse-indicator {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 9999px;
+		background-color: #10B981;
+		box-shadow: 0 0 6px #10B981;
+		flex-shrink: 0;
+	}
+
+	.btn-cancel {
+		min-height: 2.75rem;
+		padding: 0.625rem 1.25rem;
+		border-radius: 0.625rem;
+		border: 1.5px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #334155;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	.btn-cancel:hover {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+	}
+
+	.btn-cancel:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@keyframes modalPop {
+		from {
+			opacity: 0;
+			transform: scale(0.97);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+</style>
+
+<script>
+	// Share Form Modal JavaScript Controller
+	const modalWrap = document.getElementById('share-form-modal-wrap');
+	const modalBackdrop = document.getElementById('share-modal-backdrop');
+	const closeBtn = document.getElementById('close-share-modal-btn');
+	const closeFooterBtn = document.getElementById('close-share-footer-btn');
+
+	const directInput = document.getElementById('direct-url-input') as HTMLInputElement | null;
+	const copyDirectBtn = document.getElementById('copy-direct-link-btn');
+	const copyDirectLabel = document.getElementById('copy-direct-label');
+	const openDirectLink = document.getElementById('open-direct-link-btn') as HTMLAnchorElement | null;
+
+	const iframeSnippet = document.getElementById('iframe-snippet-code') as HTMLTextAreaElement | null;
+	const copyIframeBtn = document.getElementById('copy-iframe-code-btn');
+	const copyIframeLabel = document.getElementById('copy-iframe-label');
+
+	const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+	const previewContainer = document.getElementById('preview-frame-container');
+	const previewIframe = document.getElementById('share-preview-iframe') as HTMLIFrameElement | null;
+	const browserUrlBar = document.getElementById('browser-url-bar');
+
+	function initUrls() {
+		const origin = window.location.origin;
+		const fullPublicUrl = `${origin}/f/andina-sas`;
+		const fullEmbedUrl = `${origin}/f/andina-sas?embed=true`;
+
+		if (directInput) directInput.value = fullPublicUrl;
+		if (openDirectLink) openDirectLink.href = fullPublicUrl;
+
+		if (iframeSnippet) {
+			iframeSnippet.value = `<iframe src="${fullEmbedUrl}" width="100%" height="760" frameborder="0" style="border:none; border-radius:12px; width:100%; max-width:700px; margin:0 auto; display:block;" title="Solicitud de Cotización"></iframe>`;
+		}
+
+		if (browserUrlBar) {
+			browserUrlBar.textContent = fullEmbedUrl;
+		}
+	}
+
+	function openModal() {
+		initUrls();
+		modalWrap?.classList.add('active');
+	}
+
+	function closeModal() {
+		modalWrap?.classList.remove('active');
+		if (previewContainer && !previewContainer.classList.contains('hidden')) {
+			previewContainer.classList.add('hidden');
+			if (previewIframe) previewIframe.src = '';
+		}
+	}
+
+	window.addEventListener('open-share-form-modal', openModal);
+	closeBtn?.addEventListener('click', closeModal);
+	closeFooterBtn?.addEventListener('click', closeModal);
+	modalBackdrop?.addEventListener('click', closeModal);
+
+	window.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape' && modalWrap?.classList.contains('active')) {
+			closeModal();
+		}
+	});
+
+	// Copy Direct Link
+	copyDirectBtn?.addEventListener('click', () => {
+		const url = directInput?.value || '';
+		if (url && navigator.clipboard) {
+			navigator.clipboard.writeText(url).then(() => {
+				if (copyDirectLabel) copyDirectLabel.textContent = '¡Copiado!';
+				setTimeout(() => {
+					if (copyDirectLabel) copyDirectLabel.textContent = 'Copiar Enlace';
+				}, 2200);
+
+				window.dispatchEvent(new CustomEvent('show-toast', {
+					detail: {
+						title: 'Enlace copiado',
+						message: 'Enlace del formulario web copiado al portapapeles.',
+						type: 'success'
+					}
+				}));
+			});
+		}
+	});
+
+	// Copy Iframe Snippet
+	copyIframeBtn?.addEventListener('click', () => {
+		const code = iframeSnippet?.value || '';
+		if (code && navigator.clipboard) {
+			navigator.clipboard.writeText(code).then(() => {
+				if (copyIframeLabel) copyIframeLabel.textContent = '¡Código Copiado!';
+				setTimeout(() => {
+					if (copyIframeLabel) copyIframeLabel.textContent = 'Copiar Iframe';
+				}, 2200);
+
+				window.dispatchEvent(new CustomEvent('show-toast', {
+					detail: {
+						title: 'Código Iframe copiado',
+						message: 'Pégalo en el HTML de tu sitio web para incrustar el formulario.',
+						type: 'success'
+					}
+				}));
+			});
+		}
+	});
+
+	// Toggle Preview Iframe
+	togglePreviewBtn?.addEventListener('click', () => {
+		if (!previewContainer) return;
+
+		const isHidden = previewContainer.classList.contains('hidden');
+		if (isHidden) {
+			previewContainer.classList.remove('hidden');
+			if (previewIframe && !previewIframe.src) {
+				const src = previewIframe.getAttribute('data-src') || '/f/andina-sas?embed=true';
+				previewIframe.src = src;
+			}
+			const label = document.getElementById('preview-toggle-label');
+			if (label) label.textContent = 'Ocultar Vista Previa';
+		} else {
+			previewContainer.classList.add('hidden');
+			const label = document.getElementById('preview-toggle-label');
+			if (label) label.textContent = 'Ver Vista Previa Rápida Embebida';
+		}
+	});
+</script>

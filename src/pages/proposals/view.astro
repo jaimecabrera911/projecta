@@ -1,0 +1,666 @@
+---
+// src/pages/proposals/view.astro
+// HU-09: Vista previa WYSIWYG + PDF comercial al cliente (sin costos internos ni márgenes).
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Propuesta Comercial — ObraFlow" hasSidebar={false}>
+	<div class="proposal-shell">
+		<div class="ps-toolbar" id="ps-toolbar">
+			<a id="ps-back" class="ps-btn ps-btn-ghost" href="/budgets">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<polyline points="15 18 9 12 15 6"></polyline>
+				</svg>
+				<span>Volver</span>
+			</a>
+			<div class="ps-toolbar-title">Vista previa comercial</div>
+			<button id="ps-print" type="button" class="ps-btn ps-btn-primary">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<polyline points="6 9 6 2 18 2 18 9"></polyline>
+					<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+					<rect x="6" y="14" width="12" height="8"></rect>
+				</svg>
+				<span>Descargar PDF comercial</span>
+			</button>
+		</div>
+
+		<div id="ps-not-found" class="ps-not-found hidden">
+			<h1>No encontramos esta propuesta</h1>
+			<p>El enlace no corresponde a un presupuesto guardado en este dispositivo.</p>
+			<a href="/budgets" class="ps-btn ps-btn-primary">Volver a Presupuestos</a>
+		</div>
+
+		<article id="proposal-sheet" class="proposal-sheet hidden" aria-label="Propuesta comercial"></article>
+	</div>
+</Layout>
+
+<style is:global>
+	.proposal-shell {
+		min-height: 100vh;
+		background-color: #E2E8F0;
+		padding: 1.25rem 1rem 3rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		font-family: var(--font-sans);
+		color: #0F172A;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	.ps-toolbar {
+		position: sticky;
+		top: 0;
+		z-index: 20;
+		width: 100%;
+		max-width: 820px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+	}
+
+	.ps-toolbar-title {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #334155;
+	}
+
+	.ps-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		min-height: 44px;
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+		cursor: pointer;
+		transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	}
+
+	.ps-btn-ghost {
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #334155;
+	}
+
+	.ps-btn-ghost:hover {
+		background-color: #F1F5F9;
+	}
+
+	.ps-btn-primary {
+		background-color: #F97316;
+		border: 1px solid #F97316;
+		color: #FFFFFF;
+	}
+
+	.ps-btn-primary:hover {
+		background-color: #EA580C;
+		border-color: #EA580C;
+	}
+
+	.ps-btn:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.ps-not-found {
+		max-width: 32rem;
+		margin: 3rem auto;
+		padding: 2rem;
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/* Documento (tamaño Carta/A4) */
+	.proposal-sheet {
+		width: 100%;
+		max-width: 820px;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.5rem;
+		box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+		padding: 2.5rem 2.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.75rem;
+	}
+
+	.ps-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1.5rem;
+		position: static;
+		z-index: auto;
+		background-color: transparent;
+		color: #0F172A;
+		box-shadow: none;
+		padding: 0 0 1.25rem;
+		border-bottom: 2px solid #0F172A;
+	}
+
+	.ps-brand {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+	}
+
+	.ps-logo {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.75rem;
+		background: linear-gradient(135deg, #F97316, #EA580C);
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.ps-company {
+		font-size: 1.125rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+	}
+
+	.ps-company-meta {
+		font-size: 0.75rem;
+		color: #475569;
+		margin-top: 0.125rem;
+	}
+
+	.ps-doc-meta {
+		text-align: right;
+		flex-shrink: 0;
+	}
+
+	.ps-doc-title {
+		font-size: 0.8125rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #EA580C;
+	}
+
+	.ps-doc-line {
+		font-size: 0.75rem;
+		color: #475569;
+		margin-top: 0.25rem;
+	}
+
+	.ps-doc-line strong {
+		color: #0F172A;
+	}
+
+	.ps-cover-kicker {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: #64748B;
+	}
+
+	.ps-cover-title {
+		font-size: 1.75rem;
+		font-weight: 800;
+		letter-spacing: -0.025em;
+		margin-top: 0.25rem;
+		line-height: 1.15;
+	}
+
+	.ps-cover-facts {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.75rem 1.25rem;
+		margin-top: 1.25rem;
+	}
+
+	.ps-fact dt {
+		font-size: 0.625rem;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #94A3B8;
+	}
+
+	.ps-fact dd {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #0F172A;
+		margin-top: 0.125rem;
+	}
+
+	.ps-chapter {
+		margin-bottom: 1.5rem;
+	}
+
+	.ps-chapter-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1.5px solid #E2E8F0;
+		margin-bottom: 0.5rem;
+	}
+
+	.ps-chapter-name {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.ps-chapter-ref {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #EA580C;
+		margin-right: 0.5rem;
+	}
+
+	.ps-chapter-subtotal {
+		font-family: var(--font-mono);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #334155;
+		white-space: nowrap;
+	}
+
+	.ps-table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	.ps-table th {
+		text-align: left;
+		font-size: 0.625rem;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: #64748B;
+		padding: 0.375rem 0.5rem;
+		border-bottom: 1px solid #E2E8F0;
+	}
+
+	.ps-table td {
+		font-size: 0.8125rem;
+		color: #334155;
+		padding: 0.5rem;
+		border-bottom: 1px solid #F1F5F9;
+		vertical-align: top;
+	}
+
+	.ps-table .ps-num {
+		text-align: right;
+		font-family: var(--font-mono);
+		white-space: nowrap;
+	}
+
+	.ps-table .ps-ref {
+		font-family: var(--font-mono);
+		font-weight: 700;
+		color: #94A3B8;
+		width: 3rem;
+	}
+
+	.ps-table .ps-desc {
+		color: #0F172A;
+		font-weight: 600;
+	}
+
+	.ps-totals {
+		align-self: flex-end;
+		width: 100%;
+		max-width: 22rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		margin-top: 0.5rem;
+	}
+
+	.ps-total-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		font-size: 0.875rem;
+		color: #475569;
+	}
+
+	.ps-total-row span:last-child {
+		font-family: var(--font-mono);
+		font-weight: 700;
+		color: #0F172A;
+		white-space: nowrap;
+	}
+
+	.ps-total-grand {
+		margin-top: 0.375rem;
+		padding-top: 0.625rem;
+		border-top: 2px solid #0F172A;
+		font-size: 1rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.ps-total-grand span:last-child {
+		font-size: 1.25rem;
+		color: #047857;
+	}
+
+	.ps-terms {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+		margin-top: 0.5rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid #E2E8F0;
+	}
+
+	.ps-terms-title {
+		font-size: 0.8125rem;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #0F172A;
+		margin-bottom: 0.5rem;
+	}
+
+	.ps-milestone {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		font-size: 0.8125rem;
+		color: #475569;
+		padding: 0.25rem 0;
+		border-bottom: 1px dashed #E2E8F0;
+	}
+
+	.ps-milestone strong {
+		font-family: var(--font-mono);
+		color: #0F172A;
+	}
+
+	.ps-exclusions {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.ps-exclusions li {
+		position: relative;
+		padding-left: 1rem;
+		font-size: 0.8125rem;
+		color: #475569;
+		line-height: 1.45;
+	}
+
+	.ps-exclusions li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.5rem;
+		width: 5px;
+		height: 5px;
+		border-radius: 9999px;
+		background-color: #F97316;
+	}
+
+	.ps-footer {
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid #E2E8F0;
+		text-align: center;
+		font-size: 0.6875rem;
+		color: #94A3B8;
+	}
+
+	@media (max-width: 720px) {
+		.proposal-sheet {
+			padding: 1.5rem 1.25rem;
+		}
+
+		.ps-header {
+			flex-direction: column;
+		}
+
+		.ps-doc-meta {
+			text-align: left;
+		}
+
+		.ps-cover-facts {
+			grid-template-columns: 1fr;
+		}
+
+		.ps-terms {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* Impresión: documento determinista en Carta/A4 */
+	@page {
+		size: A4;
+		margin: 16mm;
+	}
+
+	@media print {
+		.proposal-shell {
+			background-color: #FFFFFF;
+			padding: 0;
+		}
+
+		.ps-toolbar,
+		.ps-not-found {
+			display: none !important;
+		}
+
+		.proposal-sheet {
+			max-width: none;
+			width: auto;
+			border: none;
+			border-radius: 0;
+			box-shadow: none;
+			padding: 0;
+		}
+
+		.ps-chapter {
+			break-inside: avoid;
+		}
+
+		.ps-table tr,
+		.ps-totals,
+		.ps-terms {
+			break-inside: avoid;
+		}
+
+		.ps-cover-title {
+			break-after: avoid;
+		}
+
+		* {
+			-webkit-print-color-adjust: exact;
+			print-color-adjust: exact;
+		}
+	}
+</style>
+
+<script>
+	import { findBudget } from '../../lib/budget-store';
+	import { formatMoney } from '../../lib/budget-math';
+	import {
+		buildCommercialProposal,
+		PAYMENT_MILESTONES,
+		PROPOSAL_COMPANY,
+		PROPOSAL_VALIDITY_DAYS,
+		WORK_EXCLUSIONS,
+		type CommercialProposal
+	} from '../../lib/proposal';
+
+	function escapeHtml(value: string): string {
+		return String(value)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+
+	function formatQuantity(value: number): string {
+		return Number.isInteger(value) ? String(value) : value.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+	}
+
+	function loadLeadAddress(leadId?: string): string | undefined {
+		if (!leadId) return undefined;
+		try {
+			const raw = localStorage.getItem('obraflow_leads');
+			if (!raw) return undefined;
+			const leads = JSON.parse(raw);
+			if (!Array.isArray(leads)) return undefined;
+			const lead = leads.find((entry) => entry && entry.id === leadId);
+			return lead?.project_address;
+		} catch (_) {
+			return undefined;
+		}
+	}
+
+	function chapterHtml(chapter: CommercialProposal['chapters'][number]): string {
+		const rows = chapter.items
+			.map(
+				(item) => `
+				<tr>
+					<td class="ps-ref">${escapeHtml(item.ref)}</td>
+					<td class="ps-desc">${escapeHtml(item.description)}</td>
+					<td>${escapeHtml(item.unit)}</td>
+					<td class="ps-num">${formatQuantity(item.quantity)}</td>
+					<td class="ps-num">${formatMoney(item.unitSalePrice)}</td>
+					<td class="ps-num">${formatMoney(item.saleSubtotal)}</td>
+				</tr>`
+			)
+			.join('');
+
+		return `
+			<section class="ps-chapter">
+				<div class="ps-chapter-head">
+					<div class="ps-chapter-name"><span class="ps-chapter-ref">${escapeHtml(chapter.ref)}</span>${escapeHtml(chapter.name)}</div>
+					<div class="ps-chapter-subtotal">Subtotal ${formatMoney(chapter.subtotal)}</div>
+				</div>
+				<table class="ps-table">
+					<thead>
+						<tr>
+							<th scope="col">Ítem</th>
+							<th scope="col">Descripción del alcance</th>
+							<th scope="col">Unidad</th>
+							<th scope="col" class="ps-num">Cantidad</th>
+							<th scope="col" class="ps-num">Precio unitario</th>
+							<th scope="col" class="ps-num">Subtotal</th>
+						</tr>
+					</thead>
+					<tbody>${rows}</tbody>
+				</table>
+			</section>`;
+	}
+
+	function renderProposal(proposal: CommercialProposal) {
+		const sheet = document.getElementById('proposal-sheet');
+		if (!sheet) return;
+
+		const today = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+		const schemeLabel = proposal.scheme === 'aiu' ? 'Esquema AIU de obra' : 'Régimen General IVA';
+
+		sheet.innerHTML = `
+			<header class="ps-header">
+				<div class="ps-brand">
+					<div class="ps-logo" aria-hidden="true">
+						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M2 20h20"></path>
+							<path d="m5 20 5-15h4l5 15"></path>
+							<path d="M9 13h6"></path>
+						</svg>
+					</div>
+					<div>
+						<p class="ps-company">${escapeHtml(PROPOSAL_COMPANY.name)}</p>
+						<p class="ps-company-meta">NIT ${escapeHtml(PROPOSAL_COMPANY.nit)} · ${escapeHtml(PROPOSAL_COMPANY.city)}</p>
+						<p class="ps-company-meta">Tel. ${escapeHtml(PROPOSAL_COMPANY.phone)} · ${escapeHtml(PROPOSAL_COMPANY.email)}</p>
+					</div>
+				</div>
+				<div class="ps-doc-meta">
+					<p class="ps-doc-title">Propuesta Comercial</p>
+					<p class="ps-doc-line">Fecha: <strong>${escapeHtml(today)}</strong></p>
+					<p class="ps-doc-line">Válido por <strong>${PROPOSAL_VALIDITY_DAYS} días</strong> calendario</p>
+				</div>
+			</header>
+
+			<section class="ps-cover">
+				<p class="ps-cover-kicker">Propuesta para</p>
+				<h1 class="ps-cover-title">${escapeHtml(proposal.title || 'Proyecto de obra')}</h1>
+				<dl class="ps-cover-facts">
+					<div class="ps-fact"><dt>Cliente</dt><dd>${escapeHtml(proposal.clientName || 'Por confirmar')}</dd></div>
+					<div class="ps-fact"><dt>Dirección del proyecto</dt><dd>${escapeHtml(proposal.address || 'Por confirmar')}</dd></div>
+					<div class="ps-fact"><dt>Esquema de liquidación</dt><dd>${escapeHtml(schemeLabel)}</dd></div>
+				</dl>
+			</section>
+
+			<section class="ps-items">
+				${proposal.chapters.map(chapterHtml).join('')}
+			</section>
+
+			<section class="ps-totals">
+				<div class="ps-total-row"><span>Subtotal de venta</span><span>${formatMoney(proposal.totals.subtotal)}</span></div>
+				<div class="ps-total-row"><span>${escapeHtml(proposal.totals.taxLabel)}</span><span>${formatMoney(proposal.totals.taxAmount)}</span></div>
+				<div class="ps-total-row ps-total-grand"><span>Total de la propuesta</span><span>${formatMoney(proposal.totals.grandTotal)}</span></div>
+			</section>
+
+			<section class="ps-terms">
+				<div>
+					<h2 class="ps-terms-title">Condiciones de pago</h2>
+					${PAYMENT_MILESTONES.map((milestone) => `
+						<div class="ps-milestone"><span>${escapeHtml(milestone.label)}</span><strong>${milestone.percentage}%</strong></div>
+					`).join('')}
+				</div>
+				<div>
+					<h2 class="ps-terms-title">Exclusiones de obra</h2>
+					<ul class="ps-exclusions">
+						${WORK_EXCLUSIONS.map((exclusion) => `<li>${escapeHtml(exclusion)}</li>`).join('')}
+					</ul>
+				</div>
+			</section>
+
+			<footer class="ps-footer">
+				Documento generado por ObraFlow · ${escapeHtml(PROPOSAL_COMPANY.name)} · NIT ${escapeHtml(PROPOSAL_COMPANY.nit)}
+			</footer>
+		`;
+
+		sheet.classList.remove('hidden');
+	}
+
+	const params = new URLSearchParams(window.location.search);
+	const budget = findBudget(params.get('id'));
+
+	if (!budget) {
+		document.getElementById('ps-not-found')?.classList.remove('hidden');
+	} else {
+		renderProposal(buildCommercialProposal(budget, { address: loadLeadAddress(budget.lead_id) }));
+		const backLink = document.getElementById('ps-back') as HTMLAnchorElement | null;
+		if (backLink) backLink.href = `/budgets/editor?id=${encodeURIComponent(budget.id)}`;
+	}
+
+	document.getElementById('ps-print')?.addEventListener('click', () => window.print());
+</script>

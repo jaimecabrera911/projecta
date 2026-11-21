@@ -1,0 +1,195 @@
+---
+// src/components/BudgetTotalsBar.astro
+// Barra flotante de totales del constructor (HU-06 + HU-07). Presentacional: escucha el evento budget:totals.
+import { formatMoney } from '../lib/budget-math';
+---
+
+<div
+	id="budget-totals-bar"
+	class="budget-totals-bar"
+	role="status"
+	aria-live="polite"
+	aria-label="Totales del presupuesto"
+>
+	<div class="totals-inner">
+		<div class="totals-block">
+			<span class="totals-label">Costo Directo</span>
+			<span id="budget-total-cost" class="totals-value">{formatMoney(0)}</span>
+		</div>
+
+		<div class="totals-separator" aria-hidden="true"></div>
+
+		<div class="totals-block">
+			<span class="totals-label">
+				Utilidad
+				<span id="budget-total-margin" class="totals-margin-pill">0%</span>
+			</span>
+			<span id="budget-total-profit" class="totals-value totals-profit">{formatMoney(0)}</span>
+		</div>
+
+		<div class="totals-separator" aria-hidden="true"></div>
+
+		<div class="totals-block">
+			<span class="totals-label">
+				Impuestos
+				<span id="budget-total-scheme" class="totals-tax-pill">IVA</span>
+			</span>
+			<span id="budget-total-tax" class="totals-value totals-tax">{formatMoney(0)}</span>
+		</div>
+
+		<div class="totals-separator" aria-hidden="true"></div>
+
+		<div class="totals-block totals-block-sale">
+			<span class="totals-label">Total al Cliente</span>
+			<span id="budget-total-sale" class="totals-value totals-sale">{formatMoney(0)}</span>
+		</div>
+	</div>
+</div>
+
+<style>
+	.budget-totals-bar {
+		position: sticky;
+		bottom: 0;
+		z-index: 40;
+		background-color: #FFFFFF;
+		border-top: 1px solid #CBD5E1;
+		box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.08);
+		padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+	}
+
+	.totals-inner {
+		max-width: 80rem;
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem 1rem;
+		align-items: center;
+	}
+
+	.totals-block {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		min-width: 0;
+	}
+
+	.totals-separator {
+		display: none;
+	}
+
+	.totals-label {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #475569;
+		white-space: nowrap;
+	}
+
+	.totals-value {
+		font-family: var(--font-mono);
+		font-size: 1rem;
+		font-weight: 700;
+		color: #0F172A;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.totals-profit {
+		color: #047857;
+	}
+
+	.totals-tax {
+		color: #B45309;
+	}
+
+	.totals-margin-pill,
+	.totals-tax-pill {
+		font-family: var(--font-mono);
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: none;
+		letter-spacing: 0;
+		border-radius: 9999px;
+		padding: 0.05rem 0.375rem;
+	}
+
+	.totals-margin-pill {
+		color: #047857;
+		background-color: #ECFDF5;
+		border: 1px solid #A7F3D0;
+	}
+
+	.totals-tax-pill {
+		color: #B45309;
+		background-color: #FEF3C7;
+		border: 1px solid #FDE68A;
+	}
+
+	.totals-sale {
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	@media (min-width: 768px) {
+		.budget-totals-bar {
+			padding: 1rem 1.5rem;
+		}
+
+		.totals-inner {
+			grid-template-columns: 1fr auto 1fr auto 1fr auto 1.25fr;
+			gap: 1.25rem;
+		}
+
+		.totals-block-sale {
+			text-align: right;
+		}
+
+		.totals-block-sale .totals-label {
+			justify-content: flex-end;
+		}
+
+		.totals-separator {
+			display: block;
+			width: 1px;
+			height: 2.25rem;
+			background-color: #E2E8F0;
+		}
+
+		.totals-value {
+			font-size: 1.0625rem;
+		}
+
+		.totals-sale {
+			font-size: 1.5rem;
+		}
+	}
+</style>
+
+<script>
+	import { formatMoney } from '../lib/budget-math';
+
+	const costEl = document.getElementById('budget-total-cost');
+	const profitEl = document.getElementById('budget-total-profit');
+	const marginEl = document.getElementById('budget-total-margin');
+	const taxEl = document.getElementById('budget-total-tax');
+	const schemeEl = document.getElementById('budget-total-scheme');
+	const saleEl = document.getElementById('budget-total-sale');
+
+	window.addEventListener('budget:totals', (event: Event) => {
+		const totals = (event as CustomEvent).detail;
+		if (!totals) return;
+
+		if (costEl) costEl.textContent = formatMoney(totals.directCost);
+		if (profitEl) profitEl.textContent = formatMoney(totals.profit);
+		if (marginEl) marginEl.textContent = `${totals.marginPercentage}%`;
+		if (taxEl) taxEl.textContent = formatMoney(totals.taxAmount);
+		if (schemeEl) schemeEl.textContent = totals.taxScheme === 'aiu' ? 'AIU' : 'IVA';
+		if (saleEl) saleEl.textContent = formatMoney(totals.grandTotal);
+	});
+</script>

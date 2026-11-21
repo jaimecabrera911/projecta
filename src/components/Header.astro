@@ -1,47 +1,64 @@
 ---
 // src/components/Header.astro
+// Barra superior ejecutiva simplificada y sin sobrecarga (HU-05 & Steer: Sidebar Módulos)
 ---
 
 <header class="app-header">
 	<div class="header-inner">
-		<!-- Brand & Organization Context -->
-		<div class="brand-group">
-			<a href="/" class="brand-link">
-				<div class="brand-emblem">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M2 20h20"></path>
-						<path d="m5 20 5-15h4l5 15"></path>
-						<path d="M9 13h6"></path>
-					</svg>
-				</div>
-				<div class="brand-text">
-					<div class="brand-title">
-						Obra<span class="text-accent">Flow</span>
-						<span class="badge-saas">SaaS</span>
-					</div>
-					<div class="brand-subtitle">
-						Gestión de Obras & Presupuestos
-					</div>
-				</div>
-			</a>
+		<!-- Left: Sidebar Hamburger Toggle + Breadcrumb -->
+		<div class="header-left-cluster">
+			<button
+				id="header-sidebar-toggle"
+				type="button"
+				class="btn-sidebar-hamburger"
+				aria-label="Abrir menú de navegación lateral"
+				title="Abrir menú de navegación"
+			>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<line x1="3" y1="12" x2="21" y2="12"></line>
+					<line x1="3" y1="6" x2="21" y2="6"></line>
+					<line x1="3" y1="18" x2="21" y2="18"></line>
+				</svg>
+			</button>
 
-			<!-- Organization Badge -->
-			<div class="org-badge desktop-only">
-				<span class="status-pulse"></span>
-				<div class="org-details">
-					<span class="org-name">Construcciones & Reformas Andina SAS</span>
-					<span class="org-sub">NIT 901.442.188-4 • Plan Pro</span>
-				</div>
+			<div class="header-breadcrumb">
+				<a href="/" class="crumb-brand-mini" title="ObraFlow">
+					<div class="mini-emblem">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M2 20h20"></path>
+							<path d="m5 20 5-15h4l5 15"></path>
+							<path d="M9 13h6"></path>
+						</svg>
+					</div>
+					<span class="mini-brand-name">Obra<span class="text-accent">Flow</span></span>
+				</a>
+				<span class="crumb-separator" aria-hidden="true">/</span>
+				<span id="header-breadcrumb-page" class="crumb-page-title">Embudo Comercial</span>
 			</div>
 		</div>
 
-		<!-- Action Stats & User Controls -->
+		<!-- Right: Action Stats & User Controls -->
 		<div class="actions-group">
 			<!-- Pipeline Value Pill -->
 			<div class="pipeline-pill desktop-only">
 				<span class="pill-label">Pipeline Activo:</span>
-				<span class="pill-val">$ 184,500,000 COP</span>
+				<span id="header-pipeline-val" class="pill-val">$ 202.0M COP</span>
 			</div>
+
+			<!-- Web Form Share Trigger Button (HU-02) -->
+			<button
+				id="header-share-form-btn"
+				type="button"
+				class="btn-web-form"
+				title="Compartir Formulario Web Público (HU-02)"
+			>
+				<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="12" r="10"></circle>
+					<line x1="2" y1="12" x2="22" y2="12"></line>
+					<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+				</svg>
+				<span>Formulario Web</span>
+			</button>
 
 			<!-- Desktop "Nuevo Lead" Trigger Button -->
 			<button
@@ -77,12 +94,12 @@
 		background-color: #0F172A;
 		border-bottom: 1px solid #1E293B;
 		color: #FFFFFF;
-		padding: 0.75rem 1.25rem;
+		padding: 0.625rem 1.25rem;
 		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
 	}
 
 	.header-inner {
-		max-width: 80rem;
+		max-width: 100%;
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
@@ -90,110 +107,116 @@
 		gap: 1rem;
 	}
 
-	.brand-group {
+	/* Left Cluster */
+	.header-left-cluster {
 		display: flex;
 		align-items: center;
-		gap: 1.25rem;
+		gap: 0.75rem;
 	}
 
-	.brand-link {
+	.btn-sidebar-hamburger {
+		width: 48px;
+		height: 48px;
 		display: flex;
 		align-items: center;
-		gap: 0.625rem;
+		justify-content: center;
+		background-color: #1E293B;
+		border: 1px solid #334155;
+		color: #F8FAFC;
+		border-radius: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.btn-sidebar-hamburger:hover {
+		background-color: #334155;
+		color: #F97316;
+	}
+
+	.btn-sidebar-hamburger:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	@media (min-width: 1024px) {
+		.btn-sidebar-hamburger {
+			display: none !important;
+		}
+	}
+
+	/* Breadcrumb */
+	.header-breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.crumb-brand-mini {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
 		text-decoration: none;
 		color: #FFFFFF;
+		border-radius: 0.375rem;
+		transition: opacity 0.15s ease;
 	}
 
-	.brand-emblem {
-		width: 2.25rem;
-		height: 2.25rem;
-		border-radius: 0.75rem;
-		background: linear-gradient(135deg, #F97316, #D97706);
+	.crumb-brand-mini:hover {
+		opacity: 0.85;
+	}
+
+	.crumb-brand-mini:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.mini-emblem {
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 0.375rem;
+		background: linear-gradient(135deg, #F97316, #EA580C);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: #FFFFFF;
-		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+		flex-shrink: 0;
 	}
 
-	.brand-text {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.brand-title {
-		font-size: 1.125rem;
+	.mini-brand-name {
+		font-size: 0.875rem;
 		font-weight: 800;
 		letter-spacing: -0.02em;
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
 	}
 
 	.text-accent {
 		color: #FB923C;
 	}
 
-	.badge-saas {
-		font-size: 0.625rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		background: rgba(249, 115, 22, 0.2);
-		color: #FED7AA;
-		border: 1px solid rgba(249, 115, 22, 0.3);
-		padding: 0.125rem 0.375rem;
-		border-radius: 9999px;
-	}
-
-	.brand-subtitle {
-		font-size: 0.75rem;
-		color: #94A3B8;
-		font-weight: 500;
-	}
-
-	.org-badge {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding-left: 1rem;
-		border-left: 1px solid #1E293B;
-	}
-
-	.status-pulse {
-		width: 0.5rem;
-		height: 0.5rem;
-		border-radius: 9999px;
-		background-color: #34D399;
-		box-shadow: 0 0 8px #34D399;
-	}
-
-	.org-details {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.org-name {
-		font-size: 0.75rem;
+	.crumb-separator {
+		color: #475569;
+		font-size: 0.875rem;
 		font-weight: 600;
-		color: #E2E8F0;
 	}
 
-	.org-sub {
-		font-size: 0.6875rem;
-		color: #94A3B8;
+	.crumb-page-title {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #F8FAFC;
+		letter-spacing: -0.01em;
 	}
 
+	/* Right: Actions Group */
 	.actions-group {
 		display: flex;
 		align-items: center;
-		gap: 0.875rem;
+		gap: 0.75rem;
 	}
 
 	.pipeline-pill {
 		display: flex;
 		align-items: center;
-		gap: 0.625rem;
+		gap: 0.5rem;
 		background-color: rgba(30, 41, 59, 0.8);
 		border: 1px solid rgba(51, 65, 85, 0.6);
 		border-radius: 0.75rem;
@@ -215,11 +238,12 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		min-height: 2.5rem;
 		background-color: #F97316;
 		color: #FFFFFF;
-		font-size: 0.75rem;
+		font-size: 0.8125rem;
 		font-weight: 700;
-		padding: 0.5rem 0.875rem;
+		padding: 0.5rem 1rem;
 		border-radius: 0.75rem;
 		border: none;
 		cursor: pointer;
@@ -230,6 +254,39 @@
 	.btn-primary:hover {
 		background-color: #EA580C;
 		transform: translateY(-1px);
+	}
+
+	.btn-primary:focus-visible {
+		outline: 2px solid #FFFFFF;
+		outline-offset: 2px;
+	}
+
+	.btn-web-form {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		background-color: rgba(30, 41, 59, 0.9);
+		border: 1px solid rgba(59, 130, 246, 0.45);
+		color: #93C5FD;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		padding: 0.5rem 1rem;
+		border-radius: 0.75rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-web-form:hover {
+		background-color: #1E3A8A;
+		color: #FFFFFF;
+		border-color: #60A5FA;
+		transform: translateY(-1px);
+	}
+
+	.btn-web-form:focus-visible {
+		outline: 2px solid #60A5FA;
+		outline-offset: 2px;
 	}
 
 	.kbd-badge {
@@ -286,12 +343,52 @@
 		.desktop-only {
 			display: none !important;
 		}
+
+		.btn-sidebar-hamburger {
+			width: 48px;
+			height: 48px;
+		}
 	}
 </style>
 
 <script>
+	// Toggle Sidebar via CustomEvent
+	document.getElementById('header-sidebar-toggle')?.addEventListener('click', () => {
+		window.dispatchEvent(new CustomEvent('toggle-sidebar'));
+	});
+
+	// Actualizar Breadcrumb de Página Activa
+	const path = window.location.pathname;
+	const crumbPage = document.getElementById('header-breadcrumb-page');
+	if (crumbPage) {
+		if (path.startsWith('/catalog')) {
+			crumbPage.textContent = 'Catálogo Maestro de Insumos';
+		} else if (path.startsWith('/budgets/editor')) {
+			crumbPage.textContent = 'Constructor de Presupuestos';
+		} else if (path.startsWith('/budgets')) {
+			crumbPage.textContent = 'Presupuestos';
+		} else if (path.startsWith('/leads')) {
+			crumbPage.textContent = 'Ficha de Visita Técnica';
+		} else {
+			crumbPage.textContent = 'Embudo Comercial de Obras';
+		}
+	}
+
+	// Modal Triggers
+	document.getElementById('header-share-form-btn')?.addEventListener('click', () => {
+		window.dispatchEvent(new CustomEvent('open-share-form-modal'));
+	});
+
 	document.getElementById('header-new-lead-btn')?.addEventListener('click', () => {
 		window.dispatchEvent(new CustomEvent('open-lead-modal'));
+	});
+
+	// Sincronizar pipeline con KanbanBoard en tiempo real
+	window.addEventListener('pipeline-updated', (e: any) => {
+		const headerVal = document.getElementById('header-pipeline-val');
+		if (headerVal && typeof e.detail?.total === 'number') {
+			headerVal.textContent = `$ ${(e.detail.total / 1000000).toFixed(1)}M COP`;
+		}
 	});
 
 	window.addEventListener('keydown', (e) => {

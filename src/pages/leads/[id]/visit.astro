@@ -1,0 +1,2922 @@
+---
+// src/pages/leads/[id]/visit.astro
+// HU-04: Ficha de Visita Técnica y Galería de Fotos del Antes (Blueprint UX/UI Definitivo)
+import Layout from '../../../layouts/Layout.astro';
+import Toast from '../../../components/Toast.astro';
+
+export async function getStaticPaths() {
+	return [
+		{ params: { id: 'lead_01' } },
+		{ params: { id: 'lead_02' } },
+		{ params: { id: 'lead_03' } },
+		{ params: { id: 'lead_04' } },
+		{ params: { id: 'lead_05' } },
+		{ params: { id: 'lead_06' } },
+		{ params: { id: 'lead_07' } },
+		{ params: { id: 'lead_08' } },
+		{ params: { id: 'demo' } }
+	];
+}
+
+const { id } = Astro.params;
+---
+
+<Layout title={`Visita Técnica — Oportunidad ${id} | ObraFlow`} hasSidebar={false}>
+	<div class="visit-page-shell" data-lead-id={id}>
+		<!-- Top App Bar / Header Operate Mode -->
+		<header class="visit-topbar">
+			<div class="topbar-inner">
+				<div class="topbar-left">
+					<a href="/" class="btn-back" title="Volver al Embudo Kanban" aria-label="Volver al Embudo de Ventas">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<line x1="19" y1="12" x2="5" y2="12"></line>
+							<polyline points="12 19 5 12 12 5"></polyline>
+						</svg>
+						<span class="back-text">Volver al Embudo</span>
+					</a>
+				</div>
+
+				<div class="topbar-center">
+					<span class="system-badge">
+						<span class="badge-live-dot"></span>
+						Ficha de Visita Técnica en Sitio
+					</span>
+				</div>
+
+				<div class="topbar-right">
+					<div id="global-save-pill" class="autosave-pill state-saved" title="Estado de guardado automático">
+						<svg id="pill-icon-saved" class="pill-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="20 6 9 17 4 12"></polyline>
+						</svg>
+						<svg id="pill-icon-saving" class="pill-icon spin hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<line x1="12" y1="2" x2="12" y2="6"></line>
+							<line x1="12" y1="18" x2="12" y2="22"></line>
+							<line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+							<line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+							<line x1="2" y1="12" x2="6" y2="12"></line>
+							<line x1="18" y1="12" x2="22" y2="12"></line>
+							<line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+							<line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+						</svg>
+						<span id="pill-save-text">Guardado</span>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main Workspace Area -->
+		<main class="visit-content-container">
+			<!-- Hero Unificado tipo Cabina de Mando (Lead Cockpit Hero) -->
+			<section class="cockpit-hero-card">
+				<div class="cockpit-top-bar">
+					<div class="cockpit-pills-row">
+						<span id="lead-stage-badge" class="stage-pill stage-pill-visit">Visita Agendada</span>
+						<span id="lead-type-badge" class="type-pill">Remodelación Total</span>
+						<span id="lead-source-badge" class="source-pill hidden">
+							<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px;">
+								<circle cx="12" cy="12" r="10"></circle>
+								<line x1="2" y1="12" x2="22" y2="12"></line>
+								<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+							</svg>
+							Web
+						</span>
+						<span id="lead-budget-display" class="budget-pill hidden">
+							$ 0 COP
+						</span>
+					</div>
+
+					<div class="cockpit-actions-row">
+						<a id="btn-lead-wa" href="#" target="_blank" rel="noopener noreferrer" class="btn-cockpit-wa" title="Abrir chat en WhatsApp" aria-label="Abrir WhatsApp con el cliente">
+							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+							</svg>
+							<span id="lead-wa-text">WhatsApp</span>
+						</a>
+
+						<a id="btn-lead-call" href="#" class="btn-cockpit-call" title="Llamar al cliente directamente" aria-label="Llamar al cliente">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+							</svg>
+							<span id="lead-phone-text">Llamar</span>
+						</a>
+					</div>
+				</div>
+
+				<div class="cockpit-main-info">
+					<h1 id="lead-client-name" class="cockpit-client-name">Cargando oportunidad...</h1>
+					<p class="cockpit-address">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+							<circle cx="12" cy="10" r="3"></circle>
+						</svg>
+						<span id="lead-project-address">—</span>
+					</p>
+				</div>
+			</section>
+
+			<!-- Workspace Grid (2 Columnas en Desktop) -->
+			<div class="visit-workspace-grid">
+				<!-- PANEL IZQUIERDO: Tarjeta Unificada de Inspección en Sitio -->
+				<div class="workspace-col-main">
+					<section class="visit-section-card unified-inspection-card">
+						<div class="section-card-header">
+							<div class="section-title-wrap">
+								<div class="section-icon-badge icon-orange">
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+										<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+										<polyline points="14 2 14 8 20 8"></polyline>
+										<line x1="16" y1="13" x2="8" y2="13"></line>
+										<line x1="16" y1="17" x2="8" y2="17"></line>
+										<polyline points="10 9 9 9 8 9"></polyline>
+									</svg>
+								</div>
+								<div>
+									<h2 class="section-title">Inspección Técnica en Sitio</h2>
+									<p class="section-desc">Horario de acceso, estado de redes e instalaciones</p>
+								</div>
+							</div>
+
+							<!-- Botón de Dictado por Voz estilizado con ondas vivas (sin punto rojo plano) -->
+							<div class="voice-action-wrap">
+								<button
+									type="button"
+									id="btn-voice-dictate"
+									class="btn-voice-dictate"
+									title="Activar dictado por voz para hablar con manos libres"
+									aria-label="Activar dictado por voz"
+								>
+									<svg class="mic-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+										<path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+										<line x1="12" y1="19" x2="12" y2="23"></line>
+										<line x1="8" y1="23" x2="16" y2="23"></line>
+									</svg>
+									<span class="voice-audio-waves" aria-hidden="true">
+										<span class="wave-bar bar-1"></span>
+										<span class="wave-bar bar-2"></span>
+										<span class="wave-bar bar-3"></span>
+										<span class="wave-bar bar-4"></span>
+									</span>
+									<span id="voice-btn-label" class="voice-text">Dictar por Voz</span>
+								</button>
+							</div>
+						</div>
+
+						<div class="section-card-body">
+							<!-- Micro-Campos Horizontales Compactos: Horario y Restricciones -->
+							<div class="access-compact-row">
+								<div class="micro-field micro-field-schedule">
+									<label for="visit-scheduled-input" class="micro-label">
+										<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+											<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+											<line x1="16" y1="2" x2="16" y2="6"></line>
+											<line x1="8" y1="2" x2="8" y2="6"></line>
+											<line x1="3" y1="10" x2="21" y2="10"></line>
+										</svg>
+										<span>Fecha y Hora Pactada</span>
+									</label>
+									<div class="micro-input-shell">
+										<input
+											type="datetime-local"
+											id="visit-scheduled-input"
+											class="micro-input"
+										/>
+									</div>
+								</div>
+
+								<div class="micro-field micro-field-access">
+									<label for="visit-access-input" class="micro-label">
+										<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+											<circle cx="12" cy="12" r="10"></circle>
+											<line x1="12" y1="16" x2="12" y2="12"></line>
+											<line x1="12" y1="8" x2="12.01" y2="8"></line>
+										</svg>
+										<span>Portería, Restricciones y Horario de Ruido</span>
+									</label>
+									<div class="micro-input-shell">
+										<input
+											type="text"
+											id="visit-access-input"
+											class="micro-input"
+											placeholder="Ej: Portería Torre 2 • Conserje Don Carlos • Ruido permitido: Lun-Vie 8am a 5pm"
+										/>
+									</div>
+								</div>
+							</div>
+
+							<!-- Barra de Snippets Rápidos de 1 Toque -->
+							<div class="quick-snippets-bar">
+								<span class="snippets-label">Categorías rápidas:</span>
+								<div class="snippets-list">
+									<button type="button" class="snippet-btn" data-snippet="• Muros y Demolición: ">+ Muros</button>
+									<button type="button" class="snippet-btn" data-snippet="• Red Eléctrica: ">+ Eléctrico</button>
+									<button type="button" class="snippet-btn" data-snippet="• Red Hidrosanitaria: ">+ Hidráulico</button>
+									<button type="button" class="snippet-btn" data-snippet="• Humedades y Filtraciones: ">+ Humedades</button>
+									<button type="button" class="snippet-btn" data-snippet="• Pisos y Nivelación: ">+ Pisos</button>
+								</div>
+							</div>
+
+							<!-- Textarea de Notas Técnicas con Autosave y Contador -->
+							<div class="textarea-shell">
+								<textarea
+									id="technical-notes-input"
+									rows="9"
+									class="notes-textarea"
+									placeholder="Describe las observaciones técnicas del espacio: estado de muros a demoler, tablero de breakers, presión de agua, nivelación de pisos y requerimientos de obra..."
+								></textarea>
+
+								<div class="notes-meta-footer">
+									<span id="notes-counter" class="notes-stats">0 palabras • 0 caracteres</span>
+									<span id="notes-autosave-indicator" class="autosave-inline-hint">
+										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+											<polyline points="20 6 9 17 4 12"></polyline>
+										</svg>
+										Autoguardado activo
+									</span>
+								</div>
+							</div>
+
+							<!-- Voice Status Banner con ecualizador animado -->
+							<div id="voice-listening-banner" class="voice-status-banner hidden">
+								<div class="voice-equalizer" aria-hidden="true">
+									<span class="wave-bar bar-1"></span>
+									<span class="wave-bar bar-2"></span>
+									<span class="wave-bar bar-3"></span>
+									<span class="wave-bar bar-4"></span>
+								</div>
+								<p class="voice-status-text">
+									<strong>Escuchando...</strong> Habla con claridad. Tu voz se transcribe en tiempo real dentro de las notas.
+								</p>
+								<button type="button" id="btn-stop-voice" class="btn-stop-voice">Detener Dictado</button>
+							</div>
+						</div>
+					</section>
+				</div>
+
+				<!-- PANEL DERECHO: Estudio Fotográfico "Antes de Obra" -->
+				<div class="workspace-col-side">
+					<section class="visit-section-card photographic-studio-card">
+						<div class="section-card-header">
+							<div class="section-title-wrap">
+								<div class="section-icon-badge icon-emerald">
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+										<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+										<circle cx="12" cy="13" r="4"></circle>
+									</svg>
+								</div>
+								<div>
+									<div class="title-with-pill">
+										<h2 class="section-title">Estudio Fotográfico "Antes de Obra"</h2>
+										<span id="photos-counter-pill" class="count-pill">0 fotos</span>
+									</div>
+									<p class="section-desc">Compresión automática en cliente &lt; 800 KB</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="section-card-body">
+							<!-- Selector de Zona con Scroll Horizontal Suave -->
+							<div class="zone-selector-wrap">
+								<span class="zone-label">Zona de captura técnica:</span>
+								<div class="zone-chips-row" id="zone-chips-container" role="radiogroup" aria-label="Zona de la fotografía">
+									<button type="button" class="zone-chip active" data-zone="General" role="radio" aria-checked="true">
+										General
+									</button>
+									<button type="button" class="zone-chip" data-zone="Baño Principal" role="radio" aria-checked="false">
+										Baño Principal
+									</button>
+									<button type="button" class="zone-chip" data-zone="Cocina" role="radio" aria-checked="false">
+										Cocina
+									</button>
+									<button type="button" class="zone-chip" data-zone="Sala / Balcón" role="radio" aria-checked="false">
+										Sala / Balcón
+									</button>
+									<button type="button" class="zone-chip" data-zone="Fachada" role="radio" aria-checked="false">
+										Fachada
+									</button>
+									<button type="button" class="zone-chip" data-zone="Habitación" role="radio" aria-checked="false">
+										Habitación
+									</button>
+								</div>
+							</div>
+
+							<!-- Botones Operate Mode de Mínimo 48px: Cámara y Galería -->
+							<div class="upload-actions-bar">
+								<input
+									type="file"
+									id="camera-file-input"
+									accept="image/*"
+									capture="environment"
+									class="hidden"
+								/>
+								<button
+									type="button"
+									id="btn-camera-trigger"
+									class="btn-action-upload btn-camera-action"
+									aria-label="Abrir cámara del teléfono para tomar foto del antes"
+								>
+									<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+										<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+										<circle cx="12" cy="13" r="4"></circle>
+									</svg>
+									<span>Tomar con Cámara</span>
+								</button>
+
+								<input
+									type="file"
+									id="gallery-file-input"
+									accept="image/*"
+									multiple
+									class="hidden"
+								/>
+								<button
+									type="button"
+									id="btn-gallery-trigger"
+									class="btn-action-upload btn-gallery-action"
+									aria-label="Subir fotos existentes desde la galería"
+								>
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+										<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+										<circle cx="8.5" cy="8.5" r="1.5"></circle>
+										<polyline points="21 15 16 10 5 21"></polyline>
+									</svg>
+									<span>Subir de Galería</span>
+								</button>
+							</div>
+
+							<!-- Barra de Progreso de Compresión Dinámica -->
+							<div id="compression-progress-box" class="compression-progress-wrap hidden" aria-live="polite">
+								<div class="progress-info-row">
+									<span id="compression-status-text" class="progress-label">Optimizando imagen con Canvas API...</span>
+									<span id="compression-percent-text" class="progress-percent">0%</span>
+								</div>
+								<div class="progress-track">
+									<div id="compression-progress-bar" class="progress-fill" style="width: 0%;"></div>
+								</div>
+							</div>
+
+							<!-- Grid de Fotos del Antes (Aspect Ratio 4:3 con Miniaturas Nítidas) -->
+							<div id="before-photos-grid" class="before-photos-grid">
+								<!-- Renderizado reactivo desde JavaScript -->
+							</div>
+
+							<!-- Estado Vacío Rediseñado: Visor Tecnológico con Corner Brackets ┌ ┐ └ ┘ -->
+							<div id="photos-empty-state" class="viewfinder-empty-container hidden">
+								<div class="viewfinder-frame">
+									<span class="corner-bracket corner-tl"></span>
+									<span class="corner-bracket corner-tr"></span>
+									<span class="corner-bracket corner-bl"></span>
+									<span class="corner-bracket corner-br"></span>
+									
+									<div class="viewfinder-content">
+										<div class="viewfinder-reticle">
+											<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+												<circle cx="12" cy="12" r="9"></circle>
+												<line x1="12" y1="3" x2="12" y2="7"></line>
+												<line x1="12" y1="17" x2="12" y2="21"></line>
+												<line x1="3" y1="12" x2="7" y2="12"></line>
+												<line x1="17" y1="12" x2="21" y2="12"></line>
+												<circle cx="12" cy="12" r="3"></circle>
+											</svg>
+										</div>
+										<h3 class="viewfinder-title">Visor de Registro Fotográfico del Antes</h3>
+										<p class="viewfinder-desc">
+											Captura muros, instalaciones y pisos antes de la intervención. Este registro respalda tu presupuesto y da total transparencia al cliente.
+										</p>
+										<button type="button" class="btn-viewfinder-trigger" id="btn-viewfinder-camera">
+											<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+												<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+												<circle cx="12" cy="13" r="4"></circle>
+											</svg>
+											<span>Tomar Primera Fotografía</span>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<!-- ======================================================================
+	     MODAL 1: LIGHTBOX DE PANTALLA COMPLETA CON GESTOS TÁCTILES
+	     ====================================================================== -->
+	<div id="lightbox-modal" class="lightbox-overlay" role="dialog" aria-modal="true" aria-labelledby="lightbox-photo-title">
+		<div id="lightbox-backdrop" class="lightbox-backdrop"></div>
+		
+		<div class="lightbox-chrome">
+			<!-- Header superior del Lightbox -->
+			<div class="lightbox-header">
+				<div class="lightbox-meta-info">
+					<span id="lightbox-zone-badge" class="lightbox-zone-pill">General</span>
+					<span id="lightbox-photo-title" class="lightbox-title">Foto</span>
+					<span id="lightbox-counter" class="lightbox-counter">1 de 1</span>
+				</div>
+				<button id="btn-close-lightbox" type="button" class="btn-lightbox-close" aria-label="Cerrar visor de foto" title="Cerrar visor (Escape)">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</button>
+			</div>
+
+			<!-- Vista Principal de la Imagen -->
+			<div class="lightbox-image-stage" id="lightbox-stage">
+				<img id="lightbox-img" src="" alt="Fotografía ampliada" class="lightbox-image" />
+				
+				<!-- Botones de Navegación Táctil -->
+				<button id="btn-lightbox-prev" type="button" class="lightbox-nav-btn prev-btn" aria-label="Foto anterior" title="Foto anterior (←)">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="15 18 9 12 15 6"></polyline>
+					</svg>
+				</button>
+				<button id="btn-lightbox-next" type="button" class="lightbox-nav-btn next-btn" aria-label="Foto siguiente" title="Foto siguiente (→)">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="9 18 15 12 9 6"></polyline>
+					</svg>
+				</button>
+			</div>
+
+			<!-- Footer informativo del Lightbox -->
+			<div class="lightbox-footer">
+				<span id="lightbox-file-meta" class="lightbox-file-text">420 KB • Calidad optimizada Canvas</span>
+				<span class="lightbox-hint">Desliza con el dedo o usa las flechas del teclado</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- ======================================================================
+	     MODAL 2: CONFIRMACIÓN DE ELIMINACIÓN DE FOTO (SIN CONFIRM NATIVO)
+	     ====================================================================== -->
+	<div id="delete-photo-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true" aria-labelledby="delete-photo-modal-title">
+		<div id="delete-photo-backdrop" class="modal-backdrop-blur"></div>
+		<div class="modal-card-box modal-sm">
+			<div class="modal-header">
+				<div class="title-wrap">
+					<div class="header-icon delete-icon">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="3 6 5 6 21 6"></polyline>
+							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+						</svg>
+					</div>
+					<div>
+						<h2 id="delete-photo-modal-title" class="title-text">¿Eliminar esta fotografía?</h2>
+						<p class="subtitle-text">Si salió borrosa o con poca luz, puedes retirarla</p>
+					</div>
+				</div>
+				<button id="close-delete-photo-btn" type="button" class="btn-close" aria-label="Cerrar modal">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</button>
+			</div>
+
+			<div class="modal-body-content">
+				<div class="delete-preview-box">
+					<img id="delete-preview-thumb" src="" alt="Miniatura a eliminar" class="delete-thumb-img" />
+					<div class="delete-meta-info">
+						<p id="delete-photo-zone-label" class="zone-label-text">Zona: General</p>
+						<p class="warning-caption">Esta fotografía se eliminará de la ficha de visita técnica de forma permanente.</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="modal-footer-row">
+				<button id="btn-cancel-delete-photo" type="button" class="btn-cancel">
+					Cancelar
+				</button>
+				<button id="btn-confirm-delete-photo" type="button" class="btn-confirm-delete">
+					Eliminar Fotografía
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Sistema Global de Toasts -->
+	<Toast />
+</Layout>
+
+<style>
+	/* ==========================================================================
+	   ESTILOS DE LA PÁGINA DE VISITA TÉCNICA (HU-04 OPERATE MODE DEFINITIVO)
+	   ========================================================================== */
+	.visit-page-shell {
+		min-height: 100vh;
+		background-color: #F8FAFC;
+		display: flex;
+		flex-direction: column;
+		color: #0F172A;
+		font-family: var(--font-sans);
+	}
+
+	/* Topbar */
+	.visit-topbar {
+		position: sticky;
+		top: 0;
+		z-index: 40;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border-bottom: 1px solid #1E293B;
+		padding: 0.75rem 1rem;
+	}
+
+	.topbar-inner {
+		max-width: 68rem;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.btn-back {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 48px;
+		min-width: 48px;
+		padding: 0.5rem 1rem;
+		background-color: #1E293B;
+		color: #F8FAFC;
+		border-radius: 0.5rem;
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 600;
+		transition: background-color 0.15s ease;
+	}
+
+	.btn-back:hover {
+		background-color: #334155;
+	}
+
+	.btn-back:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.system-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #CBD5E1;
+	}
+
+	.badge-live-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 9999px;
+		background-color: #10B981;
+		box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+	}
+
+	.autosave-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 38px;
+		padding: 0.375rem 0.75rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		transition: all 0.2s ease;
+	}
+
+	.autosave-pill.state-saved {
+		background-color: rgba(16, 185, 129, 0.2);
+		color: #34D399;
+		border: 1px solid rgba(16, 185, 129, 0.4);
+	}
+
+	.autosave-pill.state-saving {
+		background-color: rgba(245, 158, 11, 0.2);
+		color: #FBBF24;
+		border: 1px solid rgba(245, 158, 11, 0.4);
+	}
+
+	.pill-icon.spin {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
+	}
+
+	/* Main container */
+	.visit-content-container {
+		flex: 1;
+		max-width: 68rem;
+		width: 100%;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 4rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* ==========================================================================
+	   HERO TIPO CABINA DE MANDO (COCKPIT HERO CARD)
+	   ========================================================================== */
+	.cockpit-hero-card {
+		background-color: #FFFFFF;
+		border-radius: 0.875rem;
+		border: 1px solid #E2E8F0;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		padding: 1.25rem 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+	}
+
+	.cockpit-top-bar {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.cockpit-top-bar {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+		}
+	}
+
+	.cockpit-pills-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.stage-pill {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		letter-spacing: 0.025em;
+		background-color: #DBEAFE;
+		color: #1E40AF;
+	}
+
+	.type-pill {
+		font-size: 0.75rem;
+		font-weight: 600;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		background-color: #F1F5F9;
+		color: #475569;
+	}
+
+	.source-pill {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		background-color: #CFFAFE;
+		color: #155E75;
+	}
+
+	.budget-pill {
+		font-size: 0.75rem;
+		font-weight: 800;
+		padding: 0.1875rem 0.625rem;
+		border-radius: 9999px;
+		background-color: #ECFDF5;
+		color: #047857;
+		font-family: var(--font-mono);
+		border: 1px solid #A7F3D0;
+		white-space: nowrap !important;
+	}
+
+	.cockpit-actions-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.btn-cockpit-wa {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4375rem;
+		min-height: 48px;
+		padding: 0.5rem 1rem;
+		background-color: #10B981;
+		color: #FFFFFF;
+		border-radius: 9999px;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+		white-space: nowrap;
+		box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+		transition: background-color 0.15s ease, transform 0.15s ease;
+	}
+
+	.btn-cockpit-wa:hover {
+		background-color: #059669;
+		transform: translateY(-1px);
+	}
+
+	.btn-cockpit-wa:focus-visible {
+		outline: 2px solid #10B981;
+		outline-offset: 2px;
+	}
+
+	.btn-cockpit-call {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4375rem;
+		min-height: 48px;
+		padding: 0.5rem 1rem;
+		background-color: #0F172A;
+		border: 1.5px solid #1E293B;
+		color: #F8FAFC;
+		border-radius: 9999px;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+		font-family: var(--font-mono);
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	.btn-cockpit-call:hover {
+		background-color: #1E293B;
+		border-color: #334155;
+		transform: translateY(-1px);
+	}
+
+	.btn-cockpit-call:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.cockpit-main-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.cockpit-client-name {
+		font-size: 1.375rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.02em;
+		line-height: 1.25;
+	}
+
+	.cockpit-address {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.875rem;
+		color: #475569;
+		font-weight: 500;
+	}
+
+	/* Two-column Workspace Grid */
+	.visit-workspace-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 1024px) {
+		.visit-workspace-grid {
+			grid-template-columns: 1.15fr 0.85fr;
+			align-items: start;
+		}
+	}
+
+	.workspace-col-main {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.workspace-col-side {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* Visit Section Card General */
+	.visit-section-card {
+		background-color: #FFFFFF;
+		border-radius: 0.875rem;
+		border: 1px solid #E2E8F0;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		overflow: hidden;
+	}
+
+	.section-card-header {
+		padding: 1.125rem 1.25rem;
+		border-bottom: 1px solid #E2E8F0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		background-color: #FFFFFF;
+	}
+
+	@media (min-width: 640px) {
+		.section-card-header {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+		}
+	}
+
+	.section-title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.section-icon-badge {
+		width: 40px;
+		height: 40px;
+		border-radius: 0.625rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.section-icon-badge.icon-orange {
+		background-color: #FFF7ED;
+		color: #EA580C;
+	}
+
+	.section-icon-badge.icon-emerald {
+		background-color: #ECFDF5;
+		color: #059669;
+	}
+
+	.section-title {
+		font-size: 1.0625rem;
+		font-weight: 700;
+		color: #0F172A;
+		letter-spacing: -0.015em;
+	}
+
+	.section-desc {
+		font-size: 0.8125rem;
+		color: #475569;
+		margin-top: 0.125rem;
+	}
+
+	.title-with-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.count-pill {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		background-color: #ECFDF5;
+		color: #059669;
+	}
+
+	.section-card-body {
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	/* ==========================================================================
+	   PANEL IZQUIERDO: MICRO-CAMPOS HORIZONTALES COMPACTOS
+	   ========================================================================== */
+	.access-compact-row {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.875rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 0.875rem;
+	}
+
+	@media (min-width: 640px) {
+		.access-compact-row {
+			grid-template-columns: 1fr 1.4fr;
+		}
+	}
+
+	.micro-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3125rem;
+		min-width: 0;
+	}
+
+	.micro-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #475569;
+		letter-spacing: 0.01em;
+	}
+
+	.micro-label svg {
+		color: #EA580C;
+		flex-shrink: 0;
+	}
+
+	.micro-input-shell {
+		position: relative;
+		width: 100%;
+	}
+
+	.micro-input {
+		width: 100%;
+		min-height: 44px;
+		padding: 0.5rem 0.75rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-family: inherit;
+		color: #0F172A;
+		outline: none;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.micro-input:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	/* ==========================================================================
+	   BOTÓN DE DICTADO POR VOZ CON ONDAS VIVAS (AUDIO WAVES)
+	   ========================================================================== */
+	.voice-action-wrap {
+		display: flex;
+		align-items: center;
+	}
+
+	.btn-voice-dictate {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 48px;
+		padding: 0.5rem 1.125rem;
+		background-color: #FFF7ED;
+		border: 1.5px solid #FDBA74;
+		border-radius: 0.625rem;
+		color: #EA580C;
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		user-select: none;
+	}
+
+	.btn-voice-dictate:hover {
+		background-color: #FFEDD5;
+		border-color: #FB923C;
+		transform: translateY(-1px);
+	}
+
+	.btn-voice-dictate:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.voice-audio-waves {
+		display: inline-flex;
+		align-items: center;
+		gap: 2.5px;
+		height: 14px;
+	}
+
+	.wave-bar {
+		width: 3px;
+		height: 4px;
+		background-color: currentColor;
+		border-radius: 9999px;
+		transition: height 0.2s ease;
+	}
+
+	/* Recording State: dark background, pulsing waves */
+	.btn-voice-dictate.is-recording {
+		background-color: #0F172A;
+		border-color: #EA580C;
+		color: #EA580C;
+		box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.25);
+	}
+
+	.btn-voice-dictate.is-recording .wave-bar {
+		animation: wave-bounce 1s ease-in-out infinite alternate;
+	}
+
+	.btn-voice-dictate.is-recording .bar-1 { animation-delay: 0.0s; }
+	.btn-voice-dictate.is-recording .bar-2 { animation-delay: 0.2s; }
+	.btn-voice-dictate.is-recording .bar-3 { animation-delay: 0.4s; }
+	.btn-voice-dictate.is-recording .bar-4 { animation-delay: 0.1s; }
+
+	@keyframes wave-bounce {
+		0% { height: 4px; }
+		100% { height: 16px; }
+	}
+
+	/* Quick Snippets Bar */
+	.quick-snippets-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		padding-bottom: 0.125rem;
+	}
+
+	.snippets-label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #475569;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.snippets-list {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		flex-wrap: wrap;
+	}
+
+	.snippet-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 38px;
+		padding: 0.25rem 0.625rem;
+		background-color: #F8FAFC;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.375rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #334155;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		user-select: none;
+	}
+
+	.snippet-btn:hover {
+		background-color: #FFF7ED;
+		border-color: #FDBA74;
+		color: #EA580C;
+		transform: translateY(-1px);
+	}
+
+	.snippet-btn:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	/* Textarea & Notes */
+	.textarea-shell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.notes-textarea {
+		width: 100%;
+		padding: 0.875rem 1rem;
+		background-color: #F8FAFC;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.625rem;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		font-family: inherit;
+		color: #0F172A;
+		outline: none;
+		resize: vertical;
+		transition: all 0.15s ease;
+	}
+
+	.notes-textarea:focus {
+		background-color: #FFFFFF;
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.notes-meta-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.75rem;
+		color: #475569;
+		font-weight: 500;
+		padding: 0 0.25rem;
+	}
+
+	.autosave-inline-hint {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: #059669;
+		font-weight: 600;
+	}
+
+	/* Voice Status Banner */
+	.voice-status-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		background-color: #0F172A;
+		border: 1px solid #1E293B;
+		border-radius: 0.5rem;
+		color: #F8FAFC;
+	}
+
+	.voice-equalizer {
+		display: inline-flex;
+		align-items: center;
+		gap: 2.5px;
+		height: 18px;
+		flex-shrink: 0;
+	}
+
+	.voice-equalizer .wave-bar {
+		width: 3px;
+		height: 4px;
+		background-color: #EA580C;
+		border-radius: 9999px;
+		animation: wave-bounce 0.8s ease-in-out infinite alternate;
+	}
+
+	.voice-equalizer .bar-1 { animation-delay: 0.0s; }
+	.voice-equalizer .bar-2 { animation-delay: 0.2s; }
+	.voice-equalizer .bar-3 { animation-delay: 0.4s; }
+	.voice-equalizer .bar-4 { animation-delay: 0.1s; }
+
+	.voice-pulse-circle {
+		width: 10px;
+		height: 10px;
+		border-radius: 9999px;
+		background-color: #EA580C;
+		flex-shrink: 0;
+		animation: pulse-dot 1s infinite;
+	}
+
+	@keyframes pulse-dot {
+		0%, 100% { opacity: 1; transform: scale(1); }
+		50% { opacity: 0.4; transform: scale(1.3); }
+	}
+
+	.voice-status-text {
+		flex: 1;
+		font-size: 0.8125rem;
+		color: #CBD5E1;
+	}
+
+	.voice-status-text strong {
+		color: #EA580C;
+	}
+
+	.btn-stop-voice {
+		min-height: 44px;
+		min-width: 44px;
+		padding: 0.375rem 0.875rem;
+		background-color: #EA580C;
+		color: #FFFFFF;
+		border: none;
+		border-radius: 0.375rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.btn-stop-voice:focus-visible {
+		outline: 2px solid #FFFFFF;
+		outline-offset: 2px;
+	}
+
+	/* ==========================================================================
+	   PANEL DERECHO: SELECTOR DE ZONAS CON SCROLL SUAVE
+	   ========================================================================== */
+	.zone-selector-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.zone-label {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #334155;
+	}
+
+	.zone-chips-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		overflow-x: auto;
+		scroll-behavior: smooth;
+		-webkit-overflow-scrolling: touch;
+		padding-bottom: 0.375rem;
+		scrollbar-width: thin;
+	}
+
+	.zone-chips-row::-webkit-scrollbar {
+		height: 4px;
+	}
+
+	.zone-chips-row::-webkit-scrollbar-thumb {
+		background-color: #CBD5E1;
+		border-radius: 9999px;
+	}
+
+	.zone-chip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 48px;
+		min-width: 48px;
+		padding: 0.5rem 1rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 9999px;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #334155;
+		cursor: pointer;
+		white-space: nowrap;
+		flex-shrink: 0;
+		transition: all 0.15s ease;
+	}
+
+	.zone-chip:hover {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.zone-chip:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.zone-chip.active {
+		background-color: #EA580C;
+		border-color: #EA580C;
+		color: #FFFFFF;
+		box-shadow: 0 1px 3px rgba(234, 88, 12, 0.3);
+	}
+
+	/* Upload Actions Bar (Dual Button Operate Mode) */
+	.upload-actions-bar {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.upload-actions-bar {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	.btn-action-upload {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		min-height: 52px;
+		min-width: 48px;
+		padding: 0.75rem 1.25rem;
+		border-radius: 0.625rem;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		cursor: pointer;
+		border: none;
+		transition: all 0.15s ease;
+	}
+
+	.btn-action-upload:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.btn-camera-action {
+		background-color: #EA580C;
+		color: #FFFFFF;
+		box-shadow: 0 2px 4px rgba(234, 88, 12, 0.25);
+	}
+
+	.btn-camera-action:hover {
+		background-color: #C2410C;
+	}
+
+	.btn-gallery-action {
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	.btn-gallery-action:hover {
+		background-color: #1E293B;
+	}
+
+	/* Compression Progress Box */
+	.compression-progress-wrap {
+		background-color: #EFF6FF;
+		border: 1px solid #BFDBFE;
+		border-radius: 0.5rem;
+		padding: 0.875rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.progress-info-row {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #1E40AF;
+	}
+
+	.progress-track {
+		height: 8px;
+		width: 100%;
+		background-color: #DBEAFE;
+		border-radius: 9999px;
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		background-color: #2563EB;
+		border-radius: 9999px;
+		transition: width 0.2s ease;
+	}
+
+	/* ==========================================================================
+	   PHOTO GRID (4:3 ASPECT RATIO MINIATURAS NÍTIDAS)
+	   ========================================================================== */
+	.before-photos-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.before-photos-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 1.125rem;
+		}
+	}
+
+	:global(.photo-card-item) {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		overflow: hidden;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		display: flex;
+		flex-direction: column;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	:global(.photo-card-item:hover) {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	}
+
+	:global(.photo-thumb-container) {
+		position: relative;
+		aspect-ratio: 4 / 3;
+		background-color: #0F172A;
+		overflow: hidden;
+		cursor: pointer;
+	}
+
+	:global(.photo-thumb-img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		transition: transform 0.2s ease;
+	}
+
+	:global(.photo-thumb-container:hover .photo-thumb-img) {
+		transform: scale(1.03);
+	}
+
+	:global(.photo-zone-badge) {
+		position: absolute;
+		top: 0.5rem;
+		left: 0.5rem;
+		background-color: rgba(15, 23, 42, 0.85);
+		backdrop-filter: blur(4px);
+		color: #FFFFFF;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.2rem 0.5rem;
+		border-radius: 9999px;
+		letter-spacing: 0.025em;
+	}
+
+	:global(.photo-action-overlay) {
+		position: absolute;
+		bottom: 0.5rem;
+		right: 0.5rem;
+		display: flex;
+		gap: 0.375rem;
+	}
+
+	:global(.btn-thumb-zoom) {
+		width: 48px;
+		height: 48px;
+		min-width: 48px;
+		min-height: 48px;
+		border-radius: 0.375rem;
+		background-color: rgba(15, 23, 42, 0.85);
+		color: #FFFFFF;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	:global(.btn-thumb-zoom:hover) {
+		background-color: #EA580C;
+	}
+
+	:global(.btn-thumb-zoom:focus-visible) {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	:global(.photo-footer-bar) {
+		padding: 0.625rem 0.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background-color: #FFFFFF;
+		border-top: 1px solid #F1F5F9;
+	}
+
+	:global(.photo-meta-text) {
+		font-size: 0.75rem;
+		color: #334155;
+		font-weight: 700;
+		font-family: var(--font-mono);
+	}
+
+	:global(.btn-thumb-delete) {
+		width: 48px;
+		height: 48px;
+		min-width: 48px;
+		min-height: 48px;
+		border-radius: 0.375rem;
+		background: none;
+		border: 1px solid transparent;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-thumb-delete:hover) {
+		color: #DC2626;
+		background-color: #FEF2F2;
+		border-color: #FECACA;
+	}
+
+	:global(.btn-thumb-delete:focus-visible) {
+		outline: 2px solid #DC2626;
+		outline-offset: 2px;
+	}
+
+	/* ==========================================================================
+	   ESTADO VACÍO REDISEÑADO: VISOR TECNOLÓGICO CON CORNER BRACKETS ┌ ┐ └ ┘
+	   ========================================================================== */
+	.viewfinder-empty-container {
+		width: 100%;
+		padding: 1rem 0;
+	}
+
+	.viewfinder-frame {
+		position: relative;
+		background: #0F172A;
+		border-radius: 0.75rem;
+		padding: 2.5rem 1.5rem;
+		overflow: hidden;
+		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+	}
+
+	.corner-bracket {
+		position: absolute;
+		width: 22px;
+		height: 22px;
+		border-color: #EA580C;
+		border-style: solid;
+		pointer-events: none;
+	}
+
+	.corner-tl {
+		top: 12px;
+		left: 12px;
+		border-width: 3px 0 0 3px;
+	}
+
+	.corner-tr {
+		top: 12px;
+		right: 12px;
+		border-width: 3px 3px 0 0;
+	}
+
+	.corner-bl {
+		bottom: 12px;
+		left: 12px;
+		border-width: 0 0 3px 3px;
+	}
+
+	.corner-br {
+		bottom: 12px;
+		right: 12px;
+		border-width: 0 3px 3px 0;
+	}
+
+	.viewfinder-content {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 0.875rem;
+		max-width: 24rem;
+		margin: 0 auto;
+	}
+
+	.viewfinder-reticle {
+		width: 58px;
+		height: 58px;
+		border-radius: 9999px;
+		background: rgba(234, 88, 12, 0.12);
+		border: 1px solid rgba(234, 88, 12, 0.35);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.viewfinder-title {
+		font-size: 1.0625rem;
+		font-weight: 700;
+		color: #F8FAFC;
+		letter-spacing: -0.015em;
+	}
+
+	.viewfinder-desc {
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: #94A3B8;
+	}
+
+	.btn-viewfinder-trigger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 48px;
+		padding: 0.5rem 1.25rem;
+		margin-top: 0.375rem;
+		background-color: #EA580C;
+		color: #FFFFFF;
+		border: none;
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(234, 88, 12, 0.3);
+		transition: background-color 0.15s ease, transform 0.15s ease;
+	}
+
+	.btn-viewfinder-trigger:hover {
+		background-color: #C2410C;
+		transform: translateY(-1px);
+	}
+
+	.btn-viewfinder-trigger:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	/* ==========================================================================
+	   LIGHTBOX DE PANTALLA COMPLETA
+	   ========================================================================== */
+	.lightbox-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s ease;
+	}
+
+	.lightbox-overlay.active {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.lightbox-backdrop {
+		position: absolute;
+		inset: 0;
+		background-color: rgba(2, 6, 23, 0.94);
+		backdrop-filter: blur(6px);
+	}
+
+	.lightbox-chrome {
+		position: relative;
+		z-index: 101;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+
+	.lightbox-header {
+		padding: 1rem 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		color: #FFFFFF;
+		background-color: rgba(15, 23, 42, 0.7);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.lightbox-meta-info {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		flex-wrap: wrap;
+	}
+
+	.lightbox-zone-pill {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.2rem 0.625rem;
+		border-radius: 9999px;
+		background-color: #EA580C;
+		color: #FFFFFF;
+	}
+
+	.lightbox-title {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #F8FAFC;
+	}
+
+	.lightbox-counter {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #94A3B8;
+		font-family: var(--font-mono);
+	}
+
+	.btn-lightbox-close {
+		width: 48px;
+		height: 48px;
+		min-width: 48px;
+		min-height: 48px;
+		border-radius: 0.375rem;
+		background: none;
+		border: none;
+		color: #CBD5E1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: color 0.15s ease, background-color 0.15s ease;
+	}
+
+	.btn-lightbox-close:hover {
+		color: #FFFFFF;
+		background-color: rgba(255, 255, 255, 0.1);
+	}
+
+	.btn-lightbox-close:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.lightbox-image-stage {
+		flex: 1;
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		overflow: hidden;
+	}
+
+	.lightbox-image {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+		border-radius: 0.375rem;
+		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+		user-select: none;
+	}
+
+	.lightbox-nav-btn {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 52px;
+		height: 52px;
+		min-width: 48px;
+		min-height: 48px;
+		border-radius: 9999px;
+		background-color: rgba(15, 23, 42, 0.75);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		z-index: 102;
+	}
+
+	.lightbox-nav-btn:hover {
+		background-color: #EA580C;
+	}
+
+	.lightbox-nav-btn:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.lightbox-nav-btn.prev-btn {
+		left: 1rem;
+	}
+
+	.lightbox-nav-btn.next-btn {
+		right: 1rem;
+	}
+
+	.lightbox-footer {
+		padding: 0.75rem 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		color: #CBD5E1;
+		font-size: 0.75rem;
+		background-color: rgba(15, 23, 42, 0.7);
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.lightbox-file-text {
+		font-family: var(--font-mono);
+	}
+
+	/* ==========================================================================
+	   MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE FOTO (SIN CONFIRM NATIVO)
+	   ========================================================================== */
+	.modal-backdrop-wrap {
+		position: fixed;
+		inset: 0;
+		z-index: 110;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s ease;
+	}
+
+	.modal-backdrop-wrap.active {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.modal-backdrop-blur {
+		position: absolute;
+		inset: 0;
+		background-color: rgba(2, 6, 23, 0.75);
+		backdrop-filter: blur(4px);
+	}
+
+	.modal-card-box {
+		position: relative;
+		z-index: 111;
+		width: 100%;
+		max-width: 28rem;
+		background-color: #FFFFFF;
+		border-radius: 0.75rem;
+		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.modal-header {
+		padding: 1.125rem 1.25rem;
+		border-bottom: 1px solid #E2E8F0;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.header-icon {
+		width: 38px;
+		height: 38px;
+		border-radius: 0.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.header-icon.delete-icon {
+		background-color: #FEE2E2;
+		color: #DC2626;
+	}
+
+	.title-text {
+		font-size: 1rem;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.subtitle-text {
+		font-size: 0.8125rem;
+		color: #475569;
+	}
+
+	.btn-close {
+		min-width: 48px;
+		min-height: 48px;
+		border-radius: 0.375rem;
+		background: none;
+		border: none;
+		color: #475569;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.btn-close:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.modal-body-content {
+		padding: 1.25rem;
+	}
+
+	.delete-preview-box {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.75rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+	}
+
+	.delete-thumb-img {
+		width: 64px;
+		height: 64px;
+		object-fit: cover;
+		border-radius: 0.375rem;
+		flex-shrink: 0;
+	}
+
+	.zone-label-text {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.warning-caption {
+		font-size: 0.75rem;
+		color: #475569;
+		margin-top: 0.25rem;
+	}
+
+	.modal-footer-row {
+		padding: 1rem 1.25rem;
+		background-color: #F8FAFC;
+		border-top: 1px solid #E2E8F0;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.75rem;
+	}
+
+	.btn-cancel {
+		min-height: 48px;
+		min-width: 48px;
+		padding: 0.625rem 1.125rem;
+		border-radius: 0.5rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #334155;
+		font-size: 0.875rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.btn-cancel:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.btn-confirm-delete {
+		min-height: 48px;
+		min-width: 48px;
+		padding: 0.625rem 1.125rem;
+		border-radius: 0.5rem;
+		background-color: #DC2626;
+		border: none;
+		color: #FFFFFF;
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.btn-confirm-delete:hover {
+		background-color: #B91C1C;
+	}
+
+	.btn-confirm-delete:focus-visible {
+		outline: 2px solid #DC2626;
+		outline-offset: 2px;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	/* Responsive tweaks */
+	@media (max-width: 640px) {
+		.btn-back .back-text {
+			display: none;
+		}
+
+		.system-badge {
+			font-size: 0.75rem;
+		}
+
+		.cockpit-actions-row {
+			width: 100%;
+		}
+
+		.btn-cockpit-wa,
+		.btn-cockpit-call {
+			flex: 1;
+			min-height: 48px;
+			justify-content: center;
+		}
+
+		.snippet-btn {
+			min-height: 38px;
+			padding: 0.375rem 0.625rem;
+		}
+
+		:global(.btn-thumb-zoom),
+		:global(.btn-thumb-delete) {
+			width: 48px;
+			height: 48px;
+			min-width: 48px;
+			min-height: 48px;
+		}
+	}
+</style>
+
+<script>
+	// Complete Client-Side State, Autosave, Voice Dictation and Canvas Photo Compression
+	interface BeforePhoto {
+		id: string;
+		name: string;
+		dataUrl: string;
+		sizeKb: number;
+		zone: string;
+		created_at: string;
+	}
+
+	interface TechnicalVisit {
+		scheduled_for?: string;
+		access_notes?: string;
+		technical_notes?: string;
+		photos?: BeforePhoto[];
+		updated_at?: string;
+	}
+
+	interface Lead {
+		id: string;
+		client_name: string;
+		client_phone: string;
+		client_email?: string;
+		project_address: string;
+		project_type: string;
+		notes?: string;
+		estimated_budget: number;
+		stage: string;
+		created_at: string;
+		updated_at?: string;
+		source?: string;
+		photos_count?: number;
+		visit?: TechnicalVisit;
+	}
+
+	// 1. Identify current Lead ID
+	const shellEl = document.querySelector('.visit-page-shell');
+	const pathParts = window.location.pathname.split('/');
+	let targetLeadId = shellEl?.getAttribute('data-lead-id') || '';
+	const visitIdx = pathParts.indexOf('visit');
+	if (visitIdx > 0 && pathParts[visitIdx - 1]) {
+		targetLeadId = pathParts[visitIdx - 1];
+	}
+
+	// 2. Default Seed Leads for LocalStorage consistency
+	const DEFAULT_LEADS: Lead[] = [
+		{
+			id: 'lead_01',
+			client_name: 'Sandra Milena López',
+			client_phone: '+573109876543',
+			project_address: 'Cra 7 # 116-20 Torre B Apto 502 (Chicó)',
+			project_type: 'Remodelación Total',
+			estimated_budget: 35000000,
+			stage: 'new_lead',
+			source: 'manual',
+			created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString()
+		},
+		{
+			id: 'lead_02',
+			client_name: 'Andrés Delgado',
+			client_phone: '+573155554321',
+			client_email: 'andres@gmail.com',
+			project_address: 'Loma del Chocho (Envigado)',
+			project_type: 'Cocina Integral',
+			notes: 'Quiero tumbar un muro y cambiar muebles y mesón',
+			estimated_budget: 18000000,
+			stage: 'new_lead',
+			source: 'web',
+			photos_count: 3,
+			created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_03',
+			client_name: 'Felipe Restrepo',
+			client_phone: '+573004448899',
+			project_address: 'Castropol (El Poblado), Medellín',
+			project_type: 'Baño',
+			estimated_budget: 22500000,
+			stage: 'visit_scheduled',
+			created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+			visit: {
+				scheduled_for: '2026-11-22T14:00',
+				access_notes: 'Portería Torre 2, citófono 302. Horario permitido de obra: Lun-Vie 8:00 a 17:00.',
+				technical_notes: 'Revisión hidrosanitaria del baño principal. Presión de agua adecuada. Se requiere demoler enchapado cerámico antiguo y reemplazar punto de desagüe a 4 pulgadas.',
+				photos: []
+			}
+		},
+		{
+			id: 'lead_04',
+			client_name: 'Café Origen SAS',
+			client_phone: '+573201112233',
+			project_address: 'Mall La Frontera Local 104',
+			project_type: 'Adecuación Comercial',
+			estimated_budget: 48000000,
+			stage: 'in_budgeting',
+			created_at: new Date(Date.now() - 36 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_05',
+			client_name: 'Valeria Henao',
+			client_phone: '+573117778899',
+			project_address: 'Laureles Nogal (Medellín)',
+			project_type: 'Remodelación Total',
+			estimated_budget: 29000000,
+			stage: 'proposal_sent',
+			created_at: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString(),
+			updated_at: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_06',
+			client_name: 'Constructora Capital',
+			client_phone: '+573142223344',
+			project_address: 'Sector Provenza (Medellín)',
+			project_type: 'Pintura y Acabados',
+			estimated_budget: 52000000,
+			stage: 'negotiation',
+			created_at: new Date(Date.now() - 30 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_07',
+			client_name: 'Familia Arango Ospina',
+			client_phone: '+573189990011',
+			project_address: 'Altos de San Lucas (El Poblado)',
+			project_type: 'Remodelación Total',
+			estimated_budget: 40000000,
+			stage: 'won',
+			created_at: new Date(Date.now() - 72 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_08',
+			client_name: 'Inversiones Río Claro',
+			client_phone: '+573123456789',
+			project_address: 'Calle 50 # 45-20 (Centro)',
+			project_type: 'Adecuación Comercial',
+			estimated_budget: 65000000,
+			stage: 'lost',
+			lost_reason: 'Precio elevado',
+			created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
+			updated_at: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
+		}
+	];
+
+	// 3. Load Leads from LocalStorage
+	function loadLeads(): Lead[] {
+		try {
+			const saved = localStorage.getItem('obraflow_leads');
+			if (saved) {
+				const parsed = JSON.parse(saved);
+				if (Array.isArray(parsed) && parsed.length > 0) {
+					return parsed;
+				}
+			}
+		} catch (_) {}
+		saveLeads(DEFAULT_LEADS);
+		return DEFAULT_LEADS;
+	}
+
+	function saveLeads(leadsData: Lead[]) {
+		try {
+			localStorage.setItem('obraflow_leads', JSON.stringify(leadsData));
+		} catch (_) {}
+	}
+
+	let leads = loadLeads();
+	let currentLead: Lead | null = leads.find(l => l.id === targetLeadId) || null;
+
+	// Fallback mock if opened with a non-existent test ID
+	if (!currentLead) {
+		currentLead = {
+			id: targetLeadId || 'lead_custom_' + Date.now().toString(36),
+			client_name: 'Cliente Visita Técnica',
+			client_phone: '+573001234567',
+			project_address: 'Obra en proceso',
+			project_type: 'General',
+			estimated_budget: 15000000,
+			stage: 'visit_scheduled',
+			created_at: new Date().toISOString(),
+			visit: {
+				scheduled_for: new Date().toISOString().substring(0, 16),
+				access_notes: '',
+				technical_notes: '',
+				photos: []
+			}
+		};
+		leads.unshift(currentLead);
+		saveLeads(leads);
+	}
+
+	if (!currentLead.visit) {
+		currentLead.visit = {
+			photos: []
+		};
+	}
+	if (!currentLead.visit.photos) {
+		currentLead.visit.photos = [];
+	}
+
+	// Active Zone for newly taken/uploaded photos
+	let activeZone = 'General';
+
+	// Lightbox navigation state
+	let currentLightboxIndex = 0;
+	let photoPendingDeleteId: string | null = null;
+
+	// Autosave timer
+	let autosaveDebounceTimer: any = null;
+
+	// DOM Elements
+	const clientNameEl = document.getElementById('lead-client-name');
+	const projectAddressEl = document.getElementById('lead-project-address');
+	const stageBadgeEl = document.getElementById('lead-stage-badge');
+	const typeBadgeEl = document.getElementById('lead-type-badge');
+	const sourceBadgeEl = document.getElementById('lead-source-badge');
+	const budgetPillEl = document.getElementById('lead-budget-display');
+	const waBtn = document.getElementById('btn-lead-wa') as HTMLAnchorElement | null;
+	const callBtn = document.getElementById('btn-lead-call') as HTMLAnchorElement | null;
+	const phoneTextEl = document.getElementById('lead-phone-text');
+
+	const scheduledInput = document.getElementById('visit-scheduled-input') as HTMLInputElement | null;
+	const accessInput = document.getElementById('visit-access-input') as HTMLInputElement | null;
+	const technicalNotesInput = document.getElementById('technical-notes-input') as HTMLTextAreaElement | null;
+	const notesCounterEl = document.getElementById('notes-counter');
+	const notesAutosaveIndicator = document.getElementById('notes-autosave-indicator');
+
+	const pillSaved = document.getElementById('global-save-pill');
+	const iconSaved = document.getElementById('pill-icon-saved');
+	const iconSaving = document.getElementById('pill-icon-saving');
+	const textSaved = document.getElementById('pill-save-text');
+
+	const photosGrid = document.getElementById('before-photos-grid');
+	const photosEmptyState = document.getElementById('photos-empty-state');
+	const photosCounterPill = document.getElementById('photos-counter-pill');
+
+	const zoneChips = document.querySelectorAll<HTMLButtonElement>('.zone-chip');
+	const cameraInput = document.getElementById('camera-file-input') as HTMLInputElement | null;
+	const galleryInput = document.getElementById('gallery-file-input') as HTMLInputElement | null;
+	const cameraTriggerBtn = document.getElementById('btn-camera-trigger');
+	const galleryTriggerBtn = document.getElementById('btn-gallery-trigger');
+	const btnViewfinderCamera = document.getElementById('btn-viewfinder-camera');
+
+	const progressBox = document.getElementById('compression-progress-box');
+	const progressBar = document.getElementById('compression-progress-bar');
+	const progressStatusText = document.getElementById('compression-status-text');
+	const progressPercentText = document.getElementById('compression-percent-text');
+
+	// Lightbox Elements
+	const lightboxModal = document.getElementById('lightbox-modal');
+	const lightboxBackdrop = document.getElementById('lightbox-backdrop');
+	const closeLightboxBtn = document.getElementById('btn-close-lightbox');
+	const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement | null;
+	const lightboxZoneBadge = document.getElementById('lightbox-zone-badge');
+	const lightboxTitle = document.getElementById('lightbox-photo-title');
+	const lightboxCounter = document.getElementById('lightbox-counter');
+	const lightboxFileMeta = document.getElementById('lightbox-file-meta');
+	const btnLightboxPrev = document.getElementById('btn-lightbox-prev');
+	const btnLightboxNext = document.getElementById('btn-lightbox-next');
+	const lightboxStage = document.getElementById('lightbox-stage');
+
+	// Delete Photo Modal Elements
+	const deleteModal = document.getElementById('delete-photo-modal');
+	const deleteBackdrop = document.getElementById('delete-photo-backdrop');
+	const closeDeleteBtn = document.getElementById('close-delete-photo-btn');
+	const cancelDeleteBtn = document.getElementById('btn-cancel-delete-photo');
+	const confirmDeleteBtn = document.getElementById('btn-confirm-delete-photo');
+	const deleteThumbImg = document.getElementById('delete-preview-thumb') as HTMLImageElement | null;
+	const deleteZoneLabel = document.getElementById('delete-photo-zone-label');
+
+	// Voice Dictation Elements
+	const btnVoiceDictate = document.getElementById('btn-voice-dictate');
+	const voiceBtnLabel = document.getElementById('voice-btn-label');
+	const voiceListeningBanner = document.getElementById('voice-listening-banner');
+	const btnStopVoice = document.getElementById('btn-stop-voice');
+
+	// =========================================================================
+	// 1. POPULATE INITIAL DATA
+	// =========================================================================
+	function populateData() {
+		if (!currentLead) return;
+
+		if (clientNameEl) clientNameEl.textContent = currentLead.client_name;
+		if (projectAddressEl) projectAddressEl.textContent = currentLead.project_address;
+		if (typeBadgeEl) typeBadgeEl.textContent = currentLead.project_type;
+
+		// Stage label format
+		const stageNames: Record<string, string> = {
+			new_lead: 'Nuevo Lead',
+			visit_scheduled: 'Visita Agendada',
+			in_budgeting: 'En Presupuesto',
+			proposal_sent: 'Propuesta Enviada',
+			negotiation: 'En Negociación',
+			won: 'Ganado / Obra Activa',
+			lost: 'Perdido'
+		};
+		if (stageBadgeEl) {
+			stageBadgeEl.textContent = stageNames[currentLead.stage] || currentLead.stage;
+		}
+
+		if (currentLead.source === 'web' && sourceBadgeEl) {
+			sourceBadgeEl.classList.remove('hidden');
+		}
+
+		if (budgetPillEl && currentLead.estimated_budget > 0) {
+			budgetPillEl.textContent = `$ ${currentLead.estimated_budget.toLocaleString('es-CO')} COP`;
+			budgetPillEl.classList.remove('hidden');
+		}
+
+		// Phone and WhatsApp links
+		const phoneClean = currentLead.client_phone.replace(/[^0-9]/g, '');
+		if (waBtn) {
+			waBtn.href = `https://wa.me/${phoneClean}?text=Hola%20${encodeURIComponent(currentLead.client_name)},%20te%20escribimos%20de%20Construcciones%20Andina%20respecto%20a%20tu%20visita%20técnica`;
+		}
+		if (callBtn) {
+			callBtn.href = `tel:${phoneClean}`;
+		}
+		if (phoneTextEl) {
+			phoneTextEl.textContent = currentLead.client_phone;
+		}
+
+		// Agenda & access
+		if (scheduledInput && currentLead.visit?.scheduled_for) {
+			scheduledInput.value = currentLead.visit.scheduled_for;
+		}
+		if (accessInput && currentLead.visit?.access_notes) {
+			accessInput.value = currentLead.visit.access_notes;
+		}
+
+		// Technical Notes
+		if (technicalNotesInput && currentLead.visit?.technical_notes) {
+			technicalNotesInput.value = currentLead.visit.technical_notes;
+			updateNotesCounter();
+		}
+
+		renderPhotosGrid();
+	}
+
+	function updateNotesCounter() {
+		if (!technicalNotesInput || !notesCounterEl) return;
+		const text = technicalNotesInput.value.trim();
+		const words = text ? text.split(/\s+/).length : 0;
+		const chars = text.length;
+		notesCounterEl.textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'} • ${chars} caracteres`;
+	}
+
+	// =========================================================================
+	// 2. AUTOSAVE ENGINE (DEBOUNCE 3 SECONDS)
+	// =========================================================================
+	function setAutosaveState(state: 'saving' | 'saved') {
+		if (state === 'saving') {
+			pillSaved?.classList.remove('state-saved');
+			pillSaved?.classList.add('state-saving');
+			iconSaved?.classList.add('hidden');
+			iconSaving?.classList.remove('hidden');
+			if (textSaved) textSaved.textContent = 'Guardando cambios...';
+			if (notesAutosaveIndicator) {
+				notesAutosaveIndicator.innerHTML = `
+					<svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="12" y1="2" x2="12" y2="6"></line>
+						<line x1="12" y1="18" x2="12" y2="22"></line>
+					</svg> Guardando...
+				`;
+				notesAutosaveIndicator.style.color = '#F59E0B';
+			}
+		} else {
+			pillSaved?.classList.remove('state-saving');
+			pillSaved?.classList.add('state-saved');
+			iconSaved?.classList.remove('hidden');
+			iconSaving?.classList.add('hidden');
+			const now = new Date();
+			const timeStr = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+			if (textSaved) textSaved.textContent = `Guardado (${timeStr})`;
+			if (notesAutosaveIndicator) {
+				notesAutosaveIndicator.innerHTML = `
+					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="20 6 9 17 4 12"></polyline>
+					</svg> Guardado automático (${timeStr})
+				`;
+				notesAutosaveIndicator.style.color = '#059669';
+			}
+		}
+	}
+
+	function triggerAutosave() {
+		setAutosaveState('saving');
+		clearTimeout(autosaveDebounceTimer);
+		autosaveDebounceTimer = setTimeout(() => {
+			performSave();
+		}, 3000);
+	}
+
+	function performSave() {
+		if (!currentLead) return;
+
+		if (!currentLead.visit) {
+			currentLead.visit = {};
+		}
+
+		if (scheduledInput) {
+			currentLead.visit.scheduled_for = scheduledInput.value;
+		}
+		if (accessInput) {
+			currentLead.visit.access_notes = accessInput.value.trim();
+		}
+		if (technicalNotesInput) {
+			currentLead.visit.technical_notes = technicalNotesInput.value.trim();
+		}
+
+		currentLead.visit.updated_at = new Date().toISOString();
+		currentLead.updated_at = new Date().toISOString();
+
+		// Update in list and persist
+		const idx = leads.findIndex(l => l.id === currentLead?.id);
+		if (idx >= 0) {
+			leads[idx] = { ...currentLead };
+		}
+		saveLeads(leads);
+
+		setAutosaveState('saved');
+	}
+
+	// Attach change and input events to autosave
+	scheduledInput?.addEventListener('input', triggerAutosave);
+	scheduledInput?.addEventListener('change', performSave);
+
+	accessInput?.addEventListener('input', triggerAutosave);
+	accessInput?.addEventListener('blur', performSave);
+
+	technicalNotesInput?.addEventListener('input', () => {
+		updateNotesCounter();
+		triggerAutosave();
+	});
+	technicalNotesInput?.addEventListener('blur', performSave);
+
+	// =========================================================================
+	// 3. VOICE-TO-TEXT DICTATION (WEB SPEECH RECOGNITION API)
+	// =========================================================================
+	let speechRecognitionInstance: any = null;
+	let isRecording = false;
+
+	function initSpeechRecognition() {
+		const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+		if (!SpeechRecognition) {
+			return null;
+		}
+
+		const rec = new SpeechRecognition();
+		rec.lang = 'es-CO';
+		rec.continuous = true;
+		rec.interimResults = false;
+
+		rec.onresult = (event: any) => {
+			let transcript = '';
+			for (let i = event.resultIndex; i < event.results.length; i++) {
+				if (event.results[i].isFinal) {
+					transcript += event.results[i][0].transcript + ' ';
+				}
+			}
+
+			if (transcript.trim() && technicalNotesInput) {
+				const start = technicalNotesInput.selectionStart || technicalNotesInput.value.length;
+				const end = technicalNotesInput.selectionEnd || technicalNotesInput.value.length;
+				const currentText = technicalNotesInput.value;
+				
+				const prefix = (start > 0 && !currentText[start - 1].endsWith(' ') && !currentText[start - 1].endsWith('\n')) ? ' ' : '';
+				const injected = prefix + transcript.trim() + ' ';
+				
+				technicalNotesInput.value = currentText.substring(0, start) + injected + currentText.substring(end);
+				technicalNotesInput.selectionStart = technicalNotesInput.selectionEnd = start + injected.length;
+				
+				updateNotesCounter();
+				triggerAutosave();
+			}
+		};
+
+		rec.onerror = () => {
+			stopRecording();
+		};
+
+		rec.onend = () => {
+			if (isRecording) {
+				stopRecording();
+			}
+		};
+
+		return rec;
+	}
+
+	function startRecording() {
+		if (!speechRecognitionInstance) {
+			speechRecognitionInstance = initSpeechRecognition();
+		}
+
+		if (!speechRecognitionInstance) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: {
+					title: 'Dictado por voz',
+					message: 'Usa el botón de micrófono en el teclado de tu dispositivo para dictar texto en las notas.',
+					type: 'info'
+				}
+			}));
+			return;
+		}
+
+		try {
+			speechRecognitionInstance.start();
+			isRecording = true;
+			btnVoiceDictate?.classList.add('is-recording');
+			if (voiceBtnLabel) voiceBtnLabel.textContent = 'Grabando...';
+			voiceListeningBanner?.classList.remove('hidden');
+		} catch (_) {
+			stopRecording();
+		}
+	}
+
+	function stopRecording() {
+		isRecording = false;
+		btnVoiceDictate?.classList.remove('is-recording');
+		if (voiceBtnLabel) voiceBtnLabel.textContent = 'Dictar por Voz';
+		voiceListeningBanner?.classList.add('hidden');
+		try {
+			speechRecognitionInstance?.stop();
+		} catch (_) {}
+	}
+
+	btnVoiceDictate?.addEventListener('click', () => {
+		if (isRecording) {
+			stopRecording();
+		} else {
+			startRecording();
+		}
+	});
+
+	btnStopVoice?.addEventListener('click', stopRecording);
+
+	// Quick Category Snippets for Technical Notes
+	document.querySelectorAll('.snippet-btn').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const snippet = btn.getAttribute('data-snippet') || '';
+			if (!technicalNotesInput) return;
+			const currentVal = technicalNotesInput.value;
+			const needsNewline = currentVal.length > 0 && !currentVal.endsWith('\n');
+			technicalNotesInput.value = currentVal + (needsNewline ? '\n' : '') + snippet;
+			technicalNotesInput.focus();
+			updateNotesCounter();
+			triggerAutosave();
+		});
+	});
+
+	// =========================================================================
+	// 4. ZONE SELECTOR CHIPS
+	// =========================================================================
+	zoneChips.forEach((chip) => {
+		chip.addEventListener('click', () => {
+			zoneChips.forEach(c => {
+				c.classList.remove('active');
+				c.setAttribute('aria-checked', 'false');
+			});
+			chip.classList.add('active');
+			chip.setAttribute('aria-checked', 'true');
+			activeZone = chip.getAttribute('data-zone') || 'General';
+		});
+	});
+
+	// =========================================================================
+	// 5. CLIENT-SIDE CANVAS PHOTO COMPRESSION (< 800 KB)
+	// =========================================================================
+	cameraTriggerBtn?.addEventListener('click', () => {
+		cameraInput?.click();
+	});
+
+	galleryTriggerBtn?.addEventListener('click', () => {
+		galleryInput?.click();
+	});
+
+	btnViewfinderCamera?.addEventListener('click', () => {
+		cameraInput?.click();
+	});
+
+	cameraInput?.addEventListener('change', (e) => {
+		const target = e.target as HTMLInputElement;
+		if (target.files && target.files.length > 0) {
+			handleIncomingFiles(Array.from(target.files));
+			target.value = '';
+		}
+	});
+
+	galleryInput?.addEventListener('change', (e) => {
+		const target = e.target as HTMLInputElement;
+		if (target.files && target.files.length > 0) {
+			handleIncomingFiles(Array.from(target.files));
+			target.value = '';
+		}
+	});
+
+	async function compressSingleImage(file: File): Promise<{ dataUrl: string; sizeKb: number; name: string }> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onerror = () => reject(new Error('Error de lectura'));
+			reader.onload = (e) => {
+				const img = new Image();
+				img.onerror = () => reject(new Error('Error de carga de imagen'));
+				img.onload = () => {
+					const MAX_W = 1920;
+					const MAX_H = 1080;
+					let w = img.width;
+					let h = img.height;
+
+					if (w > MAX_W || h > MAX_H) {
+						if (w / h > MAX_W / MAX_H) {
+							h = Math.round((h * MAX_W) / w);
+							w = MAX_W;
+						} else {
+							w = Math.round((w * MAX_H) / h);
+							h = MAX_H;
+						}
+					}
+
+					const canvas = document.createElement('canvas');
+					canvas.width = w;
+					canvas.height = h;
+					const ctx = canvas.getContext('2d');
+					if (!ctx) {
+						reject(new Error('Sin contexto 2D'));
+						return;
+					}
+
+					ctx.drawImage(img, 0, 0, w, h);
+
+					let dataUrl = canvas.toDataURL('image/webp', 0.82);
+					if (!dataUrl.startsWith('data:image/webp')) {
+						dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+					}
+
+					const comma = dataUrl.indexOf(',');
+					const base64Len = dataUrl.length - (comma + 1);
+					const sizeBytes = Math.round(base64Len * 0.75);
+					const sizeKb = Math.round(sizeBytes / 1024);
+
+					resolve({
+						dataUrl,
+						sizeKb,
+						name: file.name
+					});
+				};
+				img.src = e.target?.result as string;
+			};
+			reader.readAsDataURL(file);
+		});
+	}
+
+	async function handleIncomingFiles(files: File[]) {
+		if (files.length === 0) return;
+
+		progressBox?.classList.remove('hidden');
+		const total = files.length;
+
+		for (let i = 0; i < total; i++) {
+			const file = files[i];
+			const currentIdx = i + 1;
+			const pct = Math.round((currentIdx / total) * 100);
+
+			if (progressStatusText) {
+				progressStatusText.textContent = `Optimizando foto ${currentIdx} de ${total} (${file.name})...`;
+			}
+			if (progressPercentText) {
+				progressPercentText.textContent = `${pct}%`;
+			}
+			if (progressBar) {
+				progressBar.style.width = `${pct}%`;
+			}
+
+			try {
+				const compressed = await compressSingleImage(file);
+				const newPhoto: BeforePhoto = {
+					id: 'photo_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
+					name: compressed.name,
+					dataUrl: compressed.dataUrl,
+					sizeKb: compressed.sizeKb,
+					zone: activeZone,
+					created_at: new Date().toISOString()
+				};
+
+				if (!currentLead?.visit?.photos) {
+					if (currentLead?.visit) currentLead.visit.photos = [];
+				}
+				currentLead?.visit?.photos?.push(newPhoto);
+			} catch (_) {}
+		}
+
+		progressBox?.classList.add('hidden');
+		performSave();
+		renderPhotosGrid();
+
+		window.dispatchEvent(new CustomEvent('show-toast', {
+			detail: {
+				title: 'Fotos optimizadas',
+				message: `Se agregaron ${total} ${total === 1 ? 'foto' : 'fotos'} a la zona "${activeZone}".`,
+				type: 'success'
+			}
+		}));
+	}
+
+	// =========================================================================
+	// 6. RENDER PHOTOS GRID
+	// =========================================================================
+	function escapeHtml(str: string): string {
+		const div = document.createElement('div');
+		div.textContent = str;
+		return div.innerHTML;
+	}
+
+	function renderPhotosGrid() {
+		if (!photosGrid) return;
+		photosGrid.innerHTML = '';
+
+		const photos = currentLead?.visit?.photos || [];
+		if (photosCounterPill) {
+			photosCounterPill.textContent = `${photos.length} ${photos.length === 1 ? 'foto' : 'fotos'}`;
+		}
+
+		if (photos.length === 0) {
+			photosEmptyState?.classList.remove('hidden');
+			photosGrid.classList.add('hidden');
+			return;
+		}
+
+		photosEmptyState?.classList.add('hidden');
+		photosGrid.classList.remove('hidden');
+
+		photos.forEach((photo, idx) => {
+			const card = document.createElement('div');
+			card.className = 'photo-card-item';
+			card.dataset.id = photo.id;
+
+			card.innerHTML = `
+				<div class="photo-thumb-container" data-action="expand" data-index="${idx}">
+					<img src="${photo.dataUrl}" alt="${escapeHtml(photo.name)}" class="photo-thumb-img" loading="lazy" />
+					<span class="photo-zone-badge">${escapeHtml(photo.zone || 'General')}</span>
+					<div class="photo-action-overlay">
+						<button type="button" class="btn-thumb-zoom" data-action="expand" data-index="${idx}" title="Ampliar a pantalla completa" aria-label="Ampliar fotografía">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+								<polyline points="15 3 21 3 21 9"></polyline>
+								<polyline points="9 21 3 21 3 15"></polyline>
+								<line x1="21" y1="3" x2="14" y2="10"></line>
+								<line x1="3" y1="21" x2="10" y2="14"></line>
+							</svg>
+						</button>
+					</div>
+				</div>
+				<div class="photo-footer-bar">
+					<span class="photo-meta-text">${photo.sizeKb} KB</span>
+					<button type="button" class="btn-thumb-delete" data-action="delete" data-id="${photo.id}" title="Eliminar foto" aria-label="Eliminar fotografía">
+						<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="3 6 5 6 21 6"></polyline>
+							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+						</svg>
+					</button>
+				</div>
+			`;
+
+			// Expand triggers
+			const thumbBox = card.querySelector('.photo-thumb-container');
+			thumbBox?.addEventListener('click', (e) => {
+				const target = e.target as HTMLElement;
+				if (target.closest('.btn-thumb-delete')) return;
+				openLightbox(idx);
+			});
+
+			// Delete trigger
+			const deleteBtn = card.querySelector('.btn-thumb-delete');
+			deleteBtn?.addEventListener('click', (e) => {
+				e.stopPropagation();
+				openDeleteModal(photo.id);
+			});
+
+			photosGrid.appendChild(card);
+		});
+	}
+
+	// =========================================================================
+	// 7. LIGHTBOX CONTROLLER & SWIPE GESTURES
+	// =========================================================================
+	function openLightbox(index: number) {
+		const photos = currentLead?.visit?.photos || [];
+		if (index < 0 || index >= photos.length) return;
+
+		currentLightboxIndex = index;
+		updateLightboxView();
+		lightboxModal?.classList.add('active');
+	}
+
+	function closeLightbox() {
+		lightboxModal?.classList.remove('active');
+	}
+
+	function updateLightboxView() {
+		const photos = currentLead?.visit?.photos || [];
+		const photo = photos[currentLightboxIndex];
+		if (!photo) return;
+
+		if (lightboxImg) lightboxImg.src = photo.dataUrl;
+		if (lightboxZoneBadge) lightboxZoneBadge.textContent = photo.zone || 'General';
+		if (lightboxTitle) lightboxTitle.textContent = photo.name || 'Fotografía de obra';
+		if (lightboxCounter) lightboxCounter.textContent = `${currentLightboxIndex + 1} de ${photos.length}`;
+		if (lightboxFileMeta) lightboxFileMeta.textContent = `${photo.sizeKb} KB • Optimizado Canvas`;
+	}
+
+	function prevLightbox() {
+		const photos = currentLead?.visit?.photos || [];
+		if (photos.length <= 1) return;
+		currentLightboxIndex = (currentLightboxIndex - 1 + photos.length) % photos.length;
+		updateLightboxView();
+	}
+
+	function nextLightbox() {
+		const photos = currentLead?.visit?.photos || [];
+		if (photos.length <= 1) return;
+		currentLightboxIndex = (currentLightboxIndex + 1) % photos.length;
+		updateLightboxView();
+	}
+
+	btnLightboxPrev?.addEventListener('click', prevLightbox);
+	btnLightboxNext?.addEventListener('click', nextLightbox);
+	closeLightboxBtn?.addEventListener('click', closeLightbox);
+	lightboxBackdrop?.addEventListener('click', closeLightbox);
+
+	// Touch Swipe Support on mobile lightbox
+	let touchStartX = 0;
+	let touchEndX = 0;
+
+	lightboxStage?.addEventListener('touchstart', (e) => {
+		touchStartX = e.changedTouches[0].screenX;
+	}, { passive: true });
+
+	lightboxStage?.addEventListener('touchend', (e) => {
+		touchEndX = e.changedTouches[0].screenX;
+		const diff = touchStartX - touchEndX;
+		if (Math.abs(diff) > 45) {
+			if (diff > 0) {
+				nextLightbox();
+			} else {
+				prevLightbox();
+			}
+		}
+	}, { passive: true });
+
+	// =========================================================================
+	// 8. DELETE PHOTO MODAL (NO NATIVE CONFIRM)
+	// =========================================================================
+	function openDeleteModal(photoId: string) {
+		const photos = currentLead?.visit?.photos || [];
+		const photo = photos.find(p => p.id === photoId);
+		if (!photo) return;
+
+		photoPendingDeleteId = photoId;
+		if (deleteThumbImg) deleteThumbImg.src = photo.dataUrl;
+		if (deleteZoneLabel) deleteZoneLabel.textContent = `Zona: ${photo.zone || 'General'}`;
+
+		deleteModal?.classList.add('active');
+	}
+
+	function closeDeleteModal() {
+		deleteModal?.classList.remove('active');
+		photoPendingDeleteId = null;
+	}
+
+	closeDeleteBtn?.addEventListener('click', closeDeleteModal);
+	cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
+	deleteBackdrop?.addEventListener('click', closeDeleteModal);
+
+	confirmDeleteBtn?.addEventListener('click', () => {
+		if (!photoPendingDeleteId || !currentLead?.visit?.photos) return;
+
+		currentLead.visit.photos = currentLead.visit.photos.filter(p => p.id !== photoPendingDeleteId);
+		performSave();
+		renderPhotosGrid();
+		closeDeleteModal();
+
+		window.dispatchEvent(new CustomEvent('show-toast', {
+			detail: {
+				title: 'Foto eliminada',
+				message: 'La fotografía fue retirada de la visita técnica.',
+				type: 'warning'
+			}
+		}));
+	});
+
+	// Global Keyboard shortcuts (Escape & Arrows)
+	window.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') {
+			closeLightbox();
+			closeDeleteModal();
+		} else if (lightboxModal?.classList.contains('active')) {
+			if (e.key === 'ArrowLeft') prevLightbox();
+			if (e.key === 'ArrowRight') nextLightbox();
+		}
+	});
+
+	// Initialize
+	populateData();
+</script>

@@ -1,0 +1,27 @@
+---
+// src/pages/budgets.astro
+// HU-06: Listado y creación de presupuestos.
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import BudgetList from '../components/BudgetList.astro';
+import Toast from '../components/Toast.astro';
+---
+
+<Layout title="Presupuestos — ObraFlow">
+	<Header />
+
+	<main class="budgets-page-main">
+		<BudgetList />
+	</main>
+
+	<Toast />
+</Layout>
+
+<style>
+	.budgets-page-main {
+		flex: 1;
+		width: 100%;
+		overflow: visible;
+		background-color: #F8FAFC;
+	}
+</style>

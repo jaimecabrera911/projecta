@@ -1,7 +1,20 @@
 ---
 // src/components/KanbanBoard.astro
 // Fully Interactive CRM Board with Drag & Drop, In-Place Editing, Custom Modals (No native alerts/prompts)
+import Icon from './Icon';
+import { iconSvg } from '../lib/icon-svg';
+
+// Iconos react-icons (Tabler). Se pre-renderizan a SVG para reutilizarlos
+// en el HTML que genera el script cliente (tarjetas y filas de la lista).
+const funnelIcons = {
+	budget: iconSvg('budget', { size: 18 }),
+	visit: iconSvg('visit', { size: 18 }),
+	move: iconSvg('move', { size: 18 }),
+	whatsapp: iconSvg('whatsapp', { size: 18 })
+};
 ---
+
+<script type="application/json" id="funnel-icons-data" set:html={JSON.stringify(funnelIcons)}></script>
 
 <div class="kanban-wrapper">
 	<!-- Control & Filter Bar -->
@@ -17,21 +30,137 @@
 				</span>
 			</div>
 			<p class="subtitle">
-				Arrastra las tarjetas entre columnas, edita datos o haz clic en <kbd class="kbd-hint">Mover ▾</kbd> para cambiar de etapa.
+				Arrastra las tarjetas entre columnas, edita datos o haz clic en <kbd class="kbd-hint">Mover</kbd> para cambiar de etapa.
 			</p>
 		</div>
 
-		<!-- Action Stats -->
-		<div class="stats-card">
-			<div>
-				<span class="stat-label">Total Leads</span>
-				<span id="total-leads-count" class="stat-value">0</span>
+		<!-- Actions & Action Stats -->
+		<div class="topbar-actions-wrap">
+			<!-- Conmutador de formato: Kanban / Lista -->
+			<div id="funnel-view-toggle" class="view-toggle" role="group" aria-label="Formato de visualización del embudo">
+				<button
+					type="button"
+					id="view-toggle-kanban"
+					class="view-toggle-btn active"
+					data-view="kanban"
+					aria-pressed="true"
+					title="Ver el embudo como tablero Kanban por etapas"
+				>
+					<Icon name="kanban" size={16} />
+					<span>Kanban</span>
+				</button>
+				<button
+					type="button"
+					id="view-toggle-list"
+					class="view-toggle-btn"
+					data-view="list"
+					aria-pressed="false"
+					title="Ver el embudo como lista ordenada"
+				>
+					<Icon name="list" size={16} />
+					<span>Lista</span>
+				</button>
 			</div>
-			<div class="stat-divider"></div>
-			<div>
-				<span class="stat-label">Pipeline Activo</span>
-				<span id="total-pipeline-value" class="stat-val-money">$ 0 COP</span>
+
+			<!-- Action Stats -->
+			<div class="stats-card" id="kanban-action-stats-card">
+				<div>
+					<span class="stat-label">Total Leads</span>
+					<span id="total-leads-count" class="stat-value">0</span>
+				</div>
+				<div class="stat-divider"></div>
+				<div>
+					<span class="stat-label">Pipeline Activo</span>
+					<span id="total-pipeline-value" class="stat-val-money">$ 0 COP</span>
+				</div>
 			</div>
+
+			<button
+				id="kanban-share-form-btn"
+				type="button"
+				class="btn-kanban-share"
+				title="Abrir y compartir enlace de formulario público (HU-02)"
+			>
+				<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<circle cx="12" cy="12" r="10"></circle>
+					<line x1="2" y1="12" x2="22" y2="12"></line>
+					<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+				</svg>
+				<span>Formulario Web</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- Search & Fast Filters Bar (Operate Mode - HU-03) -->
+	<div class="kanban-filters-bar">
+		<div class="search-input-wrap">
+			<span class="search-icon">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+			</span>
+			<input
+				type="search"
+				id="kanban-search-input"
+				placeholder="Buscar por cliente, dirección o teléfono..."
+				class="kanban-search-field"
+				autocomplete="off"
+				aria-label="Buscar prospectos"
+			/>
+			<button
+				type="button"
+				id="clear-search-btn"
+				class="clear-search-btn hidden"
+				title="Limpiar búsqueda"
+				aria-label="Limpiar búsqueda"
+			>
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
+		<div class="filter-chips-row" role="group" aria-label="Filtros rápidos por tipo de obra">
+			<button type="button" class="filter-chip active" data-filter-type="all" aria-pressed="true">
+				<span>Todos</span>
+				<span id="chip-count-all" class="chip-count-pill">0</span>
+			</button>
+			<button type="button" class="filter-chip" data-filter-type="Remodelación Total" aria-pressed="false">
+				<span>Remodelación Total</span>
+			</button>
+			<button type="button" class="filter-chip" data-filter-type="Cocina Integral" aria-pressed="false">
+				<span>Cocina</span>
+			</button>
+			<button type="button" class="filter-chip" data-filter-type="Baño" aria-pressed="false">
+				<span>Baño</span>
+			</button>
+			<button type="button" class="filter-chip" data-filter-type="Pintura y Acabados" aria-pressed="false">
+				<span>Pintura</span>
+			</button>
+			<button type="button" class="filter-chip" data-filter-type="Adecuación Comercial" aria-pressed="false">
+				<span>Comercial</span>
+			</button>
+
+			<div class="filter-divider"></div>
+
+			<!-- Inactivity Toggle Chip -->
+			<button
+				type="button"
+				class="filter-chip chip-inactive"
+				id="filter-inactive-btn"
+				data-filter-inactive="false"
+				aria-pressed="false"
+				title="Mostrar solo prospectos con más de 3 días sin actualizar"
+			>
+				<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<circle cx="12" cy="12" r="10"></circle>
+					<polyline points="12 6 12 12 16 14"></polyline>
+				</svg>
+				<span>Inactivos (&gt; 3d)</span>
+				<span id="chip-count-inactive" class="chip-count-pill alert-pill">0</span>
+			</button>
 		</div>
 	</div>
 
@@ -98,7 +227,22 @@
 			</div>
 		</div>
 
-		<!-- COLUMNA 5: GANADO / OBRA ACTIVA -->
+		<!-- COLUMNA 5: EN NEGOCIACIÓN (HU-03) -->
+		<div class="kanban-column column-negotiation" data-stage="negotiation" id="col-wrapper-negotiation">
+			<div class="column-header">
+				<div class="header-left">
+					<span class="header-indicator cyan-bg"></span>
+					<h3 class="col-title">En Negociación</h3>
+					<span id="badge-count-negotiation" class="count-pill cyan-pill">0</span>
+				</div>
+				<span id="val-negotiation" class="col-money">$ 0</span>
+			</div>
+			<div class="cards-container" data-stage="negotiation" id="cards-negotiation">
+				<!-- Dynamically rendered -->
+			</div>
+		</div>
+
+		<!-- COLUMNA 6: GANADO / OBRA ACTIVA -->
 		<div class="kanban-column column-won" data-stage="won" id="col-wrapper-won">
 			<div class="column-header won-header">
 				<div class="header-left">
@@ -113,7 +257,7 @@
 			</div>
 		</div>
 
-		<!-- COLUMNA 6: PERDIDO / DESCARTADO -->
+		<!-- COLUMNA 7: PERDIDO / DESCARTADO -->
 		<div class="kanban-column column-lost" data-stage="lost" id="col-wrapper-lost">
 			<div class="column-header">
 				<div class="header-left">
@@ -129,6 +273,17 @@
 		</div>
 
 	</div>
+
+	<!-- Vista Lista del Embudo (alterna con el Kanban) -->
+	<section id="funnel-list-view" class="funnel-list hidden" aria-label="Embudo de ventas en formato lista">
+		<div class="funnel-list-head" aria-hidden="true">
+			<span>Oportunidad</span>
+			<span>Etapa</span>
+			<span>Presupuesto</span>
+			<span>Acciones</span>
+		</div>
+		<div id="funnel-list-rows" class="funnel-list-rows"></div>
+	</section>
 </div>
 
 <!-- ==========================================================================
@@ -149,7 +304,12 @@
 					<p id="move-modal-subtitle" class="subtitle-text">Selecciona el nuevo tablero para el lead</p>
 				</div>
 			</div>
-			<button id="close-stage-modal-btn" type="button" class="btn-close">✕</button>
+			<button id="close-stage-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
 		</div>
 
 		<div class="stage-options-list" id="stage-options-container">
@@ -160,7 +320,12 @@
 					<span class="stage-opt-title">Nuevo Lead</span>
 					<span class="stage-opt-desc">Prospecto recién capturado en campo o web</span>
 				</div>
-				<span class="stage-check-mark">➔</span>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
 			</button>
 
 			<!-- Option 2: Visita Agendada -->
@@ -170,7 +335,12 @@
 					<span class="stage-opt-title">Visita Agendada</span>
 					<span class="stage-opt-desc">Inspección técnica y levantamiento de medidas</span>
 				</div>
-				<span class="stage-check-mark">➔</span>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
 			</button>
 
 			<!-- Option 3: En Presupuesto -->
@@ -180,7 +350,12 @@
 					<span class="stage-opt-title">En Presupuesto</span>
 					<span class="stage-opt-desc">Elaboración de costos y capítulos (IVA / AIU)</span>
 				</div>
-				<span class="stage-check-mark">➔</span>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
 			</button>
 
 			<!-- Option 4: Propuesta Enviada -->
@@ -190,27 +365,57 @@
 					<span class="stage-opt-title">Propuesta Enviada</span>
 					<span class="stage-opt-desc">Oferta comercial compartida (Magic Link o PDF)</span>
 				</div>
-				<span class="stage-check-mark">➔</span>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
 			</button>
 
-			<!-- Option 5: Ganado / Obra -->
+			<!-- Option 5: En Negociación (HU-03) -->
+			<button type="button" class="stage-option-item" data-stage-target="negotiation">
+				<div class="stage-opt-icon cyan-bg"></div>
+				<div class="stage-opt-text">
+					<span class="stage-opt-title">En Negociación</span>
+					<span class="stage-opt-desc">Ajuste de presupuesto y cierre contractual</span>
+				</div>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
+			</button>
+
+			<!-- Option 6: Ganado / Obra -->
 			<button type="button" class="stage-option-item" data-stage-target="won">
 				<div class="stage-opt-icon emerald-bg"></div>
 				<div class="stage-opt-text">
 					<span class="stage-opt-title">Ganado / Obra Activa</span>
 					<span class="stage-opt-desc">Contrato firmado y obra en ejecución</span>
 				</div>
-				<span class="stage-check-mark">➔</span>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
 			</button>
 
-			<!-- Option 6: Perdido -->
+			<!-- Option 7: Perdido -->
 			<button type="button" class="stage-option-item" data-stage-target="lost">
 				<div class="stage-opt-icon slate-bg"></div>
 				<div class="stage-opt-text">
 					<span class="stage-opt-title">Perdido / Descartado</span>
 					<span class="stage-opt-desc">Rechazado, desistido o sin respuesta</span>
 				</div>
-				<span class="stage-check-mark">➔</span>
+				<span class="stage-check-mark">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+						<polyline points="12 5 19 12 12 19"></polyline>
+					</svg>
+				</span>
 			</button>
 		</div>
 
@@ -225,7 +430,7 @@
 <!-- ==========================================================================
      MODAL 2: EDICIÓN COMPLETA DE LEAD
      ========================================================================== -->
-<div id="edit-lead-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true">
+<div id="edit-lead-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
 	<div id="edit-modal-backdrop" class="modal-backdrop-blur"></div>
 	<div class="modal-card-box">
 		<div class="modal-header">
@@ -237,11 +442,16 @@
 					</svg>
 				</div>
 				<div>
-					<h2 class="title-text">Editar Oportunidad</h2>
+					<h2 id="edit-modal-title" class="title-text">Editar Oportunidad</h2>
 					<p class="subtitle-text">Modifica los datos del cliente o cambia su estado</p>
 				</div>
 			</div>
-			<button id="close-edit-modal-btn" type="button" class="btn-close">✕</button>
+			<button id="close-edit-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
 		</div>
 
 		<form id="edit-lead-form" class="modal-form">
@@ -258,6 +468,11 @@
 			</div>
 
 			<div class="form-group">
+				<label for="edit-client-email" class="form-label">Correo Electrónico (Opcional)</label>
+				<input type="email" id="edit-client-email" class="text-input" placeholder="cliente@correo.com" />
+			</div>
+
+			<div class="form-group">
 				<label for="edit-project-address" class="form-label">Dirección / Inmueble *</label>
 				<input type="text" id="edit-project-address" required class="text-input" />
 			</div>
@@ -265,13 +480,24 @@
 			<div class="form-group">
 				<label for="edit-project-type" class="form-label">Tipo de Obra *</label>
 				<select id="edit-project-type" class="text-input select-input">
-					<option value="Remodelación Total">🔨 Remodelación Total</option>
-					<option value="Cocina Integral">🍳 Cocina Integral</option>
-					<option value="Baño">🚿 Baño</option>
-					<option value="Pintura y Acabados">🎨 Pintura y Acabados</option>
-					<option value="Adecuación Comercial">🏢 Adecuación Comercial</option>
-					<option value="Otro">📦 Otro</option>
+					<option value="Remodelación Total">Remodelación Total</option>
+					<option value="Cocina Integral">Cocina Integral</option>
+					<option value="Baño">Baño</option>
+					<option value="Pintura y Acabados">Pintura y Acabados</option>
+					<option value="Adecuación Comercial">Adecuación Comercial</option>
+					<option value="Otro">Otro</option>
 				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="edit-notes" class="form-label">Notas / Necesidades del Cliente</label>
+				<textarea id="edit-notes" rows="2" class="text-input" placeholder="Detalles de la solicitud"></textarea>
+			</div>
+
+			<!-- Attached Photos Gallery Preview if any -->
+			<div id="edit-photos-section" class="form-group hidden">
+				<label class="form-label">Fotos Adjuntas del Espacio</label>
+				<div id="edit-photos-gallery" class="modal-photos-gallery"></div>
 			</div>
 
 			<div class="form-group">
@@ -282,19 +508,31 @@
 			<div class="form-group">
 				<label for="edit-stage-select" class="form-label">Etapa / Tablero *</label>
 				<select id="edit-stage-select" class="text-input select-input font-bold">
-					<option value="new_lead">🟧 Nuevo Lead</option>
-					<option value="visit_scheduled">🟦 Visita Agendada</option>
-					<option value="in_budgeting">🟪 En Presupuesto</option>
-					<option value="proposal_sent">🟨 Propuesta Enviada</option>
-					<option value="won">🟩 Ganado / Obra Activa</option>
-					<option value="lost">⬜ Perdido / Descartado</option>
+					<option value="new_lead">Nuevo Lead</option>
+					<option value="visit_scheduled">Visita Agendada</option>
+					<option value="in_budgeting">En Presupuesto</option>
+					<option value="proposal_sent">Propuesta Enviada</option>
+					<option value="negotiation">En Negociación</option>
+					<option value="won">Ganado / Obra Activa</option>
+					<option value="lost">Perdido / Descartado</option>
 				</select>
 			</div>
 
 			<div class="modal-actions">
 				<button id="delete-lead-trigger-btn" type="button" class="btn-delete">
-					🗑️ Eliminar
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="3 6 5 6 21 6"></polyline>
+						<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+					</svg>
+					<span>Eliminar</span>
 				</button>
+				<a id="edit-goto-visit-link" href="#" class="btn-goto-visit" title="Abrir Ficha de Visita Técnica y Fotos">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+						<rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+					</svg>
+					<span>Visita Técnica</span>
+				</a>
 				<button id="cancel-edit-btn" type="button" class="btn-cancel">
 					Cancelar
 				</button>
@@ -309,7 +547,7 @@
 <!-- ==========================================================================
      MODAL 3: CONFIRMACIÓN DE ELIMINACIÓN (REEMPLAZA EL CONFIRM DEL NAVEGADOR)
      ========================================================================== -->
-<div id="delete-confirm-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true">
+<div id="delete-confirm-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
 	<div id="delete-confirm-backdrop" class="modal-backdrop-blur"></div>
 	<div class="modal-card-box modal-xs">
 		<div class="delete-box-body">
@@ -321,7 +559,7 @@
 					<line x1="14" y1="11" x2="14" y2="17"></line>
 				</svg>
 			</div>
-			<h3 class="delete-heading">¿Eliminar esta oportunidad?</h3>
+			<h3 id="delete-modal-title" class="delete-heading">¿Eliminar esta oportunidad?</h3>
 			<p id="delete-confirm-text" class="delete-desc">
 				Esta acción eliminará el prospecto del embudo y recalculará las proyecciones.
 			</p>
@@ -336,6 +574,140 @@
 		</div>
 	</div>
 </div>
+
+<!-- ==========================================================================
+     MODAL 3.5: CONFIRMACIÓN DE CREACIÓN DE BORRADOR DE PRESUPUESTO
+     ========================================================================== -->
+<div id="budget-confirm-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true" aria-labelledby="budget-confirm-title">
+	<div id="budget-confirm-backdrop" class="modal-backdrop-blur"></div>
+	<div class="modal-card-box modal-xs">
+		<div class="delete-box-body">
+			<div class="budget-confirm-icon">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+					<polyline points="14 2 14 8 20 8"></polyline>
+					<line x1="16" y1="13" x2="8" y2="13"></line>
+					<line x1="16" y1="17" x2="8" y2="17"></line>
+				</svg>
+			</div>
+			<h3 id="budget-confirm-title" class="delete-heading">¿Crear borrador de presupuesto?</h3>
+			<p id="budget-confirm-text" class="delete-desc">
+				Aún no existe un borrador para esta oportunidad. Se creará uno nuevo y se abrirá el constructor.
+			</p>
+			<div class="delete-actions-row">
+				<button id="cancel-budget-modal-btn" type="button" class="btn-cancel w-1/2">
+					Cancelar
+				</button>
+				<button id="confirm-budget-action-btn" type="button" class="btn-submit w-1/2">
+					Sí, crear borrador
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- ==========================================================================
+     MODAL 4: MOTIVO DE PÉRDIDA OBLIGATORIO (HU-03 GHERKIN SCENARIO)
+     ========================================================================== -->
+<div id="lost-reason-modal" class="modal-backdrop-wrap" role="dialog" aria-modal="true" aria-labelledby="lost-modal-title">
+	<div id="lost-reason-backdrop" class="modal-backdrop-blur"></div>
+	<div class="modal-card-box modal-sm">
+		<div class="modal-header">
+			<div class="title-wrap">
+				<div class="header-icon lost-icon">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="12" r="10"></circle>
+						<line x1="15" y1="9" x2="9" y2="15"></line>
+						<line x1="9" y1="9" x2="15" y2="15"></line>
+					</svg>
+				</div>
+				<div>
+					<h2 id="lost-modal-title" class="title-text">Registrar Motivo de Pérdida</h2>
+					<p id="lost-modal-subtitle" class="subtitle-text">Selecciona la razón principal antes de descartar</p>
+				</div>
+			</div>
+			<button id="close-lost-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
+		<div class="lost-modal-body">
+			<div class="lost-lead-info">
+				<span class="lost-info-label">Oportunidad:</span>
+				<span id="lost-lead-name" class="lost-info-name">—</span>
+			</div>
+
+			<p class="lost-options-heading">Indica la razón por la que se descarta la obra: *</p>
+
+			<div class="lost-reasons-list" id="lost-reasons-container">
+				<label class="lost-reason-radio-item">
+					<input type="radio" name="lost_reason_choice" value="Precio elevado" class="lost-radio-input" />
+					<div class="lost-reason-content">
+						<span class="lost-reason-title">Precio elevado</span>
+						<span class="lost-reason-desc">El presupuesto superó la capacidad o expectativa del cliente</span>
+					</div>
+				</label>
+
+				<label class="lost-reason-radio-item">
+					<input type="radio" name="lost_reason_choice" value="Tiempo de entrega" class="lost-radio-input" />
+					<div class="lost-reason-content">
+						<span class="lost-reason-title">Tiempo de entrega</span>
+						<span class="lost-reason-desc">El cronograma de inicio o duración no se ajustó a su urgencia</span>
+					</div>
+				</label>
+
+				<label class="lost-reason-radio-item">
+					<input type="radio" name="lost_reason_choice" value="Eligió competidor" class="lost-radio-input" />
+					<div class="lost-reason-content">
+						<span class="lost-reason-title">Eligió competidor</span>
+						<span class="lost-reason-desc">Optó por otra constructora o contratista independiente</span>
+					</div>
+				</label>
+
+				<label class="lost-reason-radio-item">
+					<input type="radio" name="lost_reason_choice" value="Sin respuesta / Fantasma" class="lost-radio-input" />
+					<div class="lost-reason-content">
+						<span class="lost-reason-title">Sin respuesta / Fantasma</span>
+						<span class="lost-reason-desc">Dejó de contestar llamadas, mensajes y WhatsApp</span>
+					</div>
+				</label>
+
+				<label class="lost-reason-radio-item">
+					<input type="radio" name="lost_reason_choice" value="Otro" id="radio-lost-other" class="lost-radio-input" />
+					<div class="lost-reason-content">
+						<span class="lost-reason-title">Otro motivo</span>
+						<span class="lost-reason-desc">Causa no especificada anteriormente</span>
+					</div>
+				</label>
+			</div>
+
+			<div id="lost-other-detail-wrap" class="lost-other-wrap hidden">
+				<label for="lost-other-text" class="form-label">Detalle del motivo (opcional)</label>
+				<input
+					type="text"
+					id="lost-other-text"
+					class="text-input"
+					placeholder="Ej. El cliente aplazó la compra del inmueble"
+				/>
+			</div>
+		</div>
+
+		<div class="lost-modal-footer">
+			<button id="cancel-lost-modal-btn" type="button" class="btn-cancel">
+				Cancelar
+			</button>
+			<button id="confirm-lost-btn" type="button" class="btn-confirm-lost" disabled>
+				Confirmar y Descartar
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- Canvas de Celebración al Ganar Obra (Microanimación HU-03) -->
+<canvas id="celebration-canvas" class="celebration-canvas" aria-hidden="true"></canvas>
 
 <style>
 	.kanban-wrapper {
@@ -413,9 +785,45 @@
 		color: #334155;
 	}
 
+	.topbar-actions-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.btn-kanban-share {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.5rem 1rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.75rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #1E293B;
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		transition: all 0.15s ease;
+	}
+
+	.btn-kanban-share:hover {
+		background-color: #EFF6FF;
+		border-color: #93C5FD;
+		color: #1D4ED8;
+		transform: translateY(-1px);
+	}
+
+	.btn-kanban-share:focus-visible {
+		outline: 2px solid #2563EB;
+		outline-offset: 2px;
+	}
+
 	.stats-card {
 		background-color: #FFFFFF;
-		border: 1px solid #E2E8F0;
+		border: 1.5px solid #E2E8F0;
 		border-radius: 0.75rem;
 		padding: 0.5rem 1rem;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -437,6 +845,7 @@
 		font-size: 0.875rem;
 		font-weight: 800;
 		color: #1E293B;
+		font-family: var(--font-mono);
 	}
 
 	.stat-val-money {
@@ -444,12 +853,183 @@
 		font-weight: 800;
 		color: #059669;
 		font-family: var(--font-mono);
+		white-space: nowrap;
 	}
 
 	.stat-divider {
 		width: 1px;
 		height: 1.5rem;
 		background-color: #E2E8F0;
+	}
+
+	/* Search & Fast Filters Bar (HU-03) */
+	.kanban-filters-bar {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding-top: 1.25rem;
+		padding-bottom: 0.25rem;
+	}
+
+	@media (min-width: 768px) {
+		.kanban-filters-bar {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+		}
+	}
+
+	.search-input-wrap {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		max-width: 26rem;
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 0.875rem;
+		color: #94A3B8;
+		pointer-events: none;
+		display: flex;
+		align-items: center;
+	}
+
+	.kanban-search-field {
+		width: 100%;
+		min-height: 3rem;
+		padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.75rem;
+		font-size: 0.875rem;
+		color: #0F172A;
+		outline: none;
+		transition: all 0.15s ease;
+	}
+
+	.kanban-search-field:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.clear-search-btn {
+		position: absolute;
+		right: 0.5rem;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 9999px;
+		background-color: #E2E8F0;
+		color: #334155;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background-color 0.15s;
+	}
+
+	.clear-search-btn:hover {
+		background-color: #CBD5E1;
+		color: #0F172A;
+	}
+
+	.clear-search-btn:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.filter-chips-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		overflow-x: auto;
+		padding-bottom: 0.25rem;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.filter-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 2.75rem;
+		padding: 0.375rem 0.875rem;
+		border-radius: 9999px;
+		border: 1.5px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #334155;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+		user-select: none;
+	}
+
+	.filter-chip:hover {
+		border-color: #94A3B8;
+		background-color: #F8FAFC;
+	}
+
+	.filter-chip:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.filter-chip.active {
+		border-color: #0F172A;
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	.filter-chip.active .chip-count-pill {
+		background-color: #334155;
+		color: #FFFFFF;
+	}
+
+	.chip-count-pill {
+		font-size: 0.6875rem;
+		font-family: var(--font-mono);
+		background-color: #E2E8F0;
+		color: #334155;
+		padding: 0.0625rem 0.375rem;
+		border-radius: 9999px;
+	}
+
+	.chip-inactive {
+		border-color: #FED7AA;
+		color: #C2410C;
+		background-color: #FFF7ED;
+	}
+
+	.chip-inactive:hover {
+		background-color: #FFEDD5;
+		border-color: #FDBA74;
+	}
+
+	.chip-inactive.active {
+		border-color: #EA580C;
+		background-color: #EA580C;
+		color: #FFFFFF;
+	}
+
+	.alert-pill {
+		background-color: #FEE2E2;
+		color: #991B1B;
+	}
+
+	.chip-inactive.active .alert-pill {
+		background-color: #991B1B;
+		color: #FFFFFF;
+	}
+
+	.filter-divider {
+		width: 1px;
+		height: 1.5rem;
+		background-color: #CBD5E1;
+		flex-shrink: 0;
 	}
 
 	.kanban-scroll {
@@ -462,8 +1042,8 @@
 	}
 
 	.kanban-column {
-		width: 19.5rem;
-		min-width: 19.5rem;
+		width: 21.5rem;
+		min-width: 21.5rem;
 		background-color: rgba(241, 245, 249, 0.75);
 		border-radius: 1rem;
 		padding: 0.75rem;
@@ -472,16 +1052,23 @@
 		flex-direction: column;
 		max-height: calc(100vh - 200px);
 		transition: background-color 0.15s, border-color 0.15s;
+		box-sizing: border-box;
 	}
 
 	.kanban-column.drag-over {
 		background-color: #FFF7ED !important;
 		border: 2px dashed #F97316 !important;
+		box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18) !important;
 	}
 
 	.column-highlight {
 		border: 2px solid #FED7AA;
 		background-color: rgba(255, 247, 237, 0.5);
+	}
+
+	.column-negotiation {
+		background-color: rgba(236, 254, 255, 0.55);
+		border: 1px solid #A5F3FC;
 	}
 
 	.column-won {
@@ -519,6 +1106,7 @@
 	.blue-bg   { background-color: #3B82F6; }
 	.purple-bg { background-color: #8B5CF6; }
 	.amber-bg  { background-color: #F59E0B; }
+	.cyan-bg   { background-color: #06B6D4; }
 	.emerald-bg{ background-color: #10B981; }
 	.slate-bg  { background-color: #64748B; }
 
@@ -543,6 +1131,7 @@
 	.blue-pill   { background-color: #DBEAFE; color: #1E40AF; }
 	.purple-pill { background-color: #EDE9FE; color: #5B21B6; }
 	.amber-pill  { background-color: #FEF3C7; color: #92400E; }
+	.cyan-pill   { background-color: #CFFAFE; color: #155E75; font-weight: 800; }
 	.emerald-pill{ background-color: #D1FAE5; color: #065F46; }
 	.slate-pill  { background-color: #E2E8F0; color: #475569; }
 
@@ -551,6 +1140,7 @@
 		font-weight: 700;
 		color: #64748B;
 		font-family: var(--font-mono);
+		white-space: nowrap !important;
 	}
 
 	.emerald-text { color: #047857; }
@@ -577,6 +1167,9 @@
 		cursor: grab;
 		user-select: none;
 		position: relative;
+		box-sizing: border-box;
+		width: 100%;
+		overflow: hidden;
 	}
 
 	:global(.lead-card:hover) {
@@ -593,9 +1186,11 @@
 
 	:global(.card-top-row) {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: space-between;
 		gap: 0.5rem;
+		min-height: 2rem;
+		width: 100%;
 	}
 
 	:global(.tag-group) {
@@ -603,6 +1198,8 @@
 		align-items: center;
 		gap: 0.375rem;
 		flex-wrap: wrap;
+		flex: 1;
+		min-width: 0;
 	}
 
 	:global(.project-badge) {
@@ -615,25 +1212,158 @@
 		border: 1px solid #FFEDD5;
 	}
 
-	:global(.card-menu-btn) {
-		width: 1.75rem;
-		height: 1.75rem;
+	:global(.web-badge) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.125rem 0.5rem;
 		border-radius: 0.375rem;
+		background-color: #EFF6FF;
+		color: #1D4ED8;
+		border: 1px solid #BFDBFE;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.photos-badge) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.375rem;
+		background-color: #F0FDF4;
+		color: #15803D;
+		border: 1px solid #BBF7D0;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.inactive-badge) {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.375rem;
+		background-color: #FEF3C7;
+		color: #78350F;
+		border: 1px solid #FCD34D;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.lost-reason-badge) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.375rem;
+		background-color: #F1F5F9;
+		color: #475569;
+		border: 1px solid #CBD5E1;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.visit-scheduled-badge) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.375rem;
+		background-color: #EFF6FF;
+		color: #1D4ED8;
+		border: 1px solid #BFDBFE;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.before-photos-badge) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.375rem;
+		background-color: #F5F3FF;
+		color: #6D28D9;
+		border: 1px solid #DDD6FE;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.lead-card-notes) {
+		font-size: 0.71875rem;
+		color: #475569;
+		margin-top: 0.375rem;
+		line-height: 1.35;
+		font-style: italic;
+		background-color: #F8FAFC;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.375rem;
+		border-left: 2px solid #CBD5E1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	:global(.notes-quote) {
+		color: #94A3B8;
+		font-weight: 800;
+	}
+
+	.modal-photos-gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+		gap: 0.5rem;
+		margin-top: 0.375rem;
+	}
+
+	:global(.modal-photo-item) {
+		position: relative;
+		aspect-ratio: 1 / 1;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		border: 1px solid #CBD5E1;
+		background-color: #0F172A;
+	}
+
+	:global(.modal-photo-item img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	:global(.card-menu-btn) {
+		align-self: flex-start;
+		width: 32px;
+		height: 32px;
+		min-width: 32px;
+		min-height: 32px;
+		border-radius: 0.5rem;
 		border: none;
 		background: transparent;
-		color: #64748B;
+		color: #475569;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
 		font-weight: bold;
-		font-size: 1rem;
+		font-size: 1.125rem;
 		line-height: 1;
+		flex-shrink: 0;
+		transition: all 0.15s ease;
 	}
 
 	:global(.card-menu-btn:hover) {
 		background-color: #F1F5F9;
 		color: #0F172A;
+	}
+
+	:global(.card-menu-btn:focus-visible) {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
 	}
 
 	:global(.lead-card-name) {
@@ -646,7 +1376,7 @@
 
 	:global(.lead-address) {
 		font-size: 0.75rem;
-		color: #64748B;
+		color: #475569;
 		display: flex;
 		align-items: center;
 		gap: 0.375rem;
@@ -656,62 +1386,212 @@
 		text-overflow: ellipsis;
 	}
 
-	:global(.card-bottom-row) {
+	/* Card Budget and Contact Row */
+	:global(.card-budget-row) {
 		margin-top: 0.75rem;
 		padding-top: 0.625rem;
 		border-top: 1px solid #F1F5F9;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	:global(.card-budget-info) {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	:global(.card-budget-caption) {
+		font-size: 0.625rem;
+		font-weight: 700;
+		color: #94A3B8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		line-height: 1;
+		margin-bottom: 0.1875rem;
 	}
 
 	:global(.card-price) {
-		font-size: 0.75rem;
-		font-weight: 700;
-		color: #1E293B;
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #047857;
 		font-family: var(--font-mono);
+		white-space: nowrap !important;
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.15rem;
+		line-height: 1.2;
 	}
 
-	:global(.card-actions) {
+	:global(.currency-symbol) {
+		font-size: 0.8125rem;
+		color: #059669;
+		font-weight: 700;
+	}
+
+	:global(.currency-digits) {
+		white-space: nowrap !important;
+	}
+
+	:global(.btn-card-wa-pill) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 2.25rem;
+		min-height: 2.25rem;
+		padding: 0.4375rem;
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+		border-radius: 9999px;
+		text-decoration: none;
+		white-space: nowrap;
+		flex-shrink: 0;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-card-wa-pill:hover) {
+		background-color: #D1FAE5;
+		border-color: #6EE7B7;
+		transform: translateY(-1px);
+	}
+
+	:global(.btn-card-wa-pill:focus-visible) {
+		outline: 2px solid #10B981;
+		outline-offset: 2px;
+	}
+
+	/* Card Actions Grid (Presupuesto + Visita Técnica + Mover) en formato icono */
+	:global(.card-actions-grid) {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+		margin-top: 0.625rem;
+	}
+
+	:global(.btn-card-visit-link) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		padding: 0.4375rem 0.5rem;
+		min-height: 2.25rem;
+		border-radius: 0.5rem;
+		background-color: #FFF7ED;
+		border: 1.5px solid #FED7AA;
+		color: #C2410C;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-decoration: none;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-card-visit-link:hover) {
+		background-color: #FFEDD5;
+		border-color: #FDBA74;
+	}
+
+	:global(.btn-card-visit-link:focus-visible) {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	:global(.btn-card-move-action) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		padding: 0.4375rem 0.5rem;
+		min-height: 2.25rem;
+		border-radius: 0.5rem;
+		background-color: #F8FAFC;
+		border: 1.5px solid #CBD5E1;
+		color: #334155;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-card-move-action:hover) {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	:global(.btn-card-move-action:focus-visible) {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	/* Dedicated contextual strips inside card */
+	:global(.card-visit-strip) {
+		margin-top: 0.5rem;
+		padding: 0.3125rem 0.625rem;
+		border-radius: 0.375rem;
+		background-color: #EFF6FF;
+		border: 1px solid #BFDBFE;
+		color: #1E40AF;
+		font-size: 0.6875rem;
 		display: flex;
 		align-items: center;
 		gap: 0.375rem;
+		line-height: 1.2;
 	}
 
-	:global(.btn-card-action) {
-		font-size: 0.6875rem;
-		font-weight: 700;
-		padding: 0.25rem 0.5rem;
+	:global(.card-lost-strip) {
+		margin-top: 0.5rem;
+		padding: 0.3125rem 0.625rem;
 		border-radius: 0.375rem;
-		text-decoration: none;
-		border: 1px solid #CBD5E1;
-		background-color: #FFFFFF;
-		color: #334155;
-		cursor: pointer;
-		transition: background-color 0.15s;
-	}
-
-	:global(.btn-card-action:hover) {
 		background-color: #F8FAFC;
+		border: 1px solid #CBD5E1;
+		color: #475569;
+		font-size: 0.6875rem;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		line-height: 1.2;
 	}
 
-	:global(.btn-card-wa) {
-		background-color: #ECFDF5;
-		color: #047857;
-		border-color: #A7F3D0;
+	:global(.strip-photos-count) {
+		margin-left: auto;
+		font-weight: 700;
+		color: #059669;
+		font-size: 0.6875rem;
 	}
 
-	:global(.btn-card-wa:hover) {
-		background-color: #D1FAE5;
+	.btn-goto-visit {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		padding: 0.625rem 0.875rem;
+		border-radius: 0.625rem;
+		background-color: #FFF7ED;
+		border: 1px solid #FDBA74;
+		color: #EA580C;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition: background-color 0.15s;
+		min-height: 48px;
+	}
+
+	.btn-goto-visit:hover {
+		background-color: #FFEDD5;
 	}
 
 	:global(.empty-column-placeholder) {
 		padding: 2rem 1rem;
 		text-align: center;
-		color: #94A3B8;
+		color: #475569;
 		font-size: 0.75rem;
-		font-weight: 500;
-		border: 2px dashed #E2E8F0;
+		font-weight: 600;
+		border: 2px dashed #CBD5E1;
 		border-radius: 0.75rem;
 		margin: 0.5rem 0;
 	}
@@ -922,6 +1802,19 @@
 		margin-bottom: 1rem;
 	}
 
+	.budget-confirm-icon {
+		width: 3.25rem;
+		height: 3.25rem;
+		border-radius: 1rem;
+		background-color: #FFF7ED;
+		border: 1px solid #FFEDD5;
+		color: #EA580C;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 1rem;
+	}
+
 	.delete-heading {
 		font-size: 1.125rem;
 		font-weight: 800;
@@ -1061,20 +1954,504 @@
 
 	.w-full { width: 100%; }
 	.w-1\/2 { width: 50%; }
+
+	/* Lost Reason Modal (HU-03) */
+	.lost-modal-body {
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		text-align: left;
+		overflow-y: auto;
+		max-height: 65vh;
+	}
+
+	.lost-lead-info {
+		padding: 0.625rem 0.75rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		font-size: 0.75rem;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.lost-info-label {
+		color: #64748B;
+		font-weight: 600;
+	}
+
+	.lost-info-name {
+		color: #0F172A;
+		font-weight: 700;
+	}
+
+	.lost-options-heading {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #334155;
+	}
+
+	.lost-reasons-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.lost-reason-radio-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		padding: 0.75rem 0.875rem;
+		border-radius: 0.75rem;
+		border: 1.5px solid #E2E8F0;
+		background-color: #FFFFFF;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		user-select: none;
+	}
+
+	.lost-reason-radio-item:hover {
+		border-color: #CBD5E1;
+		background-color: #F8FAFC;
+	}
+
+	.lost-reason-radio-item.selected {
+		border-color: #64748B;
+		background-color: #F1F5F9;
+	}
+
+	.lost-radio-input {
+		margin-top: 0.25rem;
+		accent-color: #0F172A;
+		cursor: pointer;
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+
+	.lost-reason-content {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.lost-reason-title {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.lost-reason-desc {
+		font-size: 0.6875rem;
+		color: #64748B;
+		margin-top: 0.125rem;
+	}
+
+	.lost-other-wrap {
+		margin-top: 0.25rem;
+	}
+
+	.lost-modal-footer {
+		padding: 1rem 1.25rem;
+		border-top: 1px solid #F1F5F9;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.75rem;
+	}
+
+	.btn-confirm-lost {
+		padding: 0.625rem 1rem;
+		border-radius: 0.625rem;
+		border: none;
+		background-color: #475569;
+		color: #FFFFFF;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: background-color 0.15s;
+	}
+
+	.btn-confirm-lost:hover:not(:disabled) {
+		background-color: #334155;
+	}
+
+	.btn-confirm-lost:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.lost-icon {
+		background-color: #F1F5F9 !important;
+		color: #475569 !important;
+		border-color: #CBD5E1 !important;
+	}
+
+	/* Modal Action Focus States */
+	.btn-delete:focus-visible,
+	.btn-cancel:focus-visible,
+	.btn-submit:focus-visible,
+	.btn-confirm-delete:focus-visible,
+	.btn-confirm-lost:focus-visible,
+	.stage-option-item:focus-visible,
+	.btn-close:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.lost-reason-radio-item:focus-within {
+		border-color: #F97316;
+		box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+	}
+
+	/* Celebration Canvas (HU-03) */
+	.celebration-canvas {
+		position: fixed;
+		inset: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 100;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.25s ease;
+	}
+
+	.celebration-canvas.active {
+		opacity: 1;
+	}
+
+	/* Mobile & Tablet Touch Ergonomics (Operate Mode: >=48x48px touch targets) */
+	@media (max-width: 768px) {
+		.filter-chip {
+			min-height: 48px;
+			padding: 0.5rem 0.875rem;
+			font-size: 0.8125rem;
+		}
+
+		.btn-kanban-share {
+			min-height: 48px;
+			width: 100%;
+			justify-content: center;
+		}
+
+		.clear-search-btn {
+			width: 48px;
+			height: 48px;
+		}
+
+		.kanban-search-field {
+			min-height: 48px;
+		}
+
+		:global(.btn-card-action) {
+			min-height: 48px;
+			min-width: 48px;
+			padding: 0.5rem 0.875rem;
+			font-size: 0.8125rem;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		:global(.card-menu-btn) {
+			width: 48px;
+			height: 48px;
+			min-width: 48px;
+			min-height: 48px;
+		}
+
+		.btn-close {
+			width: 48px;
+			height: 48px;
+		}
+
+		.btn-cancel, .btn-submit, .btn-confirm-delete, .btn-confirm-lost, .btn-delete {
+			min-height: 48px;
+		}
+
+		:global(.btn-card-visit-link),
+		:global(.btn-card-move-action),
+		:global(.btn-card-budget-action),
+		.btn-goto-visit {
+			min-height: 48px;
+			padding: 0.5rem 0.875rem;
+			font-size: 0.8125rem;
+		}
+
+		:global(.btn-card-wa-pill) {
+			min-height: 44px;
+			min-width: 44px;
+			padding: 0.4375rem;
+		}
+
+		.stage-option-item {
+			min-height: 48px;
+		}
+
+		.lost-reason-radio-item {
+			min-height: 48px;
+		}
+	}
+
+	/* ==========================================================================
+	   CONMUTADOR DE VISTA: KANBAN / LISTA
+	   ========================================================================== */
+	.view-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.125rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.75rem;
+		padding: 0.1875rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	}
+
+	.view-toggle-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 2.25rem;
+		padding: 0.375rem 0.75rem;
+		border: none;
+		background-color: transparent;
+		border-radius: 0.5rem;
+		font-family: var(--font-sans);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #475569;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.view-toggle-btn:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+	}
+
+	.view-toggle-btn.active {
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	.view-toggle-btn:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	/* ==========================================================================
+	   VISTA LISTA DEL EMBUDO
+	   ========================================================================== */
+	.hidden {
+		display: none !important;
+	}
+
+	.funnel-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding-top: 1.5rem;
+		padding-bottom: 2rem;
+	}
+
+	.funnel-list-head {
+		display: none;
+	}
+
+	.funnel-list-rows {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	@media (min-width: 900px) {
+		.funnel-list-head {
+			display: grid;
+			grid-template-columns: minmax(0, 3fr) 10rem 11rem minmax(0, 12rem);
+			gap: 1rem;
+			padding: 0 1rem 0.375rem;
+			font-size: 0.6875rem;
+			font-weight: 800;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: #94A3B8;
+		}
+	}
+
+	.funnel-empty {
+		background-color: #FFFFFF;
+		border: 2px dashed #CBD5E1;
+		border-radius: 1rem;
+		padding: 2.5rem 1.25rem;
+		text-align: center;
+		color: #475569;
+		font-size: 0.875rem;
+	}
+
+	:global(.funnel-row) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 0.875rem 1rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	:global(.funnel-row:hover) {
+		border-color: #CBD5E1;
+		box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+	}
+
+	@media (min-width: 900px) {
+		:global(.funnel-row) {
+			display: grid;
+			grid-template-columns: minmax(0, 3fr) 10rem 11rem minmax(0, 12rem);
+			align-items: center;
+			gap: 1rem;
+		}
+	}
+
+	:global(.funnel-row-lead) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		min-width: 0;
+	}
+
+	:global(.funnel-row-title-line) {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+	}
+
+	:global(.funnel-row-name) {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.01em;
+	}
+
+	:global(.funnel-row-sub) {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.75rem;
+		font-size: 0.8125rem;
+		color: #475569;
+		line-height: 1.4;
+	}
+
+	:global(.funnel-row-sub span) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	:global(.funnel-row-stage),
+	:global(.funnel-row-money) {
+		display: flex;
+		align-items: center;
+	}
+
+	:global(.funnel-row-actions) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	:global(.stage-chip) {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.6875rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.5rem;
+		white-space: nowrap;
+	}
+
+	:global(.stage-new_lead)     { background-color: #FFEDD5; color: #9A3412; }
+	:global(.stage-visit_scheduled) { background-color: #DBEAFE; color: #1E40AF; }
+	:global(.stage-in_budgeting) { background-color: #EDE9FE; color: #5B21B6; }
+	:global(.stage-proposal_sent){ background-color: #FEF3C7; color: #92400E; }
+	:global(.stage-negotiation)  { background-color: #CFFAFE; color: #155E75; }
+	:global(.stage-won)          { background-color: #D1FAE5; color: #065F46; }
+	:global(.stage-lost)         { background-color: #E2E8F0; color: #475569; }
+
+	/* Botón de borrador de presupuesto (tarjeta Kanban y fila de lista) */
+	:global(.btn-card-budget-action) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.25rem;
+		padding: 0.4375rem 0.5rem;
+		border-radius: 0.5rem;
+		background-color: #FFF7ED;
+		border: 1.5px solid #F97316;
+		color: #C2410C;
+		cursor: pointer;
+		transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+	}
+
+	:global(.btn-card-budget-action:hover) {
+		background-color: #F97316;
+		border-color: #F97316;
+		color: #FFFFFF;
+		transform: translateY(-1px);
+	}
+
+	:global(.btn-card-budget-action:focus-visible) {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
 </style>
 
 <script>
-	// Complete Client-Side Lead State Management & Interactive Drag & Drop Engine
+	// Complete Client-Side Lead State Management & Interactive Drag & Drop Engine (HU-03 / HU-04)
+	import { createBudget, loadBudgets, persistBudget } from '../lib/budget-store';
+
+	interface BeforePhoto {
+		id: string;
+		name: string;
+		dataUrl: string;
+		sizeKb: number;
+		zone: string;
+		created_at: string;
+	}
+
+	interface TechnicalVisit {
+		scheduled_for?: string;
+		access_notes?: string;
+		technical_notes?: string;
+		photos?: BeforePhoto[];
+		updated_at?: string;
+	}
+
 	interface Lead {
 		id: string;
 		client_name: string;
 		client_phone: string;
+		client_email?: string;
 		project_address: string;
 		project_type: string;
+		notes?: string;
 		estimated_budget: number;
-		stage: 'new_lead' | 'visit_scheduled' | 'in_budgeting' | 'proposal_sent' | 'won' | 'lost';
+		stage: 'new_lead' | 'visit_scheduled' | 'in_budgeting' | 'proposal_sent' | 'negotiation' | 'won' | 'lost';
 		created_at: string;
-		source?: string;
+		updated_at?: string;
+		lost_reason?: string;
+		source?: 'manual' | 'web' | string;
+		photos_count?: number;
+		photos?: Array<{ name: string; size?: number; dataUrl?: string }>;
+		visit?: TechnicalVisit;
 	}
 
 	const STAGES = [
@@ -1082,9 +2459,12 @@
 		{ id: 'visit_scheduled', name: 'Visita Agendada' },
 		{ id: 'in_budgeting', name: 'En Presupuesto' },
 		{ id: 'proposal_sent', name: 'Propuesta Enviada' },
+		{ id: 'negotiation', name: 'En Negociación' },
 		{ id: 'won', name: 'Ganado / Obra' },
 		{ id: 'lost', name: 'Perdido' }
 	] as const;
+
+	const ACTIVE_STAGES: Lead['stage'][] = ['new_lead', 'visit_scheduled', 'in_budgeting', 'proposal_sent', 'negotiation'];
 
 	const DEFAULT_LEADS: Lead[] = [
 		{
@@ -1095,16 +2475,21 @@
 			project_type: 'Remodelación Total',
 			estimated_budget: 35000000,
 			stage: 'new_lead',
+			source: 'manual',
 			created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString()
 		},
 		{
 			id: 'lead_02',
 			client_name: 'Andrés Delgado',
 			client_phone: '+573155554321',
+			client_email: 'andres@gmail.com',
 			project_address: 'Loma del Chocho (Envigado)',
 			project_type: 'Cocina Integral',
-			estimated_budget: 10000000,
+			notes: 'Quiero tumbar un muro y cambiar muebles y mesón',
+			estimated_budget: 18000000,
 			stage: 'new_lead',
+			source: 'web',
+			photos_count: 3,
 			created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString()
 		},
 		{
@@ -1115,7 +2500,13 @@
 			project_type: 'Baño',
 			estimated_budget: 22500000,
 			stage: 'visit_scheduled',
-			created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+			created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+			visit: {
+				scheduled_for: '2026-11-22T14:00',
+				access_notes: 'Portería Torre 2, citófono 302. Horario permitido de obra: Lun-Vie 8:00 a 17:00.',
+				technical_notes: 'Revisión hidrosanitaria del baño principal. Presión de agua adecuada. Se requiere demoler enchapado cerámico antiguo y reemplazar punto de desagüe a 4 pulgadas.',
+				photos: []
+			}
 		},
 		{
 			id: 'lead_04',
@@ -1135,10 +2526,21 @@
 			project_type: 'Remodelación Total',
 			estimated_budget: 29000000,
 			stage: 'proposal_sent',
-			created_at: new Date(Date.now() - 48 * 3600 * 1000).toISOString()
+			created_at: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString(), // > 3 days (inactivo)
+			updated_at: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString()
 		},
 		{
 			id: 'lead_06',
+			client_name: 'Constructora Capital',
+			client_phone: '+573142223344',
+			project_address: 'Sector Provenza (Medellín)',
+			project_type: 'Pintura y Acabados',
+			estimated_budget: 52000000,
+			stage: 'negotiation',
+			created_at: new Date(Date.now() - 30 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_07',
 			client_name: 'Familia Arango Ospina',
 			client_phone: '+573189990011',
 			project_address: 'Altos de San Lucas (El Poblado)',
@@ -1146,14 +2548,61 @@
 			estimated_budget: 40000000,
 			stage: 'won',
 			created_at: new Date(Date.now() - 72 * 3600 * 1000).toISOString()
+		},
+		{
+			id: 'lead_08',
+			client_name: 'Inversiones Río Claro',
+			client_phone: '+573123456789',
+			project_address: 'Calle 50 # 45-20 (Centro)',
+			project_type: 'Adecuación Comercial',
+			estimated_budget: 65000000,
+			stage: 'lost',
+			lost_reason: 'Precio elevado',
+			created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
+			updated_at: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
 		}
 	];
+
+	// Inactivity detector (> 3 days / 72 hours in active stages)
+	function isLeadInactive(lead: Lead): boolean {
+		if (!ACTIVE_STAGES.includes(lead.stage)) return false;
+		const dateStr = lead.updated_at || lead.created_at;
+		if (!dateStr) return false;
+		const diffMs = Date.now() - new Date(dateStr).getTime();
+		const diffHours = diffMs / (1000 * 60 * 60);
+		return diffHours >= 72;
+	}
 
 	function loadLeads(): Lead[] {
 		try {
 			const saved = localStorage.getItem('obraflow_leads');
 			if (saved) {
-				return JSON.parse(saved);
+				const parsed: Lead[] = JSON.parse(saved);
+				if (Array.isArray(parsed) && parsed.length > 0) {
+					// Seed any missing sample leads (negotiation / lost) if older storage exists
+					const hasNegotiation = parsed.some(l => l.stage === 'negotiation');
+					if (!hasNegotiation) {
+						DEFAULT_LEADS.forEach(dl => {
+							if (!parsed.some(p => p.id === dl.id)) {
+								parsed.push(dl);
+							}
+						});
+						saveLeads(parsed);
+					}
+
+					// Ensure lead_03 has visit sample data
+					const felipe = parsed.find(l => l.id === 'lead_03');
+					if (felipe && !felipe.visit) {
+						felipe.visit = {
+							scheduled_for: '2026-11-22T14:00',
+							access_notes: 'Portería Torre 2, citófono 302. Horario permitido de obra: Lun-Vie 8:00 a 17:00.',
+							technical_notes: 'Revisión hidrosanitaria del baño principal. Presión de agua adecuada. Se requiere demoler enchapado cerámico antiguo y reemplazar punto de desagüe a 4 pulgadas.',
+							photos: []
+						};
+						saveLeads(parsed);
+					}
+					return parsed;
+				}
 			}
 		} catch (_) {}
 		saveLeads(DEFAULT_LEADS);
@@ -1169,27 +2618,143 @@
 	let leads: Lead[] = loadLeads();
 	let draggedLeadId: string | null = null;
 	let currentActionLeadId: string | null = null;
+	let pendingLostLeadId: string | null = null;
 
-	// Render the whole Kanban Board Reactively
+	// Filter state
+	let searchQuery = '';
+	let activeTypeFilter = 'all';
+	let showOnlyInactive = false;
+
+	function getFilteredLeads(): Lead[] {
+		return leads.filter((lead) => {
+			// Search query (client_name, project_address, client_phone)
+			if (searchQuery) {
+				const q = searchQuery.toLowerCase();
+				const name = (lead.client_name || '').toLowerCase();
+				const addr = (lead.project_address || '').toLowerCase();
+				const phone = (lead.client_phone || '').toLowerCase();
+				if (!name.includes(q) && !addr.includes(q) && !phone.includes(q)) {
+					return false;
+				}
+			}
+
+			// Project type filter
+			if (activeTypeFilter !== 'all') {
+				if (lead.project_type !== activeTypeFilter) {
+					return false;
+				}
+			}
+
+			// Inactive filter toggle
+			if (showOnlyInactive) {
+				if (!isLeadInactive(lead)) {
+					return false;
+				}
+			}
+
+			return true;
+		});
+	}
+
+	// View state: 'kanban' | 'list' (persistido en el dispositivo)
+	const FUNNEL_VIEW_KEY = 'obraflow_funnel_view';
+	let currentView: 'kanban' | 'list' = localStorage.getItem(FUNNEL_VIEW_KEY) === 'list' ? 'list' : 'kanban';
+
+	// Iconos react-icons (Tabler) pre-renderizados por el servidor.
+	const funnelIcons = (() => {
+		try {
+			const el = document.getElementById('funnel-icons-data');
+			return el && el.textContent ? (JSON.parse(el.textContent) as Record<string, string>) : {};
+		} catch (_) {
+			return {} as Record<string, string>;
+		}
+	})();
+
+	const STAGE_CHIP_CLASS: Record<string, string> = {
+		new_lead: 'stage-new_lead',
+		visit_scheduled: 'stage-visit_scheduled',
+		in_budgeting: 'stage-in_budgeting',
+		proposal_sent: 'stage-proposal_sent',
+		negotiation: 'stage-negotiation',
+		won: 'stage-won',
+		lost: 'stage-lost'
+	};
+
+	function stageLabel(stageId: string): string {
+		const stage = STAGES.find(s => s.id === stageId);
+		return stage ? stage.name : stageId;
+	}
+
+	// Set de lead_ids que ya cuentan con un presupuesto (borrador o enviado)
+	function leadIdsWithBudget(): Set<string> {
+		try {
+			const ids = loadBudgets()
+				.map((budget) => budget.lead_id)
+				.filter((id): id is string => Boolean(id));
+			return new Set(ids);
+		} catch (_) {
+			return new Set();
+		}
+	}
+
+	// Actualiza KPIs, contadores de chips y estado del buscador (compartido por ambas vistas)
+	function updateSummary(filteredLeads: Lead[]) {
+		const totalInactiveCount = leads.filter(l => isLeadInactive(l)).length;
+		const chipCountInactiveEl = document.getElementById('chip-count-inactive');
+		if (chipCountInactiveEl) chipCountInactiveEl.textContent = totalInactiveCount.toString();
+
+		// Update total leads count in "Todos" chip badge
+		const chipCountAllEl = document.getElementById('chip-count-all');
+		if (chipCountAllEl) chipCountAllEl.textContent = leads.length.toString();
+
+		let grandTotalVal = 0;
+		let activeLeadsCount = 0;
+		filteredLeads.forEach((lead) => {
+			if ((lead.stage || 'new_lead') !== 'lost') {
+				grandTotalVal += (lead.estimated_budget || 0);
+				activeLeadsCount += 1;
+			}
+		});
+
+		// Actualizar tarjeta de estadísticas de la barra superior
+		const totalCountEl = document.getElementById('total-leads-count');
+		if (totalCountEl) totalCountEl.textContent = activeLeadsCount.toString();
+
+		const totalMoneyEl = document.getElementById('total-pipeline-value');
+		if (totalMoneyEl) totalMoneyEl.textContent = `$ ${grandTotalVal.toLocaleString('es-CO')} COP`;
+
+		// Sincronizar pipeline con el Header global en tiempo real
+		window.dispatchEvent(new CustomEvent('pipeline-updated', {
+			detail: { count: activeLeadsCount, total: grandTotalVal }
+		}));
+
+		// Toggle search clear button
+		const clearSearchBtn = document.getElementById('clear-search-btn');
+		if (clearSearchBtn) clearSearchBtn.style.display = searchQuery ? 'flex' : 'none';
+	}
+
+	// Render the whole Kanban Board Reactively with Filter Support
 	function renderKanban() {
 		STAGES.forEach(({ id }) => {
 			const container = document.getElementById(`cards-${id}`);
 			if (container) container.innerHTML = '';
 		});
 
-		let grandTotalVal = 0;
-		let activeLeadsCount = 0;
+		const filteredLeads = getFilteredLeads();
+		updateSummary(filteredLeads);
+		const budgetsByLead = leadIdsWithBudget();
 
 		const stageSums: Record<string, { count: number; val: number }> = {
 			new_lead: { count: 0, val: 0 },
 			visit_scheduled: { count: 0, val: 0 },
 			in_budgeting: { count: 0, val: 0 },
 			proposal_sent: { count: 0, val: 0 },
+			negotiation: { count: 0, val: 0 },
 			won: { count: 0, val: 0 },
 			lost: { count: 0, val: 0 }
 		};
 
-		leads.forEach((lead) => {
+		filteredLeads.forEach((lead) => {
 			const stage = lead.stage || 'new_lead';
 			if (!stageSums[stage]) {
 				stageSums[stage] = { count: 0, val: 0 };
@@ -1197,19 +2762,14 @@
 			stageSums[stage].count += 1;
 			stageSums[stage].val += (lead.estimated_budget || 0);
 
-			if (stage !== 'lost') {
-				grandTotalVal += (lead.estimated_budget || 0);
-				activeLeadsCount += 1;
-			}
-
 			const container = document.getElementById(`cards-${stage}`);
 			if (container) {
-				const cardEl = createCardElement(lead);
+				const cardEl = createCardElement(lead, budgetsByLead.has(lead.id));
 				container.appendChild(cardEl);
 			}
 		});
 
-		// Update column headers
+		// Update column headers & empty states
 		STAGES.forEach(({ id }) => {
 			const countPill = document.getElementById(`badge-count-${id}`);
 			const valEl = document.getElementById(`val-${id}`);
@@ -1225,65 +2785,373 @@
 			if (container && stats.count === 0) {
 				const empty = document.createElement('div');
 				empty.className = 'empty-column-placeholder';
-				empty.textContent = 'Suelta una tarjeta aquí';
+				empty.textContent = searchQuery || activeTypeFilter !== 'all' || showOnlyInactive
+					? 'Sin coincidencias'
+					: 'Suelta una tarjeta aquí';
 				container.appendChild(empty);
 			}
 		});
-
-		// Update Top Bar Global Stats
-		const totalLeadsEl = document.getElementById('total-leads-count');
-		const totalPipelineEl = document.getElementById('total-pipeline-value');
-		if (totalLeadsEl) totalLeadsEl.textContent = activeLeadsCount.toString();
-		if (totalPipelineEl) totalPipelineEl.textContent = `$ ${(grandTotalVal / 1000000).toFixed(1)}M COP`;
 	}
 
-	function createCardElement(lead: Lead): HTMLElement {
+	// Vista Lista: renderiza las oportunidades filtradas como filas accionables
+	function renderList() {
+		const rowsContainer = document.getElementById('funnel-list-rows');
+		if (!rowsContainer) return;
+
+		const filteredLeads = getFilteredLeads();
+		updateSummary(filteredLeads);
+		const budgetsByLead = leadIdsWithBudget();
+
+		if (filteredLeads.length === 0) {
+			const emptyText = searchQuery || activeTypeFilter !== 'all' || showOnlyInactive
+				? 'Sin coincidencias para los filtros aplicados.'
+				: 'Todavía no hay oportunidades en el embudo.';
+			rowsContainer.innerHTML = `<div class="funnel-empty">${emptyText}</div>`;
+			return;
+		}
+
+		rowsContainer.innerHTML = '';
+		filteredLeads.forEach((lead) => {
+			rowsContainer.appendChild(createListRowElement(lead, budgetsByLead.has(lead.id)));
+		});
+	}
+
+	// Renderiza la vista activa (Kanban o Lista)
+	function renderActiveView() {
+		if (currentView === 'list') renderList();
+		else renderKanban();
+	}
+
+	// Fila de la vista Lista (misma información accionable que la tarjeta Kanban)
+	function createListRowElement(lead: Lead, hasBudget: boolean): HTMLElement {
+		const row = document.createElement('div');
+		row.className = 'funnel-row';
+		row.id = `funnel-row-${lead.id}`;
+
+		const formattedBudgetHtml = lead.estimated_budget > 0
+			? `<span class="currency-symbol">$</span><span class="currency-digits">${lead.estimated_budget.toLocaleString('es-CO')}</span>`
+			: `<span class="currency-digits">Por Cotizar</span>`;
+
+		const phoneClean = lead.client_phone.replace(/[^0-9]/g, '');
+
+		row.innerHTML = `
+			<div class="funnel-row-lead">
+				<div class="funnel-row-title-line">
+					<h4 class="funnel-row-name">${escapeHtml(lead.client_name)}</h4>
+					<span class="project-badge">${escapeHtml(lead.project_type)}</span>
+					${lead.source === 'web' ? '<span class="source-badge web-badge">Web</span>' : ''}
+					${isLeadInactive(lead) ? '<span class="inactive-badge">Inactivo &gt; 3d</span>' : ''}
+				</div>
+				<p class="funnel-row-sub">
+					<span title="Teléfono">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+							<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+						</svg>
+						${escapeHtml(lead.client_phone)}
+					</span>
+					<span title="Dirección del proyecto">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" style="flex-shrink:0;">
+							<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+							<circle cx="12" cy="10" r="3"></circle>
+						</svg>
+						${escapeHtml(lead.project_address)}
+					</span>
+				</p>
+			</div>
+
+			<div class="funnel-row-stage">
+				<span class="stage-chip ${STAGE_CHIP_CLASS[lead.stage] || 'stage-lost'}">${escapeHtml(stageLabel(lead.stage))}</span>
+			</div>
+
+			<div class="funnel-row-money">
+				<span class="card-price">${formattedBudgetHtml}</span>
+			</div>
+
+			<div class="funnel-row-actions">
+				<button
+					type="button"
+					class="btn-card-budget-action"
+					data-action="budget"
+					data-id="${lead.id}"
+					title="${hasBudget ? 'Abrir el borrador de presupuesto' : 'Crear borrador de presupuesto'}"
+					aria-label="${hasBudget ? `Abrir el borrador de presupuesto de ${escapeHtml(lead.client_name)}` : `Crear un borrador de presupuesto para ${escapeHtml(lead.client_name)}`}"
+				>
+					${funnelIcons.budget}
+				</button>
+				<a
+					href="/leads/${lead.id}/visit"
+					class="btn-card-visit-link"
+					title="Ver Ficha de Visita Técnica"
+					aria-label="Abrir Visita Técnica de ${escapeHtml(lead.client_name)}"
+				>
+					${funnelIcons.visit}
+				</a>
+				<button
+					type="button"
+					class="btn-card-move-action"
+					data-action="quick-move"
+					data-id="${lead.id}"
+					title="Mover a otra etapa"
+					aria-label="Mover ${escapeHtml(lead.client_name)} a otra etapa"
+				>
+					${funnelIcons.move}
+				</button>
+				<a
+					href="https://wa.me/${phoneClean}?text=Hola%20${encodeURIComponent(lead.client_name)},%20te%20escribimos%20de%20Construcciones%20Andina"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="btn-card-wa-pill"
+					title="Abrir chat en WhatsApp"
+					aria-label="Contactar a ${escapeHtml(lead.client_name)} por WhatsApp"
+				>
+					${funnelIcons.whatsapp}
+				</a>
+			</div>
+		`;
+
+		row.querySelector('[data-action="budget"]')?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			openLeadBudget(lead);
+		});
+		row.querySelector('[data-action="quick-move"]')?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			openStageModal(lead);
+		});
+
+		return row;
+	}
+
+	// Abre el borrador existente o pide confirmación para crear uno nuevo
+	function openLeadBudget(lead: Lead) {
+		try {
+			const existing = loadBudgets().find((budget) => budget.lead_id === lead.id);
+			if (existing) {
+				window.location.href = `/budgets/editor?id=${encodeURIComponent(existing.id)}`;
+				return;
+			}
+
+			// Sin borrador previo: confirmar antes de crear uno nuevo
+			openBudgetConfirmModal(lead);
+		} catch (_) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: {
+					title: 'No se pudo abrir el presupuesto',
+					message: 'Revisa el almacenamiento del navegador e inténtalo de nuevo.',
+					type: 'warning'
+				}
+			}));
+		}
+	}
+
+	// Crea el borrador tras la confirmación y dirige al constructor
+	function createLeadBudgetDraft(lead: Lead) {
+		try {
+			const budget = createBudget({
+				title: `${lead.project_type} — ${lead.client_name}`,
+				lead_id: lead.id,
+				client_name: lead.client_name,
+				global_margin_percentage: 30
+			});
+			persistBudget(budget);
+			window.location.href = `/budgets/editor?id=${encodeURIComponent(budget.id)}`;
+		} catch (_) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: {
+					title: 'No se pudo crear el presupuesto',
+					message: 'Revisa el almacenamiento del navegador e inténtalo de nuevo.',
+					type: 'warning'
+				}
+			}));
+		}
+	}
+
+	// Alterna la vista activa y sincroniza el conmutador
+	function applyView() {
+		const isList = currentView === 'list';
+		const kanbanScroll = document.getElementById('kanban-columns-container');
+		const listView = document.getElementById('funnel-list-view');
+		const btnKanban = document.getElementById('view-toggle-kanban');
+		const btnList = document.getElementById('view-toggle-list');
+
+		kanbanScroll?.classList.toggle('hidden', isList);
+		listView?.classList.toggle('hidden', !isList);
+
+		btnKanban?.classList.toggle('active', !isList);
+		btnKanban?.setAttribute('aria-pressed', (!isList).toString());
+		btnList?.classList.toggle('active', isList);
+		btnList?.setAttribute('aria-pressed', isList.toString());
+
+		renderActiveView();
+	}
+
+	function setView(view: 'kanban' | 'list') {
+		currentView = view;
+		try {
+			localStorage.setItem(FUNNEL_VIEW_KEY, view);
+		} catch (_) {}
+		applyView();
+	}
+
+	document.getElementById('view-toggle-kanban')?.addEventListener('click', () => setView('kanban'));
+	document.getElementById('view-toggle-list')?.addEventListener('click', () => setView('list'));
+
+	function createCardElement(lead: Lead, hasBudget: boolean): HTMLElement {
 		const card = document.createElement('div');
 		card.className = 'lead-card';
 		card.setAttribute('draggable', 'true');
 		card.dataset.id = lead.id;
 
-		const formattedBudget = lead.estimated_budget > 0
-			? `$ ${lead.estimated_budget.toLocaleString('es-CO')}`
-			: 'Por Cotizar';
+		const formattedBudgetHtml = lead.estimated_budget > 0
+			? `<span class="currency-symbol">$</span><span class="currency-digits">${lead.estimated_budget.toLocaleString('es-CO')}</span>`
+			: `<span class="currency-digits">Por Cotizar</span>`;
 
 		const phoneClean = lead.client_phone.replace(/[^0-9]/g, '');
+
+		// Pills for HU-02: Web Source and Photos Count
+		const isWeb = lead.source === 'web';
+		const webPillHtml = isWeb
+			? `<span class="source-badge web-badge" title="Lead recibido desde formulario web público"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Web</span>`
+			: '';
+
+		const photosCount = lead.photos_count || (lead.photos ? lead.photos.length : 0);
+		const photosPillHtml = photosCount > 0
+			? `<span class="photos-badge" title="${photosCount} fotos adjuntas del espacio"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>${photosCount} ${photosCount === 1 ? 'foto' : 'fotos'}</span>`
+			: '';
+
+		// Pills for HU-03: Inactivity and Lost Reason
+		const isInactive = isLeadInactive(lead);
+		const inactivePillHtml = isInactive
+			? `<span class="inactive-badge" title="Sin actividad por más de 3 días (72h)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Inactivo &gt; 3d</span>`
+			: '';
+
+		// Strips for HU-04: Technical Visit Scheduled and Before Photos
+		let visitStripHtml = '';
+		if (lead.visit?.scheduled_for) {
+			const vDate = new Date(lead.visit.scheduled_for);
+			let formattedDate = lead.visit.scheduled_for;
+			if (!isNaN(vDate.getTime())) {
+				const day = vDate.getDate();
+				const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+				const m = monthNames[vDate.getMonth()] || '';
+				const hh = String(vDate.getHours()).padStart(2, '0');
+				const mm = String(vDate.getMinutes()).padStart(2, '0');
+				formattedDate = `${day} ${m} • ${hh}:${mm}`;
+			}
+			const beforePhotosCount = lead.visit?.photos?.length || 0;
+			const photosPill = beforePhotosCount > 0
+				? `<span class="strip-photos-count">${beforePhotosCount} ${beforePhotosCount === 1 ? 'foto' : 'fotos'}</span>`
+				: '';
+
+			visitStripHtml = `
+				<div class="card-visit-strip" title="Visita agendada: ${escapeHtml(lead.visit.scheduled_for)}">
+					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+						<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+						<line x1="16" y1="2" x2="16" y2="6"></line>
+						<line x1="8" y1="2" x2="8" y2="6"></line>
+						<line x1="3" y1="10" x2="21" y2="10"></line>
+					</svg>
+					<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Visita: ${escapeHtml(formattedDate)}</span>
+					${photosPill}
+				</div>
+			`;
+		}
+
+		// Strip for HU-03: Lost Reason
+		let lostStripHtml = '';
+		if (lead.stage === 'lost' && lead.lost_reason) {
+			lostStripHtml = `
+				<div class="card-lost-strip" title="Motivo de descarte: ${escapeHtml(lead.lost_reason)}">
+					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+						<circle cx="12" cy="12" r="10"></circle>
+						<line x1="15" y1="9" x2="9" y2="15"></line>
+						<line x1="9" y1="9" x2="15" y2="15"></line>
+					</svg>
+					<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Motivo: <strong>${escapeHtml(lead.lost_reason)}</strong></span>
+				</div>
+			`;
+		}
+
+		const notesHtml = lead.notes
+			? `<p class="lead-card-notes" title="${escapeHtml(lead.notes)}"><span class="notes-quote">“</span>${escapeHtml(lead.notes.slice(0, 65))}${lead.notes.length > 65 ? '...' : ''}<span class="notes-quote">”</span></p>`
+			: '';
 
 		card.innerHTML = `
 			<div class="card-top-row">
 				<div class="tag-group">
 					<span class="project-badge">${escapeHtml(lead.project_type)}</span>
+					${webPillHtml}
+					${photosPillHtml}
+					${inactivePillHtml}
 				</div>
 				<button type="button" class="card-menu-btn" title="Editar oportunidad" data-action="edit" data-id="${lead.id}">
-					⋮
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="12" r="1"></circle>
+						<circle cx="12" cy="5" r="1"></circle>
+						<circle cx="12" cy="19" r="1"></circle>
+					</svg>
 				</button>
 			</div>
 
 			<h4 class="lead-card-name">${escapeHtml(lead.client_name)}</h4>
 			
 			<p class="lead-address">
-				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2">
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" style="flex-shrink:0;">
 					<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
 					<circle cx="12" cy="10" r="3"></circle>
 				</svg>
 				<span title="${escapeHtml(lead.project_address)}">${escapeHtml(lead.project_address)}</span>
 			</p>
 
-			<div class="card-bottom-row">
-				<span class="card-price">${formattedBudget}</span>
-				<div class="card-actions">
-					<button type="button" class="btn-card-action" data-action="quick-move" data-id="${lead.id}" title="Cambiar etapa con modal">
-						Mover ▾
-					</button>
-					<a 
-						href="https://wa.me/${phoneClean}?text=Hola%20${encodeURIComponent(lead.client_name)},%20te%20escribimos%20de%20Construcciones%20Andina"
-						target="_blank" 
-						class="btn-card-action btn-card-wa"
-						title="Abrir chat en WhatsApp"
-					>
-						WA
-					</a>
+			${visitStripHtml}
+			${lostStripHtml}
+			${notesHtml}
+
+			<div class="card-budget-row">
+				<div class="card-budget-info">
+					<span class="card-budget-caption">Presupuesto</span>
+					<span class="card-price">${formattedBudgetHtml}</span>
 				</div>
+				<a 
+					href="https://wa.me/${phoneClean}?text=Hola%20${encodeURIComponent(lead.client_name)},%20te%20escribimos%20de%20Construcciones%20Andina"
+					target="_blank" 
+					rel="noopener noreferrer"
+					class="btn-card-wa-pill"
+					title="Abrir chat en WhatsApp"
+					aria-label="Contactar a ${escapeHtml(lead.client_name)} por WhatsApp"
+				>
+					${funnelIcons.whatsapp}
+				</a>
+			</div>
+
+			<div class="card-actions-grid">
+				<button
+					type="button"
+					class="btn-card-budget-action"
+					data-action="budget"
+					data-id="${lead.id}"
+					title="${hasBudget ? 'Abrir el borrador de presupuesto' : 'Crear borrador de presupuesto'}"
+					aria-label="${hasBudget ? `Abrir el borrador de presupuesto de ${escapeHtml(lead.client_name)}` : `Crear un borrador de presupuesto para ${escapeHtml(lead.client_name)}`}"
+				>
+					${funnelIcons.budget}
+				</button>
+				<a
+					href="/leads/${lead.id}/visit"
+					class="btn-card-visit-link"
+					title="Ver Ficha de Visita Técnica y Fotos del Antes"
+					aria-label="Abrir Visita Técnica de ${escapeHtml(lead.client_name)}"
+				>
+					${funnelIcons.visit}
+				</a>
+				<button
+					type="button"
+					class="btn-card-move-action"
+					data-action="quick-move"
+					data-id="${lead.id}"
+					title="Mover a otra etapa"
+					aria-label="Mover ${escapeHtml(lead.client_name)} a otra etapa"
+				>
+					${funnelIcons.move}
+				</button>
 			</div>
 		`;
 
@@ -1316,6 +3184,12 @@
 			openStageModal(lead);
 		});
 
+		const budgetBtn = card.querySelector('[data-action="budget"]');
+		budgetBtn?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			openLeadBudget(lead);
+		});
+
 		return card;
 	}
 
@@ -1325,7 +3199,7 @@
 		return div.innerHTML;
 	}
 
-	// Setup Drop Zones on all Kanban Columns
+	// Setup Drop Zones on all 7 Kanban Columns
 	function setupDropZones() {
 		const columns = document.querySelectorAll('.kanban-column');
 		columns.forEach((col) => {
@@ -1352,17 +3226,38 @@
 		});
 	}
 
+	// Stage Transition Logic with Lost Interception and Won Celebration
 	function moveLeadToStage(leadId: string, newStage: Lead['stage']) {
 		const targetLead = leads.find(l => l.id === leadId);
 		if (!targetLead) return;
 
 		if (targetLead.stage === newStage) return;
 
-		targetLead.stage = newStage;
-		saveLeads(leads);
-		renderKanban();
+		// Mandatory Lost Reason Scenario: Intercept before moving to lost
+		if (newStage === 'lost') {
+			openLostReasonModal(leadId);
+			return;
+		}
 
-		// Notify User
+		targetLead.stage = newStage;
+		targetLead.updated_at = new Date().toISOString();
+		saveLeads(leads);
+		renderActiveView();
+
+		// Celebration Microanimation when won
+		if (newStage === 'won') {
+			triggerCelebration();
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: {
+					title: '¡Contrato Ganado!',
+					message: `¡Felicitaciones! "${targetLead.client_name}" es ahora una Obra Activa. Proyecto en ejecución.`,
+					type: 'success'
+				}
+			}));
+			return;
+		}
+
+		// Standard Stage Move Toast
 		const stageObj = STAGES.find(s => s.id === newStage);
 		window.dispatchEvent(new CustomEvent('show-toast', {
 			detail: {
@@ -1371,6 +3266,83 @@
 				type: 'success'
 			}
 		}));
+	}
+
+	// Microanimation Canvas Particle Burst (Celebration on Won)
+	function triggerCelebration() {
+		const canvas = document.getElementById('celebration-canvas') as HTMLCanvasElement | null;
+		if (!canvas) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		canvas.classList.add('active');
+
+		const colors = ['#10B981', '#059669', '#34D399', '#F97316', '#EA580C', '#06B6D4', '#6366F1', '#FBBF24'];
+		const particleCount = 110;
+		const particles: Array<{
+			x: number;
+			y: number;
+			vx: number;
+			vy: number;
+			size: number;
+			color: string;
+			rotation: number;
+			vRot: number;
+			opacity: number;
+		}> = [];
+
+		for (let i = 0; i < particleCount; i++) {
+			particles.push({
+				x: Math.random() * canvas.width,
+				y: Math.random() * (canvas.height * 0.25) - 20,
+				vx: (Math.random() - 0.5) * 7,
+				vy: Math.random() * 4 + 3,
+				size: Math.random() * 8 + 5,
+				color: colors[Math.floor(Math.random() * colors.length)],
+				rotation: Math.random() * 360,
+				vRot: (Math.random() - 0.5) * 12,
+				opacity: 1
+			});
+		}
+
+		let animationId: number;
+		const startTime = Date.now();
+		const duration = 2800;
+
+		function animate() {
+			const elapsed = Date.now() - startTime;
+			if (elapsed > duration) {
+				ctx?.clearRect(0, 0, canvas.width, canvas.height);
+				canvas.classList.remove('active');
+				cancelAnimationFrame(animationId);
+				return;
+			}
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			const fade = elapsed > duration - 700 ? (duration - elapsed) / 700 : 1;
+
+			particles.forEach((p) => {
+				p.x += p.vx;
+				p.y += p.vy;
+				p.rotation += p.vRot;
+				p.vy += 0.08;
+
+				ctx.save();
+				ctx.translate(p.x, p.y);
+				ctx.rotate((p.rotation * Math.PI) / 180);
+				ctx.globalAlpha = Math.max(0, p.opacity * fade);
+				ctx.fillStyle = p.color;
+				ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+				ctx.restore();
+			});
+
+			animationId = requestAnimationFrame(animate);
+		}
+
+		animate();
 	}
 
 	// ==========================================================================
@@ -1415,8 +3387,9 @@
 		btn.addEventListener('click', () => {
 			const targetStage = btn.getAttribute('data-stage-target') as Lead['stage'];
 			if (currentActionLeadId && targetStage) {
-				moveLeadToStage(currentActionLeadId, targetStage);
+				const leadIdToMove = currentActionLeadId;
 				closeStageModal();
+				moveLeadToStage(leadIdToMove, targetStage);
 			}
 		});
 	});
@@ -1434,8 +3407,12 @@
 	const editIdInput = document.getElementById('edit-lead-id') as HTMLInputElement | null;
 	const editNameInput = document.getElementById('edit-client-name') as HTMLInputElement | null;
 	const editPhoneInput = document.getElementById('edit-client-phone') as HTMLInputElement | null;
+	const editEmailInput = document.getElementById('edit-client-email') as HTMLInputElement | null;
 	const editAddressInput = document.getElementById('edit-project-address') as HTMLInputElement | null;
 	const editTypeSelect = document.getElementById('edit-project-type') as HTMLSelectElement | null;
+	const editNotesInput = document.getElementById('edit-notes') as HTMLTextAreaElement | null;
+	const editPhotosSection = document.getElementById('edit-photos-section');
+	const editPhotosGallery = document.getElementById('edit-photos-gallery');
 	const editBudgetInput = document.getElementById('edit-estimated-budget') as HTMLInputElement | null;
 	const editStageSelect = document.getElementById('edit-stage-select') as HTMLSelectElement | null;
 
@@ -1445,10 +3422,32 @@
 		if (editIdInput) editIdInput.value = lead.id;
 		if (editNameInput) editNameInput.value = lead.client_name;
 		if (editPhoneInput) editPhoneInput.value = lead.client_phone;
+		if (editEmailInput) editEmailInput.value = lead.client_email || '';
 		if (editAddressInput) editAddressInput.value = lead.project_address;
 		if (editTypeSelect) editTypeSelect.value = lead.project_type;
+		if (editNotesInput) editNotesInput.value = lead.notes || '';
 		if (editBudgetInput) editBudgetInput.value = lead.estimated_budget ? lead.estimated_budget.toString() : '';
 		if (editStageSelect) editStageSelect.value = lead.stage;
+
+		const gotoVisitLink = document.getElementById('edit-goto-visit-link') as HTMLAnchorElement | null;
+		if (gotoVisitLink) {
+			gotoVisitLink.href = `/leads/${lead.id}/visit`;
+		}
+
+		// Render photo gallery if photos exist
+		if (editPhotosSection && editPhotosGallery) {
+			if (lead.photos && lead.photos.length > 0) {
+				editPhotosSection.classList.remove('hidden');
+				editPhotosGallery.innerHTML = lead.photos.map(p => `
+					<div class="modal-photo-item" title="${escapeHtml(p.name)}">
+						${p.dataUrl ? `<img src="${p.dataUrl}" alt="${escapeHtml(p.name)}" />` : `<div style="color:#94A3B8;font-size:10px;padding:8px;text-align:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 2px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>Foto</div>`}
+					</div>
+				`).join('');
+			} else {
+				editPhotosSection.classList.add('hidden');
+				editPhotosGallery.innerHTML = '';
+			}
+		}
 
 		editModal.classList.add('active');
 	}
@@ -1470,29 +3469,55 @@
 		const target = leads.find(l => l.id === id);
 		if (!target) return;
 
+		const previousStage = target.stage;
+		const newSelectedStage = (editStageSelect?.value as Lead['stage']) || target.stage;
+
 		target.client_name = editNameInput?.value.trim() || target.client_name;
 		target.client_phone = editPhoneInput?.value.trim() || target.client_phone;
+		target.client_email = editEmailInput?.value.trim() || undefined;
 		target.project_address = editAddressInput?.value.trim() || target.project_address;
 		target.project_type = editTypeSelect?.value || target.project_type;
+		target.notes = editNotesInput?.value.trim() || undefined;
 		const rawBudget = editBudgetInput?.value.replace(/[^0-9]/g, '') || '0';
 		target.estimated_budget = parseInt(rawBudget, 10) || 0;
-		target.stage = (editStageSelect?.value as Lead['stage']) || target.stage;
+		target.updated_at = new Date().toISOString();
 
-		saveLeads(leads);
-		renderKanban();
 		closeEditModal();
 
-		window.dispatchEvent(new CustomEvent('show-toast', {
-			detail: {
-				title: 'Cambios guardados',
-				message: `Oportunidad "${target.client_name}" actualizada con éxito.`,
-				type: 'success'
-			}
-		}));
+		// If user selected lost in edit form, route through mandatory lost modal
+		if (newSelectedStage === 'lost' && previousStage !== 'lost') {
+			saveLeads(leads);
+			renderActiveView();
+			openLostReasonModal(target.id);
+			return;
+		}
+
+		target.stage = newSelectedStage;
+		saveLeads(leads);
+		renderActiveView();
+
+		if (newSelectedStage === 'won' && previousStage !== 'won') {
+			triggerCelebration();
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: {
+					title: '¡Contrato Ganado!',
+					message: `"${target.client_name}" ahora es una Obra Activa. Proyecto en ejecución.`,
+					type: 'success'
+				}
+			}));
+		} else {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: {
+					title: 'Cambios guardados',
+					message: `Oportunidad "${target.client_name}" actualizada con éxito.`,
+					type: 'success'
+				}
+			}));
+		}
 	});
 
 	// ==========================================================================
-	// MODAL 3: CONFIRMACIÓN DE ELIMINACIÓN PERSONALIZADA (SIN CONFIRM DEL NAVEGADOR)
+	// MODAL 3: CONFIRMACIÓN DE ELIMINACIÓN PERSONALIZADA (SIN CONFIRM NATIVO)
 	// ==========================================================================
 	const deleteModal = document.getElementById('delete-confirm-modal');
 	const deleteBackdrop = document.getElementById('delete-confirm-backdrop');
@@ -1535,7 +3560,7 @@
 
 		leads = leads.filter(l => l.id !== currentActionLeadId);
 		saveLeads(leads);
-		renderKanban();
+		renderActiveView();
 		closeDeleteModal();
 
 		window.dispatchEvent(new CustomEvent('show-toast', {
@@ -1547,37 +3572,242 @@
 		}));
 	});
 
+	// ==========================================================================
+	// MODAL 3.5: CONFIRMACIÓN DE CREACIÓN DE BORRADOR DE PRESUPUESTO
+	// ==========================================================================
+	const budgetConfirmModal = document.getElementById('budget-confirm-modal');
+	const budgetConfirmBackdrop = document.getElementById('budget-confirm-backdrop');
+	const cancelBudgetBtn = document.getElementById('cancel-budget-modal-btn');
+	const confirmBudgetBtn = document.getElementById('confirm-budget-action-btn');
+	const budgetConfirmText = document.getElementById('budget-confirm-text');
+	let pendingBudgetLeadId: string | null = null;
+
+	function openBudgetConfirmModal(lead: Lead) {
+		pendingBudgetLeadId = lead.id;
+		if (budgetConfirmText) {
+			budgetConfirmText.textContent = `Aún no existe un borrador para "${lead.client_name}". Se creará uno nuevo y se abrirá el constructor.`;
+		}
+		budgetConfirmModal?.classList.add('active');
+	}
+
+	function closeBudgetConfirmModal() {
+		budgetConfirmModal?.classList.remove('active');
+		pendingBudgetLeadId = null;
+	}
+
+	cancelBudgetBtn?.addEventListener('click', closeBudgetConfirmModal);
+	budgetConfirmBackdrop?.addEventListener('click', closeBudgetConfirmModal);
+
+	confirmBudgetBtn?.addEventListener('click', () => {
+		const leadId = pendingBudgetLeadId;
+		const target = leadId ? leads.find(l => l.id === leadId) : undefined;
+		closeBudgetConfirmModal();
+		if (target) createLeadBudgetDraft(target);
+	});
+
+	// ==========================================================================
+	// MODAL 4: MOTIVO DE PÉRDIDA OBLIGATORIO (HU-03 GHERKIN SCENARIO)
+	// ==========================================================================
+	const lostModal = document.getElementById('lost-reason-modal');
+	const lostBackdrop = document.getElementById('lost-reason-backdrop');
+	const closeLostBtn = document.getElementById('close-lost-modal-btn');
+	const cancelLostBtn = document.getElementById('cancel-lost-modal-btn');
+	const confirmLostBtn = document.getElementById('confirm-lost-btn') as HTMLButtonElement | null;
+	const lostLeadNameEl = document.getElementById('lost-lead-name');
+	const lostRadios = document.querySelectorAll<HTMLInputElement>('input[name="lost_reason_choice"]');
+	const lostOtherWrap = document.getElementById('lost-other-detail-wrap');
+	const lostOtherText = document.getElementById('lost-other-text') as HTMLInputElement | null;
+
+	function openLostReasonModal(leadId: string) {
+		pendingLostLeadId = leadId;
+		const target = leads.find(l => l.id === leadId);
+		if (!target) return;
+
+		if (lostLeadNameEl) {
+			lostLeadNameEl.textContent = `${target.client_name} (${target.project_type})`;
+		}
+
+		// Reset selection
+		lostRadios.forEach((r) => {
+			r.checked = false;
+		});
+
+		if (lostOtherWrap) lostOtherWrap.classList.add('hidden');
+		if (lostOtherText) lostOtherText.value = '';
+		if (confirmLostBtn) confirmLostBtn.disabled = true;
+
+		lostModal?.classList.add('active');
+	}
+
+	function closeLostReasonModal() {
+		lostModal?.classList.remove('active');
+		pendingLostLeadId = null;
+		// Re-render kanban so card is guaranteed displayed in original column if aborted
+		renderActiveView();
+	}
+
+	lostRadios.forEach((radio) => {
+		radio.addEventListener('change', () => {
+			if (confirmLostBtn) confirmLostBtn.disabled = false;
+			if (radio.value === 'Otro') {
+				lostOtherWrap?.classList.remove('hidden');
+				lostOtherText?.focus();
+			} else {
+				lostOtherWrap?.classList.add('hidden');
+			}
+		});
+	});
+
+	closeLostBtn?.addEventListener('click', closeLostReasonModal);
+	cancelLostBtn?.addEventListener('click', closeLostReasonModal);
+	lostBackdrop?.addEventListener('click', closeLostReasonModal);
+
+	confirmLostBtn?.addEventListener('click', () => {
+		if (!pendingLostLeadId) return;
+
+		const target = leads.find(l => l.id === pendingLostLeadId);
+		if (!target) {
+			closeLostReasonModal();
+			return;
+		}
+
+		const selectedRadio = document.querySelector<HTMLInputElement>('input[name="lost_reason_choice"]:checked');
+		let reason = selectedRadio ? selectedRadio.value : 'Sin especificar';
+
+		if (reason === 'Otro') {
+			const detail = lostOtherText?.value.trim();
+			reason = detail ? `Otro: ${detail}` : 'Otro motivo';
+		}
+
+		target.stage = 'lost';
+		target.lost_reason = reason;
+		target.updated_at = new Date().toISOString();
+
+		saveLeads(leads);
+		renderActiveView();
+
+		lostModal?.classList.remove('active');
+		pendingLostLeadId = null;
+
+		window.dispatchEvent(new CustomEvent('show-toast', {
+			detail: {
+				title: 'Oportunidad descartada',
+				message: `"${target.client_name}" se marcó como Perdido (${reason}).`,
+				type: 'warning'
+			}
+		}));
+	});
+
+	// ==========================================================================
+	// BARRA DE BÚSQUEDA Y FILTROS RÁPIDOS (HU-03 OPERATE MODE)
+	// ==========================================================================
+	const kanbanSearchInput = document.getElementById('kanban-search-input') as HTMLInputElement | null;
+	const clearSearchBtn = document.getElementById('clear-search-btn');
+	const filterChips = document.querySelectorAll<HTMLButtonElement>('.filter-chip');
+	const filterInactiveBtn = document.getElementById('filter-inactive-btn');
+
+	kanbanSearchInput?.addEventListener('input', (e) => {
+		searchQuery = (e.target as HTMLInputElement).value.trim();
+		renderActiveView();
+	});
+
+	clearSearchBtn?.addEventListener('click', () => {
+		searchQuery = '';
+		if (kanbanSearchInput) kanbanSearchInput.value = '';
+		renderActiveView();
+	});
+
+	filterChips.forEach((chip) => {
+		chip.addEventListener('click', () => {
+			filterChips.forEach(c => {
+				c.classList.remove('active');
+				c.setAttribute('aria-pressed', 'false');
+			});
+			chip.classList.add('active');
+			chip.setAttribute('aria-pressed', 'true');
+			activeTypeFilter = chip.getAttribute('data-filter-type') || 'all';
+			renderActiveView();
+		});
+	});
+
+	filterInactiveBtn?.addEventListener('click', () => {
+		showOnlyInactive = !showOnlyInactive;
+		if (showOnlyInactive) {
+			filterInactiveBtn.classList.add('active');
+			filterInactiveBtn.setAttribute('aria-pressed', 'true');
+		} else {
+			filterInactiveBtn.classList.remove('active');
+			filterInactiveBtn.setAttribute('aria-pressed', 'false');
+		}
+		renderActiveView();
+	});
+
 	// Close modals on Escape key
 	window.addEventListener('keydown', (e) => {
 		if (e.key === 'Escape') {
 			closeStageModal();
 			closeEditModal();
 			closeDeleteModal();
+			closeLostReasonModal();
+			closeBudgetConfirmModal();
 		}
 	});
 
-	// Listen for new lead created from HU-01 Modal
+	// Listen for new lead created from HU-01 Modal or HU-02 Public Form
 	window.addEventListener('lead-created', (e: any) => {
 		const newLeadData = e.detail;
 		if (!newLeadData) return;
 
-		const newLead: Lead = {
-			id: newLeadData.id || 'lead_' + Date.now().toString(36),
-			client_name: newLeadData.client_name,
-			client_phone: newLeadData.client_phone,
-			project_address: newLeadData.project_address,
-			project_type: newLeadData.project_type,
-			estimated_budget: newLeadData.estimated_budget || 0,
-			stage: 'new_lead',
-			created_at: new Date().toISOString()
-		};
+		// Check if lead already exists in state
+		const existingIdx = leads.findIndex(l => l.id === newLeadData.id);
+		if (existingIdx >= 0) {
+			leads[existingIdx] = { ...leads[existingIdx], ...newLeadData, updated_at: new Date().toISOString() };
+		} else {
+			const newLead: Lead = {
+				id: newLeadData.id || 'lead_' + Date.now().toString(36),
+				client_name: newLeadData.client_name,
+				client_phone: newLeadData.client_phone,
+				client_email: newLeadData.client_email,
+				project_address: newLeadData.project_address,
+				project_type: newLeadData.project_type,
+				notes: newLeadData.notes,
+				estimated_budget: newLeadData.estimated_budget || 0,
+				stage: newLeadData.stage || 'new_lead',
+				source: newLeadData.source || 'manual',
+				photos_count: newLeadData.photos_count || (newLeadData.photos ? newLeadData.photos.length : 0),
+				photos: newLeadData.photos,
+				created_at: newLeadData.created_at || new Date().toISOString(),
+				updated_at: new Date().toISOString()
+			};
 
-		leads.unshift(newLead);
+			leads.unshift(newLead);
+		}
+
 		saveLeads(leads);
-		renderKanban();
+		renderActiveView();
+	});
+
+	// Storage Event listener for real-time sync across browser tabs / iframes
+	window.addEventListener('storage', (e) => {
+		if (e.key === 'obraflow_leads') {
+			leads = loadLeads();
+			renderActiveView();
+		}
+	});
+
+	// Message Event listener for iframes (ej. Live Preview embebido)
+	window.addEventListener('message', (e) => {
+		if (e.data && e.data.type === 'obraflow:lead-created' && e.data.lead) {
+			window.dispatchEvent(new CustomEvent('lead-created', { detail: e.data.lead }));
+		}
+	});
+
+	// Kanban Share Web Form Button Listener
+	document.getElementById('kanban-share-form-btn')?.addEventListener('click', () => {
+		window.dispatchEvent(new CustomEvent('open-share-form-modal'));
 	});
 
 	// Initial Render and Drop Zones Attachment
 	setupDropZones();
-	renderKanban();
+	applyView();
 </script>

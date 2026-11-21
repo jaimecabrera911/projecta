@@ -49,8 +49,11 @@
 	padding: 0;
 }
 
-html, body {
+html {
 	height: 100%;
+}
+
+html, body {
 	width: 100%;
 	font-family: var(--font-sans);
 	background-color: var(--color-slate-50);
@@ -60,14 +63,30 @@ html, body {
 }
 
 body {
+	/* Sin altura fija: el layout debe poder crecer para que el sidebar y el header sticky queden anclados */
 	display: flex;
 	flex-direction: column;
+	min-height: 100vh;
 }
 
 /* Typography Helpers */
 h1, h2, h3, h4 {
 	font-family: var(--font-sans);
 	letter-spacing: -0.025em;
+}
+
+.font-sans {
+	font-family: var(--font-sans);
+}
+
+.font-mono {
+	font-family: var(--font-mono);
+}
+
+/* Operate Mode: High-contrast focus rings for field ergonomics */
+:focus-visible {
+	outline: 2px solid var(--color-orange-500);
+	outline-offset: 2px;
 }
 
 /* ==========================================================================
