@@ -84,6 +84,8 @@ export interface TaxInput {
 	contingencyPercentage: number;
 	utilityPercentage: number;
 	vatPercentage: number;
+	/** Porcentaje de comisión comercial / vendedor sobre el subtotal antes de impuestos (def: 0). */
+	commissionPercentage?: number;
 }
 
 export interface TaxTotals {
@@ -102,6 +104,14 @@ export interface TaxTotals {
 	grandTotal: number;
 	profit: number;
 	marginPercentage: number;
+	/** Porcentaje de comisión del vendedor (0 a 100) */
+	commissionPercentage: number;
+	/** Monto liquidado de la comisión del vendedor */
+	commissionAmount: number;
+	/** Utilidad neta de la constructora tras deducir la comisión del vendedor */
+	netProfit: number;
+	/** Margen neto real retenido */
+	netMarginPercentage: number;
 }
 
 /**
@@ -112,6 +122,7 @@ export interface TaxTotals {
 export function calcTax(input: TaxInput): TaxTotals {
 	const directCost = round2(safeNumber(input.directCost));
 	const vatPercentage = safeNumber(input.vatPercentage);
+	const commissionPercentage = safeNumber(input.commissionPercentage);
 
 	if (input.taxScheme === 'aiu') {
 		const adminAmount = round2((directCost * safeNumber(input.adminPercentage)) / 100);
@@ -122,6 +133,9 @@ export function calcTax(input: TaxInput): TaxTotals {
 		const grandTotal = round2(subtotal + taxAmount);
 		const profit = round2(subtotal - directCost);
 		const marginPercentage = grandTotal > 0 ? round2((profit / grandTotal) * 100) : 0;
+		const commissionAmount = round2((subtotal * commissionPercentage) / 100);
+		const netProfit = round2(profit - commissionAmount);
+		const netMarginPercentage = grandTotal > 0 ? round2((netProfit / grandTotal) * 100) : 0;
 
 		return {
 			taxScheme: 'aiu',
@@ -133,7 +147,11 @@ export function calcTax(input: TaxInput): TaxTotals {
 			taxAmount,
 			grandTotal,
 			profit,
-			marginPercentage
+			marginPercentage,
+			commissionPercentage,
+			commissionAmount,
+			netProfit,
+			netMarginPercentage
 		};
 	}
 
@@ -142,6 +160,9 @@ export function calcTax(input: TaxInput): TaxTotals {
 	const grandTotal = round2(subtotal + taxAmount);
 	const profit = round2(subtotal - directCost);
 	const marginPercentage = subtotal > 0 ? round2((profit / subtotal) * 100) : 0;
+	const commissionAmount = round2((subtotal * commissionPercentage) / 100);
+	const netProfit = round2(profit - commissionAmount);
+	const netMarginPercentage = subtotal > 0 ? round2((netProfit / subtotal) * 100) : 0;
 
 	return {
 		taxScheme: 'iva',
@@ -153,6 +174,10 @@ export function calcTax(input: TaxInput): TaxTotals {
 		taxAmount,
 		grandTotal,
 		profit,
-		marginPercentage
+		marginPercentage,
+		commissionPercentage,
+		commissionAmount,
+		netProfit,
+		netMarginPercentage
 	};
 }

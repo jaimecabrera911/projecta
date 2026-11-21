@@ -64,5 +64,39 @@ assert.equal(iva.utilityAmount, 200);
 assert.equal(iva.subtotal, 1000);
 assert.equal(iva.taxAmount, 190);
 assert.equal(iva.grandTotal, 1190);
+assert.equal(iva.commissionAmount, 0);
+assert.equal(iva.netProfit, 200);
+
+// HU Comisión de Vendedor: Venta $10.000 con CD $7.000 (Utilidad bruta $3.000) y comisión 3% ($300).
+const ivaConComision = calcTax({
+	taxScheme: 'iva',
+	directCost: 7000,
+	saleSubtotal: 10000,
+	adminPercentage: 10,
+	contingencyPercentage: 5,
+	utilityPercentage: 5,
+	vatPercentage: 19,
+	commissionPercentage: 3
+});
+assert.equal(ivaConComision.subtotal, 10000);
+assert.equal(ivaConComision.profit, 3000);
+assert.equal(ivaConComision.commissionAmount, 300);
+assert.equal(ivaConComision.netProfit, 2700);
+assert.equal(ivaConComision.netMarginPercentage, 27);
+
+// HU Comisión en Esquema AIU: Subtotal AIU $12.000 con comisión 2.5% ($300).
+const aiuConComision = calcTax({
+	taxScheme: 'aiu',
+	directCost: 10000,
+	saleSubtotal: 10000,
+	adminPercentage: 10,
+	contingencyPercentage: 5,
+	utilityPercentage: 5,
+	vatPercentage: 19,
+	commissionPercentage: 2.5
+});
+assert.equal(aiuConComision.subtotal, 12000);
+assert.equal(aiuConComision.commissionAmount, 300);
+assert.equal(aiuConComision.netProfit, 1700);
 
 console.log('budget-math: OK');

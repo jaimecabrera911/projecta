@@ -69,6 +69,10 @@ export interface Budget {
 	utility_percentage: number;
 	vat_percentage: number;
 	global_margin_percentage: number;
+	/** Porcentaje de comisión para el vendedor / comercial (0 a 100) */
+	seller_commission_percentage: number;
+	/** Nombre o identificador del asesor comercial asignado */
+	seller_name?: string;
 	chapters: BudgetChapter[];
 	created_at: string;
 	updated_at?: string;
@@ -168,6 +172,8 @@ function buildSeedBudget(): Budget {
 		tax_scheme: 'iva',
 		...DEFAULT_TAX_PARAMETERS,
 		global_margin_percentage: 30,
+		seller_commission_percentage: 3,
+		seller_name: 'Carlos Mendoza',
 		chapters: [chapterOne, chapterTwo],
 		created_at: new Date(now.getTime() - 2 * 86400000).toISOString(),
 		updated_at: now.toISOString()
@@ -193,6 +199,8 @@ function migrateBudget(budget: Budget): Budget {
 		contingency_percentage: safe(budget.contingency_percentage, DEFAULT_TAX_PARAMETERS.contingency_percentage),
 		utility_percentage: safe(budget.utility_percentage, DEFAULT_TAX_PARAMETERS.utility_percentage),
 		vat_percentage: safe(budget.vat_percentage, DEFAULT_TAX_PARAMETERS.vat_percentage),
+		seller_commission_percentage: safe(budget.seller_commission_percentage, 0),
+		seller_name: typeof budget.seller_name === 'string' ? budget.seller_name : undefined,
 		signature
 	};
 }
@@ -234,6 +242,8 @@ export function createBudget(input: NewBudgetInput): Budget {
 		tax_scheme: 'iva',
 		...DEFAULT_TAX_PARAMETERS,
 		global_margin_percentage: input.global_margin_percentage,
+		seller_commission_percentage: 0,
+		seller_name: undefined,
 		chapters: [],
 		created_at: now,
 		updated_at: now
@@ -321,6 +331,8 @@ export function duplicateBudget(input: DuplicateBudgetInput): Budget {
 		utility_percentage: input.source.utility_percentage,
 		vat_percentage: input.source.vat_percentage,
 		global_margin_percentage: input.source.global_margin_percentage,
+		seller_commission_percentage: input.source.seller_commission_percentage ?? 0,
+		seller_name: input.source.seller_name,
 		chapters,
 		created_at: now,
 		updated_at: now

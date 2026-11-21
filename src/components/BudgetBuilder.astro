@@ -71,35 +71,84 @@ import { renderIconSvg } from '../lib/icons';
 					placeholder="Ej. Remodelación apartamento Chicó"
 				/>
 
-				<p id="budget-client-line" class="budget-client-line">Sin cliente asignado</p>
+				<div class="hero-client-meta-row">
+					<p id="budget-client-line" class="budget-client-line">Sin cliente asignado</p>
 
-				<div class="hero-meta-row">
-					<span id="budget-version-pill" class="meta-pill">v1</span>
-					<span id="budget-chapter-count" class="meta-pill">0 capítulos</span>
-					<span id="budget-item-count" class="meta-pill">0 partidas</span>
-					<span id="budget-tax-pill" class="meta-pill">Esquema IVA</span>
+					<div class="hero-meta-row">
+						<span id="budget-version-pill" class="meta-pill">v1</span>
+						<span id="budget-chapter-count" class="meta-pill">0 capítulos</span>
+						<span id="budget-item-count" class="meta-pill">0 partidas</span>
+						<span id="budget-tax-pill" class="meta-pill">Esquema IVA</span>
+					</div>
 				</div>
 			</div>
 
-			<aside class="margin-card" aria-label="Control de margen global">
-				<span class="margin-card-kicker">Rentabilidad</span>
-				<label for="budget-global-margin" class="margin-card-title">Margen global</label>
-				<div class="margin-input-shell">
-					<input
-						id="budget-global-margin"
-						type="number"
-						min="0"
-						max="500"
-						step="1"
-						inputmode="decimal"
-						aria-label="Margen global de utilidad en porcentaje"
-					/>
-					<span class="margin-suffix" aria-hidden="true">%</span>
+			<aside class="builder-aside-cluster" aria-label="Márgenes y fuerza comercial">
+				<div class="margin-card" aria-label="Control de margen global">
+					<div class="margin-card-header">
+						<span class="margin-card-kicker">Rentabilidad</span>
+					</div>
+					<div class="margin-card-grid">
+						<div class="margin-field-col">
+							<label for="budget-global-margin" class="margin-card-title">Margen global</label>
+							<div class="margin-input-shell">
+								<input
+									id="budget-global-margin"
+									type="number"
+									min="0"
+									max="500"
+									step="1"
+									inputmode="decimal"
+									aria-label="Margen global de utilidad en porcentaje"
+								/>
+								<span class="margin-suffix" aria-hidden="true">%</span>
+							</div>
+						</div>
+						<div class="margin-action-col">
+							<button id="btn-apply-global-margin" type="button" class="btn-apply-margin">
+								Aplicar a todas las partidas
+							</button>
+						</div>
+					</div>
+					<p class="margin-hint">Se hereda en cada partida nueva.</p>
 				</div>
-				<button id="btn-apply-global-margin" type="button" class="btn-apply-margin">
-					Aplicar a todas las partidas
-				</button>
-				<p class="margin-hint">Se hereda en cada partida nueva.</p>
+
+				<!-- HU Comisión de Vendedor en Constructor de Presupuestos -->
+				<div id="commission-card" class="commission-card" aria-label="Control de comisión del vendedor">
+					<div class="commission-header">
+						<span class="commission-kicker">Comercial</span>
+						<span id="commission-amount-badge" class="commission-amount-badge" title="Monto liquidado de comisión">$ 0</span>
+					</div>
+					<div class="commission-card-grid">
+						<div class="commission-field-col">
+							<label for="budget-seller-commission" class="commission-card-title">Comisión Vendedor</label>
+							<div class="margin-input-shell">
+								<input
+									id="budget-seller-commission"
+									type="number"
+									min="0"
+									max="100"
+									step="0.5"
+									inputmode="decimal"
+									aria-label="Porcentaje de comisión del vendedor"
+								/>
+								<span class="margin-suffix" aria-hidden="true">%</span>
+							</div>
+						</div>
+						<div class="seller-name-col">
+							<label for="budget-seller-name" class="seller-name-label">Asesor Comercial</label>
+							<input
+								id="budget-seller-name"
+								type="text"
+								maxlength="60"
+								placeholder="Ej. Carlos Mendoza"
+								class="seller-name-input"
+								autocomplete="off"
+							/>
+						</div>
+					</div>
+					<p class="commission-hint">Deducción de la utilidad bruta para calcular la utilidad neta.</p>
+				</div>
 			</aside>
 		</div>
 
@@ -388,19 +437,40 @@ import { renderIconSvg } from '../lib/icons';
 		background-color: #FFFFFF;
 		border: 1px solid #E2E8F0;
 		border-radius: 0.875rem;
-		padding: 1.125rem;
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 1.125rem;
+		padding: 1.25rem 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 	}
 
-	@media (min-width: 900px) {
-		.builder-hero {
-			grid-template-columns: minmax(0, 1fr) 16rem;
-			align-items: start;
-			padding: 1.375rem 1.5rem;
-			gap: 1.5rem;
+	.builder-hero-main {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.hero-client-meta-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 0.375rem;
+	}
+
+	.builder-aside-cluster {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid #F1F5F9;
+	}
+
+	@media (min-width: 860px) {
+		.builder-aside-cluster {
+			grid-template-columns: 1fr 1fr;
+			gap: 1.25rem;
 		}
 	}
 
@@ -588,14 +658,13 @@ import { renderIconSvg } from '../lib/icons';
 	.budget-client-line {
 		font-size: 0.875rem;
 		color: #475569;
-		margin-top: 0.25rem;
+		margin: 0;
 	}
 
 	.hero-meta-row {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.375rem;
-		margin-top: 0.75rem;
 	}
 
 	.meta-pill {
@@ -614,10 +683,17 @@ import { renderIconSvg } from '../lib/icons';
 		background-color: #0F172A;
 		border: 1px solid #1E293B;
 		border-radius: 0.75rem;
-		padding: 1rem;
+		padding: 1rem 1.125rem;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+	}
+
+	.margin-card-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 1.5rem;
 	}
 
 	.margin-card-kicker {
@@ -628,10 +704,30 @@ import { renderIconSvg } from '../lib/icons';
 		color: #FB923C;
 	}
 
+	.margin-card-grid {
+		display: grid;
+		grid-template-columns: 7.5rem 1fr;
+		gap: 0.75rem;
+		align-items: flex-end;
+	}
+
+	.margin-field-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.margin-action-col {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+	}
+
 	.margin-card-title {
 		font-size: 0.8125rem;
 		font-weight: 700;
 		color: #F8FAFC;
+		white-space: nowrap;
 	}
 
 	.margin-input-shell {
@@ -683,6 +779,10 @@ import { renderIconSvg } from '../lib/icons';
 		cursor: pointer;
 		padding: 0.5rem 0.75rem;
 		transition: background-color 0.15s ease, border-color 0.15s ease;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
 	}
 
 	.btn-apply-margin:hover {
@@ -700,6 +800,110 @@ import { renderIconSvg } from '../lib/icons';
 		font-size: 0.6875rem;
 		color: #94A3B8;
 		line-height: 1.35;
+	}
+
+	/* Commission card */
+	.commission-card {
+		background-color: #0F172A;
+		border: 1px solid #1E293B;
+		border-radius: 0.75rem;
+		padding: 1rem 1.125rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.commission-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		min-height: 1.5rem;
+	}
+
+	.commission-kicker {
+		font-size: 0.625rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #FBBF24;
+	}
+
+	.commission-amount-badge {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #F59E0B;
+		background: rgba(245, 158, 11, 0.15);
+		border: 1px solid rgba(245, 158, 11, 0.35);
+		padding: 0.125rem 0.5rem;
+		border-radius: 9999px;
+		white-space: nowrap;
+	}
+
+	.commission-card-grid {
+		display: grid;
+		grid-template-columns: 7.5rem 1fr;
+		gap: 0.75rem;
+		align-items: flex-end;
+	}
+
+	.commission-field-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.seller-name-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.commission-card-title {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #F8FAFC;
+		white-space: nowrap;
+	}
+
+	.seller-name-label {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #94A3B8;
+		white-space: nowrap;
+	}
+
+	.seller-name-input {
+		width: 100%;
+		min-height: 48px;
+		background-color: #1E293B;
+		border: 1.5px solid #334155;
+		border-radius: 0.5rem;
+		color: #F8FAFC;
+		padding: 0.375rem 0.75rem;
+		font-size: 0.8125rem;
+		font-family: var(--font-sans);
+		transition: border-color 0.15s ease;
+	}
+
+	.seller-name-input:focus {
+		outline: none;
+		border-color: #F59E0B;
+		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+	}
+
+	.commission-hint {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		line-height: 1.35;
+	}
+
+	@media (max-width: 520px) {
+		.margin-card-grid,
+		.commission-card-grid {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	/* Section head */
@@ -1564,6 +1768,166 @@ import { renderIconSvg } from '../lib/icons';
 		color: #0F172A;
 	}
 
+	/* Catalog filters deck (Categoría & Proveedor) */
+	.catalog-filters-deck {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin-top: 0.625rem;
+		padding: 0.625rem 0.75rem;
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+	}
+
+	.catalog-categories-row {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		flex-wrap: wrap;
+	}
+
+	.catalog-filter-caption {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #64748B;
+		margin-right: 0.25rem;
+	}
+
+	.catalog-chip {
+		min-height: 38px;
+		padding: 0.35rem 0.75rem;
+		border-radius: 9999px;
+		border: 1px solid #CBD5E1;
+		background-color: #F8FAFC;
+		color: #334155;
+		font-family: var(--font-sans);
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		white-space: nowrap;
+	}
+
+	.catalog-chip:hover {
+		border-color: #F97316;
+		background-color: #FFF7ED;
+		color: #EA580C;
+	}
+
+	.catalog-chip.is-active {
+		background-color: #0F172A;
+		border-color: #0F172A;
+		color: #FFFFFF;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	}
+
+	.catalog-supplier-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.625rem;
+	}
+
+	.catalog-supplier-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex: 1;
+		min-width: 240px;
+	}
+
+	.catalog-select-shell {
+		position: relative;
+		flex: 1;
+		max-width: 320px;
+	}
+
+	.catalog-supplier-select {
+		width: 100%;
+		min-height: 40px;
+		padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.5rem;
+		background-color: #F8FAFC;
+		color: #0F172A;
+		font-family: var(--font-sans);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		cursor: pointer;
+		outline: none;
+		transition: border-color 0.15s ease, background-color 0.15s ease;
+	}
+
+	.catalog-supplier-select:focus {
+		border-color: #F97316;
+		background-color: #FFFFFF;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.btn-clear-filters,
+	.btn-clear-filters-inline {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 38px;
+		padding: 0.35rem 0.75rem;
+		border-radius: 0.5rem;
+		border: 1px solid #FECACA;
+		background-color: #FEF2F2;
+		color: #DC2626;
+		font-family: var(--font-sans);
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-clear-filters:hover,
+	.btn-clear-filters-inline:hover {
+		background-color: #FEE2E2;
+		border-color: #F87171;
+	}
+
+	.catalog-results-count {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+		padding: 0.25rem 0.5rem 0.125rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.catalog-code {
+		font-family: var(--font-mono);
+		font-weight: 700;
+	}
+
+	.catalog-supplier-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: #475569;
+		font-weight: 600;
+	}
+
+	.catalog-supplier-pill svg {
+		color: #F97316;
+		vertical-align: -1px;
+	}
+
+	.catalog-empty-wrap {
+		padding: 1.5rem 1rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
 	.catalog-results {
 		margin-top: 0.5rem;
 		max-height: 17rem;
@@ -1991,6 +2355,43 @@ import { renderIconSvg } from '../lib/icons';
 		color: #B45309;
 	}
 
+	.tax-row-commission {
+		background-color: #FFFBEB;
+		border-left: 3px solid #F59E0B;
+		padding-left: 0.35rem;
+		border-radius: 0.25rem;
+	}
+
+	.tax-row-commission .tax-row-sign {
+		color: #D97706;
+		font-weight: 800;
+	}
+
+	.tax-row-commission .tax-row-label,
+	.tax-row-commission .tax-row-value {
+		color: #B45309;
+		font-weight: 700;
+	}
+
+	.tax-row-net-profit {
+		background-color: #ECFDF5;
+		border-left: 3px solid #10B981;
+		padding-left: 0.35rem;
+		border-radius: 0.25rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.tax-row-net-profit .tax-row-sign {
+		color: #059669;
+		font-weight: 800;
+	}
+
+	.tax-row-net-profit .tax-row-label,
+	.tax-row-net-profit .tax-row-value {
+		color: #047857;
+		font-weight: 800;
+	}
+
 	.tax-row-total {
 		border-top: 1.5px solid #CBD5E1;
 		margin-top: 0.25rem;
@@ -2097,10 +2498,23 @@ import { renderIconSvg } from '../lib/icons';
 		const confirmDeleteBudgetBtn = document.getElementById('btn-confirm-delete-budget');
 
 		let openCatalogChapterId: string | null = null;
+		let catalogSearchQuery = '';
+		let catalogSelectedCategory = 'all';
+		let catalogSelectedSupplier = 'all';
 		let openCustomChapterId: string | null = null;
 		let editingItemId: string | null = null;
 		let confirmDeleteChapterId: string | null = null;
 		let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+		function getCatalogSuppliers(): string[] {
+			const set = new Set<string>();
+			catalog.forEach((item) => {
+				if (item.suggested_supplier && item.suggested_supplier.trim()) {
+					set.add(item.suggested_supplier.trim());
+				}
+			});
+			return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+		}
 
 		function escapeHtml(value: string): string {
 			return String(value)
@@ -2178,6 +2592,10 @@ import { renderIconSvg } from '../lib/icons';
 		const vatAiuInput = document.getElementById('tax-vat-aiu') as HTMLInputElement | null;
 		const breakdownRows = document.getElementById('tax-breakdown-rows');
 
+		const commissionInput = document.getElementById('budget-seller-commission') as HTMLInputElement | null;
+		const sellerNameInput = document.getElementById('budget-seller-name') as HTMLInputElement | null;
+		const commissionBadge = document.getElementById('commission-amount-badge');
+
 		function currentTaxTotals() {
 			const lineTotals = calcTotals(allItems(currentBudget));
 			return calcTax({
@@ -2187,12 +2605,16 @@ import { renderIconSvg } from '../lib/icons';
 				adminPercentage: currentBudget.admin_percentage,
 				contingencyPercentage: currentBudget.contingency_percentage,
 				utilityPercentage: currentBudget.utility_percentage,
-				vatPercentage: currentBudget.vat_percentage
+				vatPercentage: currentBudget.vat_percentage,
+				commissionPercentage: currentBudget.seller_commission_percentage || 0
 			});
 		}
 
 		function pushTotals() {
 			const tax = currentTaxTotals();
+			if (commissionBadge) {
+				commissionBadge.textContent = formatMoney(tax.commissionAmount);
+			}
 			updateBreakdown(tax);
 			window.dispatchEvent(new CustomEvent('budget:totals', { detail: tax }));
 		}
@@ -2212,27 +2634,46 @@ import { renderIconSvg } from '../lib/icons';
 		function updateBreakdown(tax: ReturnType<typeof calcTax>) {
 			if (!breakdownRows) return;
 			const vat = formatPct(currentBudget.vat_percentage);
+			const commPct = formatPct(currentBudget.seller_commission_percentage || 0);
 
 			if (currentBudget.tax_scheme === 'aiu') {
-				breakdownRows.innerHTML = [
+				const rows = [
 					taxRowHtml('', 'Costo directo total (CD)', tax.directCost, 'base'),
 					taxRowHtml('+', `Administración (${formatPct(currentBudget.admin_percentage)}%)`, tax.adminAmount, 'add'),
 					taxRowHtml('+', `Imprevistos (${formatPct(currentBudget.contingency_percentage)}%)`, tax.contingencyAmount, 'add'),
 					taxRowHtml('+', `Utilidad (${formatPct(currentBudget.utility_percentage)}%)`, tax.utilityAmount, 'add'),
-					taxRowHtml('=', 'Subtotal AIU', tax.subtotal, 'subtotal'),
+					taxRowHtml('=', 'Subtotal AIU', tax.subtotal, 'subtotal')
+				];
+				if (tax.commissionAmount > 0) {
+					rows.push(
+						taxRowHtml('-', `Comisión vendedor (${commPct}%)`, tax.commissionAmount, 'commission'),
+						taxRowHtml('=', `Utilidad neta constructora (${formatPct(tax.netMarginPercentage)}%)`, tax.netProfit, 'net-profit')
+					);
+				}
+				rows.push(
 					taxRowHtml('+', `IVA sobre utilidad (${vat}%)`, tax.taxAmount, 'tax'),
 					taxRowHtml('=', 'Total contrato de obra', tax.grandTotal, 'total')
-				].join('');
+				);
+				breakdownRows.innerHTML = rows.join('');
 				return;
 			}
 
-			breakdownRows.innerHTML = [
+			const rows = [
 				taxRowHtml('', 'Costo directo total (CD)', tax.directCost, 'base'),
-				taxRowHtml('+', 'Utilidad / margen', tax.utilityAmount, 'add'),
+				taxRowHtml('+', 'Utilidad bruta / margen', tax.profit, 'add')
+			];
+			if (tax.commissionAmount > 0) {
+				rows.push(
+					taxRowHtml('-', `Comisión vendedor (${commPct}%)`, tax.commissionAmount, 'commission'),
+					taxRowHtml('=', `Utilidad neta constructora (${formatPct(tax.netMarginPercentage)}%)`, tax.netProfit, 'net-profit')
+				);
+			}
+			rows.push(
 				taxRowHtml('=', 'Subtotal de venta', tax.subtotal, 'subtotal'),
 				taxRowHtml('+', `IVA sobre la venta (${vat}%)`, tax.taxAmount, 'tax'),
 				taxRowHtml('=', 'Total propuesta al cliente', tax.grandTotal, 'total')
-			].join('');
+			);
+			breakdownRows.innerHTML = rows.join('');
 		}
 
 		function renderTax() {
@@ -2436,27 +2877,38 @@ import { renderIconSvg } from '../lib/icons';
 			`;
 		}
 
-		function catalogResultsHtml(query: string): string {
+		function catalogResultsHtml(query: string, category: string = 'all', supplier: string = 'all'): string {
 			const term = query.trim().toLowerCase();
 			const matches = catalog
 				.filter((item) => {
+					if (category !== 'all' && item.category !== category) return false;
+					if (supplier !== 'all' && (item.suggested_supplier ?? '').trim().toLowerCase() !== supplier.trim().toLowerCase()) return false;
 					if (!term) return true;
 					return [item.name, item.code ?? '', item.suggested_supplier ?? '', item.unit]
 						.join(' ')
 						.toLowerCase()
 						.includes(term);
-				})
-				.slice(0, 8);
+				});
 
 			if (catalog.length === 0) {
 				return `<p class="catalog-message">El catálogo está vacío. <a href="/catalog">Carga la plantilla de insumos</a> para presupuestar más rápido.</p>`;
 			}
 
 			if (matches.length === 0) {
-				return `<p class="catalog-message">Sin insumos para “${escapeHtml(query)}”. Prueba con otra palabra o crea una partida personalizada.</p>`;
+				return `
+					<div class="catalog-empty-wrap">
+						<p class="catalog-message">Sin insumos para los filtros seleccionados.</p>
+						<button type="button" class="btn-clear-filters-inline" data-action="clear-catalog-filters">
+							Limpiar filtros
+						</button>
+					</div>
+				`;
 			}
 
-			return matches
+			const countHeader = `<div class="catalog-results-count">Mostrando ${matches.length} insumo${matches.length === 1 ? '' : 's'}${matches.length > 20 ? ' (primeros 20)' : ''}</div>`;
+
+			const items = matches
+				.slice(0, 20)
 				.map((item) => {
 					const meta = CATEGORY_META[item.category] ?? CATEGORY_META.material;
 					return `
@@ -2465,7 +2917,8 @@ import { renderIconSvg } from '../lib/icons';
 								<span class="catalog-result-name">${escapeHtml(item.name)}</span>
 								<span class="catalog-result-meta">
 									<span class="cat-pill ${meta.className}">${meta.label}</span>
-									${item.code ? ` · ${escapeHtml(item.code)}` : ''} · ${escapeHtml(item.unit)}${item.suggested_supplier ? ` · ${escapeHtml(item.suggested_supplier)}` : ''}
+									${item.code ? ` · <span class="catalog-code">${escapeHtml(item.code)}</span>` : ''} · ${escapeHtml(item.unit)}
+									${item.suggested_supplier ? ` · <span class="catalog-supplier-pill">${renderIconSvg("store", { size: 12 })} ${escapeHtml(item.suggested_supplier)}</span>` : ''}
 								</span>
 							</span>
 							<span class="catalog-result-cost">${formatMoney(item.unit_cost)}</span>
@@ -2474,23 +2927,67 @@ import { renderIconSvg } from '../lib/icons';
 					`;
 				})
 				.join('');
+
+			return countHeader + items;
 		}
 
 		function catalogPanel(chapter: BudgetChapter): string {
+			const suppliers = getCatalogSuppliers();
+			const hasActiveFilters = catalogSearchQuery !== '' || catalogSelectedCategory !== 'all' || catalogSelectedSupplier !== 'all';
+
 			return `
 				<div class="catalog-panel" data-panel="catalog" data-chapter-id="${chapter.id}">
 					<div class="catalog-panel-head">
 						<div class="catalog-search-shell">
 							${renderIconSvg("search", { size: 16 })}
 							<input class="catalog-search-input" type="text" data-catalog-search autocomplete="off"
-								placeholder="Buscar por nombre, código o proveedor..." aria-label="Buscar insumo en el catálogo" />
+								value="${escapeHtml(catalogSearchQuery)}"
+								placeholder="Buscar por nombre, código o especificación..." aria-label="Buscar insumo en el catálogo" />
 						</div>
 						<button type="button" class="btn-close-panel" data-action="close-catalog" aria-label="Cerrar buscador de catálogo">
 							${renderIconSvg("x", { size: 17 })}
 						</button>
 					</div>
+
+					<div class="catalog-filters-deck">
+						<div class="catalog-categories-row" role="radiogroup" aria-label="Filtrar por categoría">
+							<span class="catalog-filter-caption">Categoría:</span>
+							<button type="button" class="catalog-chip ${catalogSelectedCategory === 'all' ? 'is-active' : ''}" data-action="filter-category" data-category-chip="all">
+								Todos
+							</button>
+							<button type="button" class="catalog-chip ${catalogSelectedCategory === 'material' ? 'is-active' : ''}" data-action="filter-category" data-category-chip="material">
+								Material
+							</button>
+							<button type="button" class="catalog-chip ${catalogSelectedCategory === 'labor' ? 'is-active' : ''}" data-action="filter-category" data-category-chip="labor">
+								Mano de Obra
+							</button>
+							<button type="button" class="catalog-chip ${catalogSelectedCategory === 'subcontract' ? 'is-active' : ''}" data-action="filter-category" data-category-chip="subcontract">
+								Subcontrato
+							</button>
+							<button type="button" class="catalog-chip ${catalogSelectedCategory === 'equipment' ? 'is-active' : ''}" data-action="filter-category" data-category-chip="equipment">
+								Equipo
+							</button>
+						</div>
+
+						<div class="catalog-supplier-row">
+							<div class="catalog-supplier-group">
+								<label for="catalog-supplier-select-${chapter.id}" class="catalog-filter-caption">Proveedor:</label>
+								<div class="catalog-select-shell">
+									<select id="catalog-supplier-select-${chapter.id}" class="catalog-supplier-select" data-catalog-supplier aria-label="Filtrar por proveedor sugerido">
+										<option value="all">Todos los proveedores (${suppliers.length})</option>
+										${suppliers.map((s) => `<option value="${escapeHtml(s)}"${s === catalogSelectedSupplier ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('')}
+									</select>
+								</div>
+							</div>
+
+							<button type="button" class="btn-clear-filters ${hasActiveFilters ? '' : 'hidden'}" data-action="clear-catalog-filters" title="Restablecer búsqueda y filtros">
+								Limpiar filtros
+							</button>
+						</div>
+					</div>
+
 					<div class="catalog-results" data-catalog-results>
-						${catalogResultsHtml('')}
+						${catalogResultsHtml(catalogSearchQuery, catalogSelectedCategory, catalogSelectedSupplier)}
 					</div>
 				</div>
 			`;
@@ -2773,6 +3270,9 @@ import { renderIconSvg } from '../lib/icons';
 				openCatalogChapterId = chapterId;
 				openCustomChapterId = null;
 				editingItemId = null;
+				catalogSearchQuery = '';
+				catalogSelectedCategory = 'all';
+				catalogSelectedSupplier = 'all';
 				renderChapters();
 				return;
 			}
@@ -2780,6 +3280,48 @@ import { renderIconSvg } from '../lib/icons';
 			if (action === 'close-catalog') {
 				openCatalogChapterId = null;
 				renderChapters();
+				return;
+			}
+
+			if (action === 'filter-category') {
+				const category = target.dataset.categoryChip || 'all';
+				catalogSelectedCategory = category;
+				const panel = target.closest<HTMLElement>('[data-panel="catalog"]');
+				if (panel) {
+					panel.querySelectorAll('[data-category-chip]').forEach((c) => {
+						c.classList.toggle('is-active', (c as HTMLElement).dataset.categoryChip === category);
+					});
+					const results = panel.querySelector('[data-catalog-results]');
+					if (results) {
+						results.innerHTML = catalogResultsHtml(catalogSearchQuery, catalogSelectedCategory, catalogSelectedSupplier);
+					}
+					const clearBtn = panel.querySelector<HTMLElement>('.btn-clear-filters');
+					const hasFilters = catalogSearchQuery !== '' || catalogSelectedCategory !== 'all' || catalogSelectedSupplier !== 'all';
+					clearBtn?.classList.toggle('hidden', !hasFilters);
+				}
+				return;
+			}
+
+			if (action === 'clear-catalog-filters') {
+				catalogSearchQuery = '';
+				catalogSelectedCategory = 'all';
+				catalogSelectedSupplier = 'all';
+				const panel = target.closest<HTMLElement>('[data-panel="catalog"]');
+				if (panel) {
+					const searchInput = panel.querySelector<HTMLInputElement>('[data-catalog-search]');
+					if (searchInput) searchInput.value = '';
+					const supplierSelect = panel.querySelector<HTMLSelectElement>('[data-catalog-supplier]');
+					if (supplierSelect) supplierSelect.value = 'all';
+					panel.querySelectorAll('[data-category-chip]').forEach((c) => {
+						c.classList.toggle('is-active', (c as HTMLElement).dataset.categoryChip === 'all');
+					});
+					const results = panel.querySelector('[data-catalog-results]');
+					if (results) {
+						results.innerHTML = catalogResultsHtml('', 'all', 'all');
+					}
+					const clearBtn = panel.querySelector<HTMLElement>('.btn-clear-filters');
+					clearBtn?.classList.add('hidden');
+				}
 				return;
 			}
 
@@ -2814,6 +3356,9 @@ import { renderIconSvg } from '../lib/icons';
 				};
 				chapter.items.push(item);
 				openCatalogChapterId = null;
+				catalogSearchQuery = '';
+				catalogSelectedCategory = 'all';
+				catalogSelectedSupplier = 'all';
 				persistBudget(currentBudget);
 				renderChapters();
 				document.getElementById(`budget-item-${item.id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -2859,9 +3404,13 @@ import { renderIconSvg } from '../lib/icons';
 			const input = event.target as HTMLInputElement;
 
 			if (input.matches('[data-catalog-search]')) {
+				catalogSearchQuery = input.value;
 				const panel = input.closest<HTMLElement>('[data-panel="catalog"]');
 				const results = panel?.querySelector('[data-catalog-results]');
-				if (results) results.innerHTML = catalogResultsHtml(input.value);
+				if (results) results.innerHTML = catalogResultsHtml(catalogSearchQuery, catalogSelectedCategory, catalogSelectedSupplier);
+				const clearBtn = panel?.querySelector<HTMLElement>('.btn-clear-filters');
+				const hasFilters = catalogSearchQuery !== '' || catalogSelectedCategory !== 'all' || catalogSelectedSupplier !== 'all';
+				clearBtn?.classList.toggle('hidden', !hasFilters);
 				return;
 			}
 
@@ -2885,6 +3434,24 @@ import { renderIconSvg } from '../lib/icons';
 			updateChapterHeader(found.chapter);
 			pushTotals();
 			scheduleSave();
+		});
+
+		chaptersList?.addEventListener('change', (event) => {
+			const select = event.target as HTMLSelectElement;
+			if (select.matches('[data-catalog-supplier]')) {
+				catalogSelectedSupplier = select.value;
+				const panel = select.closest<HTMLElement>('[data-panel="catalog"]');
+				if (panel) {
+					const results = panel.querySelector('[data-catalog-results]');
+					if (results) {
+						results.innerHTML = catalogResultsHtml(catalogSearchQuery, catalogSelectedCategory, catalogSelectedSupplier);
+					}
+					const clearBtn = panel.querySelector<HTMLElement>('.btn-clear-filters');
+					const hasFilters = catalogSearchQuery !== '' || catalogSelectedCategory !== 'all' || catalogSelectedSupplier !== 'all';
+					clearBtn?.classList.toggle('hidden', !hasFilters);
+				}
+				return;
+			}
 		});
 
 		chaptersList?.addEventListener('submit', (event) => {
@@ -2984,6 +3551,33 @@ import { renderIconSvg } from '../lib/icons';
 				: 'Sin cliente asignado';
 		}
 		if (globalMarginInput) globalMarginInput.value = String(currentBudget.global_margin_percentage);
+		if (commissionInput) {
+			commissionInput.value = String(currentBudget.seller_commission_percentage ?? 0);
+			commissionInput.addEventListener('input', () => {
+				if (guardFrozen()) return;
+				const raw = parseFloat(commissionInput.value);
+				currentBudget.seller_commission_percentage = Number.isFinite(raw) && raw >= 0 ? Math.min(100, raw) : 0;
+				scheduleSave();
+				pushTotals();
+			});
+		}
+		if (sellerNameInput) {
+			sellerNameInput.value = currentBudget.seller_name ?? '';
+			sellerNameInput.addEventListener('input', () => {
+				if (guardFrozen()) return;
+				currentBudget.seller_name = sellerNameInput.value.trim() || undefined;
+				scheduleSave();
+			});
+		}
+
+		// Aislamiento de margen comercial (RN-001): Ocultar márgenes y comisiones si el rol no tiene permisos
+		import('../lib/role-store').then(({ getActiveRoleConfig }) => {
+			const roleConfig = getActiveRoleConfig();
+			if (!roleConfig.canViewFinancialMargins) {
+				const aside = document.querySelector('.builder-aside-cluster');
+				if (aside) aside.classList.add('hidden');
+			}
+		});
 
 		const previewLink = document.getElementById('btn-preview-proposal') as HTMLAnchorElement | null;
 		if (previewLink) previewLink.href = `/proposals/view?id=${encodeURIComponent(currentBudget.id)}`;
@@ -3001,7 +3595,7 @@ import { renderIconSvg } from '../lib/icons';
 		});
 
 		if (frozen) {
-			[titleInput, globalMarginInput, vatIvaInput, vatAiuInput, adminInput, contingencyInput, utilityInput].forEach((el) => {
+			[titleInput, globalMarginInput, vatIvaInput, vatAiuInput, adminInput, contingencyInput, utilityInput, commissionInput, sellerNameInput].forEach((el) => {
 				if (el) { el.disabled = true; (el as HTMLInputElement).readOnly = true; }
 			});
 			[schemeIvaBtn, schemeAiuBtn, applyMarginBtn, toggleChapterFormBtn, emptyAddChapterBtn, deleteBudgetBtn].forEach((el) => {
