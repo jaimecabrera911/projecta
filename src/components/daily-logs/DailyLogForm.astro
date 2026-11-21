@@ -1,6 +1,7 @@
 ---
 // src/components/daily-logs/DailyLogForm.astro
 // HU-17: Formulario Táctil de Registro Diario de Obra (Clima en 1 Toque, Steppers de Personal y Compresión de Fotos).
+import { renderIconSvg } from '../../lib/icons.ts';
 ---
 
 <div id="daily-log-form-card" class="log-form-card" aria-label="Formulario de reporte diario de obra">
@@ -37,7 +38,7 @@
 
 	<!-- Formulario Principal -->
 	<form id="daily-log-form" class="log-form-body" novalidate>
-		<input type="hidden" id="log-project-id" name="project_id" value="proj_penthouse_poblado" />
+		<input type="hidden" id="log-project-id" name="project_id" value="proj_andina_001" />
 		<input type="hidden" id="log-weather-val" name="weather" value="sunny" />
 
 		<!-- 1. Fila de Fecha y Selector de Clima en 1 Toque -->
@@ -55,7 +56,7 @@
 					/>
 				</div>
 
-				<!-- 1.1 Selector de Clima en 1 Toque (☀️ Soleado, 🌧️ Lluvia, ☁️ Nublado) -->
+				<!-- 1.1 Selector de Clima en 1 Toque (Iconos Tabler de react-icons) -->
 				<div class="field-weather-wrap">
 					<label class="field-label">Condición Climática <span class="required">*</span></label>
 					<div class="weather-selector-cluster" role="group" aria-label="Selector de estado del clima">
@@ -66,7 +67,7 @@
 							data-weather="sunny"
 							aria-pressed="true"
 						>
-							<span class="weather-emoji">☀️</span>
+							<span class="weather-icon" set:html={renderIconSvg('sun', { size: 20 })}></span>
 							<span class="weather-name">Soleado</span>
 						</button>
 
@@ -77,7 +78,7 @@
 							data-weather="rainy"
 							aria-pressed="false"
 						>
-							<span class="weather-emoji">🌧️</span>
+							<span class="weather-icon" set:html={renderIconSvg('rain', { size: 20 })}></span>
 							<span class="weather-name">Lluvia</span>
 						</button>
 
@@ -88,7 +89,7 @@
 							data-weather="cloudy"
 							aria-pressed="false"
 						>
-							<span class="weather-emoji">☁️</span>
+							<span class="weather-icon" set:html={renderIconSvg('cloud', { size: 20 })}></span>
 							<span class="weather-name">Nublado</span>
 						</button>
 					</div>
@@ -235,21 +236,25 @@
 			<div class="schedule-sync-card">
 				<div class="sync-card-header">
 					<div class="sync-title-left">
-						<div class="sync-icon-emblem" aria-hidden="true">
-							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-								<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-								<line x1="16" y1="2" x2="16" y2="6"></line>
-								<line x1="8" y1="2" x2="8" y2="6"></line>
-								<line x1="3" y1="10" x2="21" y2="10"></line>
-							</svg>
-						</div>
+						<div class="sync-icon-emblem" aria-hidden="true" set:html={renderIconSvg('calendar', { size: 20 })}></div>
 						<div>
 							<span class="sync-card-title">Avance en Actividades del Cronograma (Sincronización en Vivo)</span>
 							<p class="sync-card-desc">Selecciona las tareas en las que laboró la cuadrilla hoy para actualizar el avance físico y el Gantt automáticamente.</p>
 						</div>
 					</div>
-					<div class="sync-counter-badge" id="sync-tasks-counter-badge">
-						0 actividades marcadas
+					<div class="sync-card-header-actions">
+						<button
+							type="button"
+							id="btn-toggle-all-chapters"
+							class="btn-toggle-all-chapters"
+							title="Expandir o contraer todos los capítulos del cronograma"
+						>
+							<span class="btn-toggle-icon" set:html={renderIconSvg('chevronRight', { size: 14 })}></span>
+							<span class="btn-toggle-text">Expandir todos</span>
+						</button>
+						<div class="sync-counter-badge" id="sync-tasks-counter-badge">
+							0 actividades marcadas
+						</div>
 					</div>
 				</div>
 
@@ -501,7 +506,7 @@
 		gap: 0.4rem;
 	}
 
-	/* Selector de Clima en 1 Toque (☀️ Soleado, 🌧️ Lluvia, ☁️ Nublado) */
+	/* Selector de Clima en 1 Toque (Iconos Tabler de react-icons) */
 	.weather-selector-cluster {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
@@ -551,8 +556,10 @@
 		box-shadow: 0 2px 6px rgba(100, 116, 139, 0.25);
 	}
 
-	.weather-emoji {
-		font-size: 1.25rem;
+	.weather-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		line-height: 1;
 	}
 
@@ -689,22 +696,56 @@
 		margin: 0.15rem 0 0 0;
 	}
 
+	.sync-card-header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.btn-toggle-all-chapters {
+		font-size: 0.75rem;
+		font-weight: 700;
+		background-color: #F8FAFC;
+		color: #475569;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.5rem;
+		padding: 0.35rem 0.65rem;
+		cursor: pointer;
+		min-height: 38px;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		user-select: none;
+		transition: all 0.15s ease;
+	}
+
+	.btn-toggle-all-chapters:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+		border-color: #94A3B8;
+	}
+
 	.sync-counter-badge {
 		font-size: 0.75rem;
 		font-weight: 800;
 		background-color: #ECFDF5;
 		color: #047857;
 		border: 1px solid #A7F3D0;
-		padding: 0.25rem 0.75rem;
+		padding: 0.35rem 0.75rem;
 		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+		white-space: nowrap;
 	}
 
 	.sync-tasks-checklist {
 		display: flex;
 		flex-direction: column;
-		gap: 0.85rem;
-		max-height: 420px;
+		gap: 0.75rem;
+		max-height: 520px;
 		overflow-y: auto;
+		overflow-x: hidden;
 		padding-right: 4px;
 	}
 
@@ -716,6 +757,8 @@
 		transition: all 0.15s ease;
 		display: flex;
 		flex-direction: column;
+		flex-shrink: 0;
+		width: 100%;
 	}
 
 	:global(.sync-chapter-group.has-marked) {
@@ -723,15 +766,31 @@
 		background-color: #FFFDFB;
 	}
 
+	:global(.sync-chapter-group.is-collapsed .sync-chapter-header) {
+		border-bottom: none;
+	}
+
 	:global(.sync-chapter-header) {
 		background-color: #F1F5F9;
-		padding: 0.625rem 0.875rem;
+		padding: 0.75rem 0.875rem;
 		border-bottom: 1px solid #E2E8F0;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
-		flex-wrap: wrap;
+		cursor: pointer;
+		user-select: none;
+		min-height: 48px;
+		transition: background-color 0.15s ease, border-color 0.15s ease;
+	}
+
+	:global(.sync-chapter-header:hover) {
+		background-color: #E2E8F0;
+	}
+
+	:global(.sync-chapter-header:focus-visible) {
+		outline: 2px solid #F97316;
+		outline-offset: -2px;
 	}
 
 	:global(.sync-chapter-group.has-marked .sync-chapter-header) {
@@ -739,16 +798,35 @@
 		border-bottom-color: #FED7AA;
 	}
 
+	:global(.sync-chapter-group.has-marked .sync-chapter-header:hover) {
+		background-color: #FFEDD5;
+	}
+
 	:global(.sync-chapter-title-box) {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		min-width: 0;
+		flex: 1;
+	}
+
+	:global(.sync-chapter-chevron) {
+		color: #64748B;
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+		transition: transform 0.2s ease;
 	}
 
 	:global(.sync-chapter-folder-icon) {
-		font-size: 0.9375rem;
+		color: #64748B;
+		display: flex;
+		align-items: center;
 		flex-shrink: 0;
+	}
+
+	:global(.sync-chapter-group.has-marked .sync-chapter-folder-icon) {
+		color: #EA580C;
 	}
 
 	:global(.sync-chapter-title) {
@@ -788,10 +866,15 @@
 	}
 
 	:global(.sync-chapter-tasks-list) {
-		padding: 0.625rem;
+		padding: 0.75rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.65rem;
+		overflow: visible;
+	}
+
+	:global(.sync-chapter-tasks-list.collapsed) {
+		display: none !important;
 	}
 
 	:global(.task-sync-item-card) {
@@ -802,6 +885,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.65rem;
+		flex-shrink: 0;
 		transition: all 0.15s ease;
 	}
 

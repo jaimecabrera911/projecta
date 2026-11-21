@@ -1,6 +1,7 @@
 ---
 // src/components/schedule/GanttChartView.astro
 // HU-16: Vista de Diagrama de Gantt interactivo con Frappe Gantt (Drag & Drop, Duración, Avance y Detalle).
+import { renderIconSvg } from '../../lib/icons.ts';
 ---
 
 <div id="schedule-gantt-view" class="gantt-view-container hidden" aria-label="Diagrama de Gantt interactivo de obra">
@@ -46,7 +47,7 @@
 				<label for="gantt-chapter-select" class="gantt-chapter-label">Capítulo:</label>
 				<div class="gantt-select-wrapper">
 					<select id="gantt-chapter-select" class="gantt-chapter-select" aria-label="Seleccionar capítulo presupuestal">
-						<option value="all">📁 Todos los Capítulos</option>
+						<option value="all">Todos los Capítulos</option>
 					</select>
 					<div class="select-chevron-mini" aria-hidden="true">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -61,7 +62,7 @@
 				<label for="gantt-crew-select" class="gantt-chapter-label">Responsable:</label>
 				<div class="gantt-select-wrapper">
 					<select id="gantt-crew-select" class="gantt-chapter-select" aria-label="Seleccionar cuadrilla o responsable">
-						<option value="all">👷 Todos los Responsables</option>
+						<option value="all">Todos los Responsables</option>
 					</select>
 					<div class="select-chevron-mini" aria-hidden="true">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -72,7 +73,8 @@
 			</div>
 
 			<span class="gantt-hint-badge desktop-only">
-				💡 Arrastra las barras para mover fechas o el tirador circular para % de avance
+				<Fragment set:html={renderIconSvg('bulb', { size: 14 })} />
+				<span>Arrastra las barras para mover fechas o el tirador circular para % de avance</span>
 			</span>
 		</div>
 

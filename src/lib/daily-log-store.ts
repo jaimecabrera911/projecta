@@ -228,7 +228,7 @@ export async function compressImageToWebP(file: File, maxSizeBytes: number = 800
  * Genera una foto técnica SVG con sello de agua para demostración de bitácora diaria.
  */
 export function generateDailyPhotoSvg(projectTitle: string, title: string, weather: WeatherType): string {
-	const weatherEmoji = weather === 'sunny' ? '☀️ SOLEADO' : weather === 'rainy' ? '🌧️ LLUVIA' : '☁️ NUBLADO';
+	const weatherText = weather === 'sunny' ? 'SOLEADO' : weather === 'rainy' ? 'LLUVIA' : 'NUBLADO';
 	const nowStr = new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
 
 	const svg = `
@@ -265,7 +265,7 @@ export function generateDailyPhotoSvg(projectTitle: string, title: string, weath
 		ObraFlow • BITÁCORA TÉCNICA VERIFICADA
 	</text>
 	<text x="40" y="412" font-family="system-ui, sans-serif" font-size="11" fill="#E2E8F0">
-		Fecha: ${nowStr} | Clima: ${weatherEmoji}
+		Fecha: ${nowStr} | Clima: ${weatherText}
 	</text>
 	<text x="560" y="402" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" fill="#10B981" text-anchor="end">
 		${projectTitle.length > 30 ? projectTitle.substring(0, 27) + '...' : projectTitle}

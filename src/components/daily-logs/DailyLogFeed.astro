@@ -1,6 +1,7 @@
 ---
 // src/components/daily-logs/DailyLogFeed.astro
 // HU-17: Muro Social Estilo Feed de Bitácora Diaria (Cronológico Inverso con Clima, Personal y Galería Lightbox).
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="daily-logs-feed-container" class="daily-feed-wrapper" aria-label="Muro de publicaciones de bitácora">
@@ -23,7 +24,9 @@
 <!-- Lightbox Modal para Fotografías del Muro -->
 <div id="feed-photo-lightbox" class="feed-lightbox-backdrop hidden" aria-hidden="true">
 	<div class="feed-lightbox-box">
-		<button id="btn-close-feed-lightbox" type="button" class="btn-lightbox-exit" aria-label="Cerrar visor">✕</button>
+		<button id="btn-close-feed-lightbox" type="button" class="btn-lightbox-exit" aria-label="Cerrar visor" style="display: flex; align-items: center; justify-content: center;">
+			<Fragment set:html={renderIconSvg('x', { size: 18 })} />
+		</button>
 		<img id="feed-lightbox-img" src="" alt="Fotografía de avance ampliada" class="feed-lightbox-image" />
 		<div id="feed-lightbox-caption" class="feed-lightbox-caption-text"></div>
 	</div>

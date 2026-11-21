@@ -1,6 +1,7 @@
 ---
 // src/components/schedule/TaskDetailModal.astro
 // HU-16: Modal Táctil de Detalle, Edición de Tarea, Evidencias Fotográficas y Comentarios de Bitácora.
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <!-- Backdrop -->
@@ -180,7 +181,7 @@
 						<div class="slider-ticks">
 							<span>0% (Pendiente)</span>
 							<span>50%</span>
-							<span>100% (Completada ✓)</span>
+							<span>100% (Completada)</span>
 						</div>
 					</div>
 
@@ -322,7 +323,9 @@
 <!-- Modal Lightbox para Visualizar Fotos en Grande -->
 <div id="evidence-lightbox-modal" class="lightbox-overlay hidden" aria-hidden="true">
 	<div class="lightbox-content">
-		<button id="btn-close-lightbox" type="button" class="btn-lightbox-close" aria-label="Cerrar foto">✕</button>
+		<button id="btn-close-lightbox" type="button" class="btn-lightbox-close" aria-label="Cerrar foto" style="display: flex; align-items: center; justify-content: center;">
+			<Fragment set:html={renderIconSvg('x', { size: 18 })} />
+		</button>
 		<img id="lightbox-image" src="" alt="Evidencia de obra ampliada" class="lightbox-img" />
 		<div id="lightbox-caption" class="lightbox-caption-text"></div>
 	</div>

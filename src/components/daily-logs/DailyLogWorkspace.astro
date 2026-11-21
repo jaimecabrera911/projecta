@@ -5,6 +5,7 @@
 
 import DailyLogForm from './DailyLogForm.astro';
 import DailyLogFeed from './DailyLogFeed.astro';
+import { renderIconSvg } from '../../lib/icons.ts';
 ---
 
 <div id="daily-log-workspace-root" class="daily-workspace-shell">
@@ -15,8 +16,8 @@ import DailyLogFeed from './DailyLogFeed.astro';
 				<label for="daily-log-project-select" class="project-select-label">Obra Activa:</label>
 				<div class="custom-select-container">
 					<select id="daily-log-project-select" class="daily-project-select" aria-label="Seleccionar proyecto de obra">
-						<option value="proj_penthouse_poblado" selected>Remodelación Penthouse El Poblado (Dr. Andrés Restrepo)</option>
-						<option value="proj_torre_medica">Adecuación Consultorios Torre Médica (Inversiones Salud)</option>
+						<option value="proj_andina_001" selected>Remodelación Penthouse El Poblado (Dr. Andrés Restrepo)</option>
+						<option value="proj_andina_002">Adecuación Oficinas Coworking Laureles (Inversiones Nova SAS)</option>
 					</select>
 					<div class="select-chevron" aria-hidden="true">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -73,9 +74,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		</div>
 
 		<div class="metric-summary-card">
-			<div class="metric-icon-wrap icon-weather">
-				<span style="font-size: 1.25rem;">☀️</span>
-			</div>
+			<div class="metric-icon-wrap icon-weather" set:html={renderIconSvg('sun', { size: 22 })}></div>
 			<div class="metric-text-box">
 				<span class="metric-number" id="metric-dominant-weather-text">Soleado</span>
 				<span class="metric-caption">Clima Predominante</span>
@@ -402,16 +401,23 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		updateTask,
 		addTaskComment,
 		getProjectChapters,
+		resetDemoTasks,
 		type ScheduleTask
 	} from '../../lib/task-schedule-store.ts';
+	import {
+		getActiveProjectId,
+		setActiveProjectId
+	} from '../../lib/active-project-store.ts';
+	import { renderIconSvg } from '../../lib/icons.ts';
 
-	let activeProjectId = 'proj_penthouse_poblado';
+	let activeProjectId = getActiveProjectId();
 	let selectedWeather: WeatherType = 'sunny';
 	let officialsCount = 3;
 	let helpersCount = 2;
 	let downtimeHours = 0;
 	let stagedPhotos: DailyLogPhoto[] = [];
 	let stagedTaskUpdates: Map<string, TaskProgressUpdate> = new Map();
+	let expandedChapterIds: Set<string> = new Set();
 
 	function initDailyLogWorkspace() {
 		setupFormControls();
@@ -422,18 +428,43 @@ import DailyLogFeed from './DailyLogFeed.astro';
 	function setupFormControls() {
 		// 1. Selector de Proyecto
 		const projSelect = document.getElementById('daily-log-project-select') as HTMLSelectElement | null;
-		projSelect?.addEventListener('change', () => {
-			activeProjectId = projSelect.value;
-			stagedTaskUpdates.clear();
-			updateWorkspace();
-			renderTasksSyncList();
+		const hiddenProjInput = document.getElementById('log-project-id') as HTMLInputElement | null;
+		if (projSelect) {
+			projSelect.value = activeProjectId;
+			projSelect.addEventListener('change', () => {
+				activeProjectId = projSelect.value;
+				setActiveProjectId(activeProjectId);
+				if (hiddenProjInput) hiddenProjInput.value = activeProjectId;
+				stagedTaskUpdates.clear();
+				expandedChapterIds.clear();
+				updateWorkspace();
+				renderTasksSyncList();
+			});
+		}
+
+		// Escuchar cambios de obra fijada desde el Header
+		window.addEventListener('obraflow:project-changed', (e: any) => {
+			const newId = e.detail?.projectId;
+			if (newId && newId !== activeProjectId) {
+				activeProjectId = newId;
+				if (projSelect) projSelect.value = newId;
+				if (hiddenProjInput) hiddenProjInput.value = newId;
+				stagedTaskUpdates.clear();
+				expandedChapterIds.clear();
+				updateWorkspace();
+				renderTasksSyncList();
+			}
 		});
 
 		// 2. Botón Reset Demo
 		document.getElementById('daily-log-reset-btn')?.addEventListener('click', () => {
 			resetDemoDailyLogs();
+			resetDemoTasks();
+			stagedTaskUpdates.clear();
+			expandedChapterIds.clear();
 			updateWorkspace();
-			showToast('Bitácoras de demostración restablecidas correctamente.');
+			renderTasksSyncList();
+			showToast('Bitácoras y actividades de demostración restablecidas correctamente.');
 		});
 
 		// 3. Fecha default: Hoy
@@ -556,7 +587,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 			});
 
 			renderPhotosPreview();
-			showToast('📸 Foto de prueba con sello de agua agregada.');
+			showToast('Foto de prueba con sello de agua agregada.');
 		});
 
 		// 8. Botón Auto-Llenar Demo
@@ -586,6 +617,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 					new_pct: Math.min(100, t1.progress_pct + 25),
 					notes: 'Avance verificado en obra con cuadrilla asignada.'
 				});
+				expandedChapterIds.add(t1.chapter_id);
 
 				if (demoTasks.length > 1) {
 					const t2 = demoTasks[1];
@@ -598,6 +630,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 						new_pct: Math.min(100, t2.progress_pct + 20),
 						notes: 'Instalación y trazado técnico conforme a planos.'
 					});
+					expandedChapterIds.add(t2.chapter_id);
 				}
 				renderTasksSyncList();
 			}
@@ -657,7 +690,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 					updateTask(tp.task_id, {
 						progress_pct: tp.new_pct
 					});
-					const weatherLabel = selectedWeather === 'sunny' ? '☀️ Soleado' : selectedWeather === 'rainy' ? '🌧️ Lluvia' : '☁️ Nublado';
+					const weatherLabel = selectedWeather === 'sunny' ? 'Soleado' : selectedWeather === 'rainy' ? 'Lluvia' : 'Nublado';
 					addTaskComment(tp.task_id, {
 						author_name: roleConfig.name,
 						author_role: roleConfig.label,
@@ -679,13 +712,14 @@ import DailyLogFeed from './DailyLogFeed.astro';
 			updateDowntimeDisplay();
 			stagedPhotos = [];
 			stagedTaskUpdates.clear();
+			expandedChapterIds.clear();
 			renderTasksSyncList();
 			renderPhotosPreview();
 			updateWorkspace();
 
 			const syncMsg = tasksProgressPayload.length > 0
-				? `✓ Bitácora publicada y ${tasksProgressPayload.length} ${tasksProgressPayload.length === 1 ? 'actividad sincronizada' : 'actividades sincronizadas'} en el Cronograma.`
-				: '✓ Bitácora del día publicada con éxito en el muro.';
+				? `Bitácora publicada y ${tasksProgressPayload.length} ${tasksProgressPayload.length === 1 ? 'actividad sincronizada' : 'actividades sincronizadas'} en el Cronograma.`
+				: 'Bitácora del día publicada con éxito en el muro.';
 			showToast(syncMsg);
 		});
 
@@ -722,8 +756,8 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		strip.innerHTML = stagedPhotos.map((p, idx) => `
 			<div class="log-photo-preview-card" id="preview-photo-${p.id}">
 				<img src="${p.url}" alt="${escapeHtml(p.caption || p.name)}" class="log-photo-preview-img" />
-				<button type="button" class="btn-remove-preview-photo" data-remove-idx="${idx}" title="Descartar foto">
-					✕
+				<button type="button" class="btn-remove-preview-photo" data-remove-idx="${idx}" title="Descartar foto" style="display: flex; align-items: center; justify-content: center;">
+					${renderIconSvg('x', { size: 14 })}
 				</button>
 			</div>
 		`).join('');
@@ -796,26 +830,35 @@ import DailyLogFeed from './DailyLogFeed.astro';
 
 		let html = '';
 		groupedChapters.forEach((grp) => {
+			const isExpanded = expandedChapterIds.has(grp.id);
 			const markedInChapter = grp.tasks.filter((t) => stagedTaskUpdates.has(t.id)).length;
 			const hasMarked = markedInChapter > 0;
 
 			html += `
-				<div class="sync-chapter-group ${hasMarked ? 'has-marked' : ''}" id="sync-chapter-group-${grp.id}">
-					<div class="sync-chapter-header">
+				<div class="sync-chapter-group ${hasMarked ? 'has-marked' : ''} ${isExpanded ? 'is-expanded' : 'is-collapsed'}" id="sync-chapter-group-${grp.id}">
+					<div
+						class="sync-chapter-header"
+						data-toggle-chapter="${grp.id}"
+						role="button"
+						tabindex="0"
+						aria-expanded="${isExpanded}"
+						aria-controls="sync-chapter-tasks-${grp.id}"
+					>
 						<div class="sync-chapter-title-box">
-							<span class="sync-chapter-folder-icon" aria-hidden="true">📁</span>
+							<span class="sync-chapter-chevron" aria-hidden="true">${renderIconSvg(isExpanded ? 'chevronDown' : 'chevronRight', { size: 16 })}</span>
+							<span class="sync-chapter-folder-icon" aria-hidden="true" style="display: flex; align-items: center;">${renderIconSvg('folder', { size: 16 })}</span>
 							<span class="sync-chapter-title">${escapeHtml(grp.name)}</span>
 						</div>
 						<div class="sync-chapter-header-right">
 							${
 								hasMarked
-									? `<span class="sync-chapter-selected-badge">✓ ${markedInChapter} ${markedInChapter === 1 ? 'marcada' : 'marcadas'}</span>`
+									? `<span class="sync-chapter-selected-badge" style="display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('check', { size: 12 })} ${markedInChapter} ${markedInChapter === 1 ? 'marcada' : 'marcadas'}</span>`
 									: ''
 							}
 							<span class="sync-chapter-count-pill">${grp.tasks.length} ${grp.tasks.length === 1 ? 'actividad' : 'actividades'}</span>
 						</div>
 					</div>
-					<div class="sync-chapter-tasks-list">
+					<div class="sync-chapter-tasks-list ${isExpanded ? '' : 'collapsed'}" id="sync-chapter-tasks-${grp.id}">
 			`;
 
 			grp.tasks.forEach((task) => {
@@ -852,7 +895,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 							</div>
 
 							<div style="font-size: 0.8125rem; font-weight: 800; font-family: monospace; color: ${isSelected ? '#EA580C' : '#64748B'};">
-								${isSelected ? `${currentPct}% ➔ ${newPct}%` : `${currentPct}%`}
+								${isSelected ? `${currentPct}% &rarr; ${newPct}%` : `${currentPct}%`}
 							</div>
 						</div>
 
@@ -878,7 +921,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 									<button type="button" class="btn-preset-chip" data-preset-task="${task.id}" data-preset-val="${Math.min(100, currentPct + 10)}">+10%</button>
 									<button type="button" class="btn-preset-chip" data-preset-task="${task.id}" data-preset-val="${Math.min(100, currentPct + 25)}">+25%</button>
 									<button type="button" class="btn-preset-chip" data-preset-task="${task.id}" data-preset-val="${Math.min(100, currentPct + 50)}">+50%</button>
-									<button type="button" class="btn-preset-chip complete" data-preset-task="${task.id}" data-preset-val="100">✓ 100% Lista</button>
+									<button type="button" class="btn-preset-chip complete" data-preset-task="${task.id}" data-preset-val="100" style="display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('check', { size: 12 })} 100% Lista</button>
 								</div>
 							</div>
 
@@ -902,6 +945,49 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		});
 
 		container.innerHTML = html;
+
+		// Listeners para colapsar/expandir capítulos en 1 toque (Operate Mode: touch target de 48px y soporte accesible de teclado)
+		container.querySelectorAll<HTMLElement>('[data-toggle-chapter]').forEach((hdr) => {
+			const toggleFn = (e: Event) => {
+				e.preventDefault();
+				e.stopPropagation();
+				const chapterId = hdr.dataset.toggleChapter;
+				if (!chapterId) return;
+				if (expandedChapterIds.has(chapterId)) {
+					expandedChapterIds.delete(chapterId);
+				} else {
+					expandedChapterIds.add(chapterId);
+				}
+				renderTasksSyncList();
+			};
+
+			hdr.addEventListener('click', toggleFn);
+			hdr.addEventListener('keydown', (e: KeyboardEvent) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					toggleFn(e);
+				}
+			});
+		});
+
+		// Manejo del botón global "Expandir todos" / "Contraer todos"
+		const btnToggleAll = document.getElementById('btn-toggle-all-chapters');
+		if (btnToggleAll && groupedChapters.length > 0) {
+			const allOpen = groupedChapters.every((g) => expandedChapterIds.has(g.id));
+			const toggleText = btnToggleAll.querySelector('.btn-toggle-text');
+			const toggleIcon = btnToggleAll.querySelector('.btn-toggle-icon');
+			if (toggleText) toggleText.textContent = allOpen ? 'Contraer todos' : 'Expandir todos';
+			if (toggleIcon) toggleIcon.innerHTML = renderIconSvg(allOpen ? 'chevronDown' : 'chevronRight', { size: 14 });
+
+			btnToggleAll.onclick = (e) => {
+				e.preventDefault();
+				if (allOpen) {
+					expandedChapterIds.clear();
+				} else {
+					groupedChapters.forEach((g) => expandedChapterIds.add(g.id));
+				}
+				renderTasksSyncList();
+			};
+		}
 
 		// Listeners para checkboxes y selección
 		container.querySelectorAll<HTMLElement>('[data-toggle-task]').forEach((btn) => {
@@ -1054,9 +1140,9 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		});
 
 		const weatherLabels: Record<WeatherType, string> = {
-			sunny: '☀️ Soleado',
-			rainy: '🌧️ Lluvia',
-			cloudy: '☁️ Nublado'
+			sunny: 'Soleado',
+			rainy: 'Lluvia',
+			cloudy: 'Nublado'
 		};
 
 		if (weatherElem) weatherElem.textContent = weatherLabels[dominant] || 'Soleado';
@@ -1080,10 +1166,10 @@ import DailyLogFeed from './DailyLogFeed.astro';
 
 		emptyNotice?.classList.add('hidden');
 
-		const weatherConfig: Record<WeatherType, { label: string; emoji: string; class: string }> = {
-			sunny: { label: 'Soleado', emoji: '☀️', class: 'sunny' },
-			rainy: { label: 'Lluvia', emoji: '🌧️', class: 'rainy' },
-			cloudy: { label: 'Nublado', emoji: '☁️', class: 'cloudy' }
+		const weatherConfig: Record<WeatherType, { label: string; icon: string; class: string }> = {
+			sunny: { label: 'Soleado', icon: renderIconSvg('sun', { size: 14 }), class: 'sunny' },
+			rainy: { label: 'Lluvia', icon: renderIconSvg('rain', { size: 14 }), class: 'rainy' },
+			cloudy: { label: 'Nublado', icon: renderIconSvg('cloud', { size: 14 }), class: 'cloudy' }
 		};
 
 		let html = '';
@@ -1097,17 +1183,17 @@ import DailyLogFeed from './DailyLogFeed.astro';
 				<article class="daily-log-card" id="log-card-${entry.id}">
 					<div class="log-card-header">
 						<div class="log-header-left">
-							<h4 class="log-date-heading">📅 ${formatDateFull(entry.date)}</h4>
+							<h4 class="log-date-heading" style="display: inline-flex; align-items: center; gap: 6px;">${renderIconSvg('calendar', { size: 16 })} ${formatDateFull(entry.date)}</h4>
 							<span class="weather-badge ${w.class}">
-								<span>${w.emoji}</span>
+								<span style="display: flex; align-items: center;">${w.icon}</span>
 								<span>${w.label}</span>
 							</span>
-							<span class="workers-badge" title="${entry.officials_count} oficiales y ${entry.helpers_count} ayudantes">
-								👷 ${entry.total_workers} en obra (${entry.officials_count} ofi. / ${entry.helpers_count} ayud.)
+							<span class="workers-badge" title="${entry.officials_count} oficiales y ${entry.helpers_count} ayudantes" style="display: inline-flex; align-items: center; gap: 4px;">
+								${renderIconSvg('worker', { size: 14 })} ${entry.total_workers} en obra (${entry.officials_count} ofi. / ${entry.helpers_count} ayud.)
 							</span>
 							${entry.downtime_hours > 0 ? `
-								<span class="downtime-badge" title="${escapeHtml(entry.downtime_reason || 'Paro por condiciones climáticas')}">
-									⏸️ ${entry.downtime_hours} hrs paro
+								<span class="downtime-badge" title="${escapeHtml(entry.downtime_reason || 'Paro por condiciones climáticas')}" style="display: inline-flex; align-items: center; gap: 4px;">
+									${renderIconSvg('clock', { size: 14 })} ${entry.downtime_hours} hrs paro
 								</span>
 							` : ''}
 						</div>
@@ -1168,9 +1254,9 @@ import DailyLogFeed from './DailyLogFeed.astro';
 								<div class="tasks-chips-flow">
 									${entry.tasks_progress.map((tp) => `
 										<div class="task-sync-badge ${tp.new_pct === 100 ? 'done' : ''}">
-											<span>📌 <strong>${escapeHtml(tp.task_title)}</strong></span>
-											<span style="font-family: monospace; font-weight: 800;">${tp.previous_pct}% ➔ ${tp.new_pct}%</span>
-											${tp.new_pct === 100 ? '<span style="font-weight: 800; color: #059669;">✓ Completada</span>' : ''}
+											<span><strong>${escapeHtml(tp.task_title)}</strong></span>
+											<span style="font-family: monospace; font-weight: 800;">${tp.previous_pct}% &rarr; ${tp.new_pct}%</span>
+											${tp.new_pct === 100 ? `<span style="font-weight: 800; color: #059669; display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('check', { size: 12 })} Completada</span>` : ''}
 											${tp.notes ? `<span class="task-sync-badge-note">«${escapeHtml(tp.notes)}»</span>` : ''}
 										</div>
 									`).join('')}
@@ -1236,7 +1322,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 				if (!entry) return;
 				const projSelect = document.getElementById('daily-log-project-select') as HTMLSelectElement | null;
 				const projectTitle = projSelect?.options[projSelect.selectedIndex]?.text || 'ObraFlow Proyecto';
-				showToast('📄 Generando Acta de Reporte Diario...');
+				showToast('Generando Acta de Reporte Diario en PDF...');
 				printDailyLogPdf(entry, projectTitle);
 			});
 		});

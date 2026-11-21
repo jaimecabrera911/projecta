@@ -1,0 +1,526 @@
+---
+// src/components/HeaderProjectSwitcher.astro
+// Selector interactivo de Obra Activa / Fijada en el Header (Operate Mode & Impeccable).
+// Permite al residente o contratista fijar una obra en ejecución para que se mantenga activa en todos los módulos.
+import { renderIconSvg } from '../lib/icons.ts';
+---
+
+<div id="header-project-switcher" class="header-project-container">
+	<!-- Botón Disparador del Selector de Obra Fijada -->
+	<button
+		id="btn-header-project-trigger"
+		type="button"
+		class="btn-project-trigger"
+		aria-haspopup="true"
+		aria-expanded="false"
+		aria-label="Cambiar obra fijada activa para la plataforma"
+		title="Fijar obra activa para toda la plataforma"
+	>
+		<div class="project-pin-badge" id="header-project-pin-badge" aria-hidden="true">
+			<span class="pin-icon" set:html={renderIconSvg('pin', { size: 16 })}></span>
+		</div>
+		<div class="project-text-cluster">
+			<div class="project-kicker-row">
+				<span class="project-kicker">Obra Fijada</span>
+				<span class="project-status-dot" aria-hidden="true" title="Obra activa en ejecución"></span>
+			</div>
+			<div class="project-title-row">
+				<span id="header-project-title" class="project-title">Cargando obra...</span>
+				<svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<polyline points="6 9 12 15 18 9"></polyline>
+				</svg>
+			</div>
+		</div>
+	</button>
+
+	<!-- Menú Desplegable con las Obras Disponibles -->
+	<div id="header-project-dropdown" class="project-dropdown-menu hidden" role="menu" aria-label="Lista de obras disponibles para fijar">
+		<div class="dropdown-header">
+			<div class="header-tag-row">
+				<span class="dropdown-kicker">Fijar Proyecto Activo</span>
+				<span class="dropdown-badge-info">Aplica a todos los módulos</span>
+			</div>
+			<h4 class="dropdown-title">Seleccionar Obra en Ejecución</h4>
+			<p class="dropdown-subtitle">La obra que fijes aquí permanecerá activa automáticamente en Bitácora, Cronograma, Control de Costos y Gastos de Campo.</p>
+		</div>
+
+		<div class="project-options-list" id="header-project-options-list" role="none">
+			<!-- Opciones renderizadas dinámicamente vía cliente -->
+		</div>
+
+		<div class="dropdown-footer">
+			<span class="dropdown-hint" set:html={`${renderIconSvg('bulb', { size: 14 })} No tendrás que cambiar de obra al navegar entre vistas.`}></span>
+		</div>
+	</div>
+</div>
+
+<style>
+	.header-project-container {
+		position: relative;
+		display: inline-block;
+	}
+
+	.btn-project-trigger {
+		min-height: 48px;
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.35rem 0.75rem;
+		background-color: #1E293B;
+		border: 1.5px solid #334155;
+		border-radius: 0.625rem;
+		color: #F8FAFC;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		max-width: 270px;
+		text-align: left;
+	}
+
+	.btn-project-trigger:hover {
+		background-color: #27354A;
+		border-color: #F97316;
+	}
+
+	.btn-project-trigger:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.project-pin-badge {
+		width: 32px;
+		height: 32px;
+		min-width: 32px;
+		background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(234, 88, 12, 0.3) 100%);
+		border: 1px solid rgba(249, 115, 22, 0.4);
+		border-radius: 0.375rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.9375rem;
+		flex-shrink: 0;
+	}
+
+	.project-text-cluster {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.project-kicker-row {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.project-kicker {
+		font-size: 0.625rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #FB923C;
+	}
+
+	.project-status-dot {
+		width: 6px;
+		height: 6px;
+		background-color: #10B981;
+		border-radius: 50%;
+		box-shadow: 0 0 6px #10B981;
+		flex-shrink: 0;
+	}
+
+	.project-title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.4rem;
+	}
+
+	.project-title {
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #FFFFFF;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 175px;
+		letter-spacing: -0.01em;
+	}
+
+	.chevron-icon {
+		color: #94A3B8;
+		transition: transform 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.btn-project-trigger[aria-expanded='true'] .chevron-icon {
+		transform: rotate(180deg);
+		color: #F97316;
+	}
+
+	/* Dropdown Menú */
+	.project-dropdown-menu {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 0;
+		z-index: 100;
+		min-width: 330px;
+		max-width: 400px;
+		background-color: #0F172A;
+		border: 1.5px solid #334155;
+		border-radius: 0.75rem;
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+		overflow: hidden;
+		animation: dropdownFadeIn 0.15s ease-out forwards;
+	}
+
+	.project-dropdown-menu.hidden {
+		display: none !important;
+	}
+
+	@keyframes dropdownFadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.dropdown-header {
+		padding: 0.875rem 1rem;
+		background-color: #1E293B;
+		border-bottom: 1px solid #334155;
+	}
+
+	.header-tag-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.dropdown-kicker {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #F97316;
+	}
+
+	.dropdown-badge-info {
+		font-size: 0.625rem;
+		font-weight: 700;
+		background-color: #0F172A;
+		color: #38BDF8;
+		border: 1px solid #0284C7;
+		padding: 0.15rem 0.45rem;
+		border-radius: 9999px;
+	}
+
+	.dropdown-title {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #FFFFFF;
+		margin: 0 0 0.25rem 0;
+	}
+
+	.dropdown-subtitle {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		margin: 0;
+		line-height: 1.4;
+	}
+
+	.project-options-list {
+		padding: 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		max-height: 320px;
+		overflow-y: auto;
+	}
+
+	:global(.project-option-item) {
+		width: 100%;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.65rem;
+		padding: 0.75rem;
+		border-radius: 0.5rem;
+		border: 1.5px solid transparent;
+		background-color: #1E293B;
+		color: #F8FAFC;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		text-align: left;
+	}
+
+	:global(.project-option-item:hover) {
+		background-color: #27354A;
+		border-color: #475569;
+	}
+
+	:global(.project-option-item.active) {
+		background-color: #2A1F18;
+		border-color: #F97316;
+		box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+	}
+
+	:global(.option-pin-indicator) {
+		width: 32px;
+		height: 32px;
+		min-width: 32px;
+		border-radius: 0.375rem;
+		background-color: #0F172A;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1rem;
+		flex-shrink: 0;
+		border: 1px solid #334155;
+	}
+
+	:global(.project-option-item.active .option-pin-indicator) {
+		border-color: #F97316;
+		background-color: #381E10;
+	}
+
+	:global(.option-details) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	:global(.option-title-line) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	:global(.option-project-name) {
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #FFFFFF;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	:global(.badge-active-pinned) {
+		font-size: 0.625rem;
+		font-weight: 800;
+		background-color: #FFEDD5;
+		color: #EA580C;
+		border: 1px solid #FED7AA;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+		flex-shrink: 0;
+	}
+
+	:global(.option-meta-line) {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-wrap: wrap;
+	}
+
+	:global(.option-submeta-line) {
+		font-size: 0.6875rem;
+		color: #CBD5E1;
+		font-family: 'JetBrains Mono', monospace;
+		margin-top: 0.1rem;
+	}
+
+	:global(.option-submeta-line strong) {
+		color: #10B981;
+	}
+
+	.dropdown-footer {
+		padding: 0.625rem 1rem;
+		background-color: #0F172A;
+		border-top: 1px solid #1E293B;
+		text-align: center;
+	}
+
+	.dropdown-hint {
+		font-size: 0.6875rem;
+		color: #64748B;
+		display: block;
+	}
+
+	@media (max-width: 768px) {
+		.btn-project-trigger {
+			max-width: 200px;
+			padding: 0.25rem 0.5rem;
+		}
+
+		.project-title {
+			max-width: 110px;
+		}
+
+		.project-dropdown-menu {
+			min-width: 290px;
+			max-width: calc(100vw - 2rem);
+			left: auto;
+			right: 0;
+		}
+	}
+</style>
+
+<script>
+	// Controlador reactivo de Obra Fijada en Header
+	import {
+		getActiveProjectId,
+		setActiveProjectId,
+		getAvailableProjects
+	} from '../lib/active-project-store.ts';
+	import { renderIconSvg } from '../lib/icons.ts';
+
+	function initHeaderProjectSwitcher() {
+		const container = document.getElementById('header-project-switcher');
+		const triggerBtn = document.getElementById('btn-header-project-trigger');
+		const dropdown = document.getElementById('header-project-dropdown');
+		const titleEl = document.getElementById('header-project-title');
+		const optionsList = document.getElementById('header-project-options-list');
+		if (!container || !triggerBtn || !dropdown || !titleEl || !optionsList) return;
+
+		const projects = getAvailableProjects();
+
+		const renderHeader = () => {
+			const currentId = getActiveProjectId();
+			const currentProject = projects.find((p) => p.project_id === currentId) || projects[0];
+			if (currentProject) {
+				titleEl.textContent = currentProject.title;
+				titleEl.setAttribute('title', currentProject.title);
+			}
+		};
+
+		const renderDropdownOptions = () => {
+			const currentId = getActiveProjectId();
+			let html = '';
+
+			projects.forEach((proj) => {
+				const isSelected = proj.project_id === currentId;
+				const formattedPrice = new Intl.NumberFormat('es-CO', {
+					style: 'currency',
+					currency: 'COP',
+					maximumFractionDigits: 0
+				}).format(proj.target_sale_price || 0);
+
+				html += `
+					<button
+						type="button"
+						class="project-option-item ${isSelected ? 'active' : ''}"
+						data-project-id="${proj.project_id}"
+						role="menuitem"
+						title="${isSelected ? 'Obra actualmente fijada' : 'Toca para fijar esta obra'}"
+					>
+						<div class="option-pin-indicator">
+							${isSelected ? renderIconSvg('pin', { size: 16, color: '#F97316' }) : renderIconSvg('building', { size: 16, color: '#94A3B8' })}
+						</div>
+						<div class="option-details">
+							<div class="option-title-line">
+								<span class="option-project-name">${escapeHtml(proj.title)}</span>
+								${isSelected ? `<span class="badge-active-pinned" style="display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('check', { size: 12 })} Fijada</span>` : ''}
+							</div>
+							<div class="option-meta-line">
+								<span style="display: inline-flex; align-items: center; gap: 4px;">${renderIconSvg('user', { size: 12 })} ${escapeHtml(proj.client_name)}</span>
+								<span style="display: inline-flex; align-items: center; gap: 4px;">• ${renderIconSvg('mapPin', { size: 12 })} ${escapeHtml(proj.address)}</span>
+							</div>
+							<div class="option-submeta-line">
+								<span>Presupuesto Vigente: <strong>${formattedPrice}</strong></span>
+							</div>
+						</div>
+					</button>
+				`;
+			});
+
+			optionsList.innerHTML = html;
+
+			optionsList.querySelectorAll<HTMLButtonElement>('.project-option-item').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const pid = btn.dataset.projectId;
+					if (pid) {
+						setActiveProjectId(pid);
+						renderHeader();
+						closeDropdown();
+						const p = projects.find((item) => item.project_id === pid);
+						if (p) {
+							const toastFn = (window as any).showToast;
+							if (typeof toastFn === 'function') {
+								toastFn(`Obra fijada: ${p.title}. Activa para todas las vistas.`);
+							}
+						}
+					}
+				});
+			});
+		};
+
+		const toggleDropdown = () => {
+			const isHidden = dropdown.classList.contains('hidden');
+			if (isHidden) {
+				renderDropdownOptions();
+				dropdown.classList.remove('hidden');
+				triggerBtn.setAttribute('aria-expanded', 'true');
+			} else {
+				closeDropdown();
+			}
+		};
+
+		const closeDropdown = () => {
+			dropdown.classList.add('hidden');
+			triggerBtn.setAttribute('aria-expanded', 'false');
+		};
+
+		triggerBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			toggleDropdown();
+		});
+
+		document.addEventListener('click', (e) => {
+			if (!container.contains(e.target as Node)) {
+				closeDropdown();
+			}
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+				closeDropdown();
+				triggerBtn.focus();
+			}
+		});
+
+		// Sincronización si otra vista cambia el proyecto
+		window.addEventListener('obraflow:project-changed', () => {
+			renderHeader();
+		});
+
+		renderHeader();
+	}
+
+	function escapeHtml(str: string): string {
+		return str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initHeaderProjectSwitcher);
+	} else {
+		initHeaderProjectSwitcher();
+	}
+</script>

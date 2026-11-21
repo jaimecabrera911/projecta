@@ -91,6 +91,11 @@ const { initialProjectId } = Astro.props;
 		type CostingChapter,
 		type ExpenseRecord
 	} from '../../lib/costing-store';
+	import {
+		getActiveProjectId,
+		setActiveProjectId
+	} from '../../lib/active-project-store';
+	import { renderIconSvg } from '../../lib/icons';
 
 	// Formateador de moneda en pesos colombianos con Currency Integrity Rule
 	const formatCOP = (val: number): string => {
@@ -113,7 +118,7 @@ const { initialProjectId } = Astro.props;
 
 		// 1. Determinar ID de Proyecto inicial
 		const urlParams = new URLSearchParams(window.location.search);
-		const urlProjectId = urlParams.get('id') || container.getAttribute('data-initial-project');
+		const urlProjectId = urlParams.get('id') || container.getAttribute('data-initial-project') || getActiveProjectId();
 
 		const allProjects = loadAllProjects();
 		if (allProjects.length === 0) return;
@@ -333,11 +338,11 @@ const { initialProjectId } = Astro.props;
 
 			let statusPillHtml = '';
 			if (chapter.status === 'danger') {
-				statusPillHtml = `<span class="status-pill status-pill-danger">🔴 Sobrecosto (${chapter.utilization_pct}%)</span>`;
+				statusPillHtml = `<span class="status-pill status-pill-danger" style="display: inline-flex; align-items: center; gap: 4px;">${renderIconSvg('alert', { size: 12 })} Sobrecosto (${chapter.utilization_pct}%)</span>`;
 			} else if (chapter.status === 'warning') {
-				statusPillHtml = `<span class="status-pill status-pill-warning">🟡 Alerta (${chapter.utilization_pct}%)</span>`;
+				statusPillHtml = `<span class="status-pill status-pill-warning" style="display: inline-flex; align-items: center; gap: 4px;">${renderIconSvg('alert', { size: 12 })} Alerta (${chapter.utilization_pct}%)</span>`;
 			} else {
-				statusPillHtml = `<span class="status-pill status-pill-normal">🟢 Saludable (${chapter.utilization_pct}%)</span>`;
+				statusPillHtml = `<span class="status-pill status-pill-normal" style="display: inline-flex; align-items: center; gap: 4px;">${renderIconSvg('check', { size: 12 })} Saludable (${chapter.utilization_pct}%)</span>`;
 			}
 
 			html += `
@@ -462,6 +467,7 @@ const { initialProjectId } = Astro.props;
 		const projectSelector = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
 		projectSelector?.addEventListener('change', (e) => {
 			const selectedId = (e.target as HTMLSelectElement).value;
+			setActiveProjectId(selectedId);
 			const p = getProjectById(selectedId);
 			if (p) {
 				currentProject = p;
@@ -469,6 +475,22 @@ const { initialProjectId } = Astro.props;
 				const alertCh = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
 				if (alertCh) expandedChapters.add(alertCh.chapter_id);
 				renderAll();
+			}
+		});
+
+		// Escuchar cambios de obra fijada desde el Header
+		window.addEventListener('obraflow:project-changed', (e: any) => {
+			const newId = e.detail?.projectId;
+			if (newId && currentProject?.project_id !== newId) {
+				const p = getProjectById(newId);
+				if (p) {
+					currentProject = p;
+					if (projectSelector) projectSelector.value = newId;
+					expandedChapters.clear();
+					const alertCh = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
+					if (alertCh) expandedChapters.add(alertCh.chapter_id);
+					renderAll();
+				}
 			}
 		});
 

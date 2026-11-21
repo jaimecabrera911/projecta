@@ -1,6 +1,7 @@
 ---
 // src/components/costing/AddExpenseModal.astro
 // HU-13: Modal ergonómico para registrar un gasto de campo e imputarlo a un capítulo.
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="add-expense-modal" class="expense-modal-backdrop hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
@@ -112,19 +113,27 @@
 					<div class="category-chips-selector" role="radiogroup" aria-label="Categoría del costo">
 						<label class="category-chip active">
 							<input type="radio" name="expense-cat" value="material" checked class="sr-only" />
-							<span>📦 Material</span>
+							<span style="display: inline-flex; align-items: center; gap: 4px;">
+								<Fragment set:html={renderIconSvg('box', { size: 14 })} /> Material
+							</span>
 						</label>
 						<label class="category-chip">
 							<input type="radio" name="expense-cat" value="labor" class="sr-only" />
-							<span>👷 Mano de Obra</span>
+							<span style="display: inline-flex; align-items: center; gap: 4px;">
+								<Fragment set:html={renderIconSvg('worker', { size: 14 })} /> Mano de Obra
+							</span>
 						</label>
 						<label class="category-chip">
 							<input type="radio" name="expense-cat" value="equipment" class="sr-only" />
-							<span>🚜 Equipos</span>
+							<span style="display: inline-flex; align-items: center; gap: 4px;">
+								<Fragment set:html={renderIconSvg('truck', { size: 14 })} /> Equipos
+							</span>
 						</label>
 						<label class="category-chip">
 							<input type="radio" name="expense-cat" value="subcontract" class="sr-only" />
-							<span>🤝 Subcontrato</span>
+							<span style="display: inline-flex; align-items: center; gap: 4px;">
+								<Fragment set:html={renderIconSvg('users', { size: 14 })} /> Subcontrato
+							</span>
 						</label>
 					</div>
 				</div>
@@ -159,14 +168,17 @@
 						<!-- Vista previa de foto cargada -->
 						<div class="receipt-preview-box hidden" id="receipt-preview-box">
 							<img id="expense-preview-img" src="" alt="Vista previa del recibo" class="preview-img-tag" />
-							<button id="btn-remove-receipt-img" type="button" class="btn-remove-preview" title="Quitar imagen">✕</button>
+							<button id="btn-remove-receipt-img" type="button" class="btn-remove-preview" title="Quitar imagen" aria-label="Quitar imagen">
+								<Fragment set:html={renderIconSvg('x', { size: 14 })} />
+							</button>
 						</div>
 					</div>
 
 					<!-- Botón de Simulación Inmediata para Demo y Testing -->
 					<div class="demo-receipt-quick">
-						<button id="btn-simulate-receipt" type="button" class="btn-simulate">
-							<span>⚡ Generar comprobante digital auditable con estos datos</span>
+						<button id="btn-simulate-receipt" type="button" class="btn-simulate" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+							<Fragment set:html={renderIconSvg('bolt', { size: 14 })} />
+							<span>Generar comprobante digital auditable con estos datos</span>
 						</button>
 					</div>
 				</div>

@@ -1,6 +1,7 @@
 ---
 // src/components/expenses/QuickExpenseSheet.astro
 // HU-14: Registro Rápido de Gastos de Obra en 3 Toques (Mobile-First / PWA Offline).
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <section id="quick-expense-sheet" class="quick-expense-container" aria-label="Registro rápido de gastos de obra">
@@ -23,7 +24,9 @@
 				title="Alternar simulación de pérdida de señal en sótano"
 				aria-pressed="false"
 			>
-				<span class="signal-icon" aria-hidden="true">📶</span>
+				<span class="signal-icon" aria-hidden="true">
+					<Fragment set:html={renderIconSvg('wifi', { size: 16 })} />
+				</span>
 				<span id="offline-toggle-label">Simular Sótano (Sin Señal)</span>
 			</button>
 
@@ -70,8 +73,9 @@
 				<div class="step-header">
 					<span class="step-number-circle">1</span>
 					<span class="step-label">Foto del Recibo o Factura *</span>
-					<span id="compression-feedback" class="compression-tag hidden">
-						✓ Comprimido a <span id="compressed-size-text">0 KB</span>
+					<span id="compression-feedback" class="compression-tag hidden" style="display: inline-flex; align-items: center; gap: 4px;">
+						<Fragment set:html={renderIconSvg('check', { size: 12 })} />
+						<span>Comprimido a <span id="compressed-size-text">0 KB</span></span>
 					</span>
 				</div>
 
@@ -113,8 +117,9 @@
 
 				<!-- Botón Rápido de Simulación para Pruebas en Desktop sin Cámara -->
 				<div class="quick-simulation-row">
-					<button id="btn-quick-sample-receipt" type="button" class="btn-sample-receipt">
-						<span>⚡ Simular foto de recibo de ferretería (para pruebas rápidas)</span>
+					<button id="btn-quick-sample-receipt" type="button" class="btn-sample-receipt" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+						<Fragment set:html={renderIconSvg('bolt', { size: 14 })} />
+						<span>Simular foto de recibo de ferretería (para pruebas rápidas)</span>
 					</button>
 				</div>
 			</div>
@@ -1006,6 +1011,11 @@
 	} from '../../lib/offline-expense-store';
 	import { loadAllProjects, generateReceiptSvg, type ProjectCosting } from '../../lib/costing-store';
 	import { getActiveRoleConfig } from '../../lib/role-store';
+	import {
+		getActiveProjectId,
+		setActiveProjectId
+	} from '../../lib/active-project-store';
+	import { renderIconSvg } from '../../lib/icons';
 
 	const formatCOP = (val: number): string => {
 		return new Intl.NumberFormat('es-CO', {
@@ -1035,7 +1045,7 @@
 		if (requestedId && cachedProjects.some((p) => p.project_id === requestedId)) {
 			activeProjectId = requestedId;
 		} else {
-			activeProjectId = cachedProjects[0].project_id;
+			activeProjectId = getActiveProjectId();
 		}
 
 		const currentProject = cachedProjects.find((p) => p.project_id === activeProjectId) || cachedProjects[0];
@@ -1193,14 +1203,14 @@
 						<img src="${exp.receipt_photo}" alt="Recibo" class="feed-thumb-img" />
 						<div class="feed-meta-text">
 							<span class="feed-concept">${escapeHtml(exp.concept)}</span>
-							<span class="feed-project-tag">📍 ${escapeHtml(projectTitle)}</span>
+							<span class="feed-project-tag" style="display: inline-flex; align-items: center; gap: 4px;">${renderIconSvg('mapPin', { size: 12 })} ${escapeHtml(projectTitle)}</span>
 							<span class="feed-subline">${escapeHtml(exp.vendor)} · ${time} · ${escapeHtml(exp.registered_by)}</span>
 						</div>
 					</div>
 					<div class="feed-right-kpi">
 						<span class="feed-amount mono-value">${formatCOP(exp.amount)}</span>
-						<span class="feed-sync-pill ${exp.synced ? 'sync-pill-online' : 'sync-pill-offline'}">
-							${exp.synced ? '✓ Sincronizado' : '⏳ En Cola (Offline)'}
+						<span class="feed-sync-pill ${exp.synced ? 'sync-pill-online' : 'sync-pill-offline'}" style="display: inline-flex; align-items: center; gap: 4px;">
+							${exp.synced ? `${renderIconSvg('check', { size: 12 })} Sincronizado` : `${renderIconSvg('clock', { size: 12 })} En Cola (Offline)`}
 						</span>
 					</div>
 				</div>
@@ -1226,6 +1236,7 @@
 		// 0. Selector de Obra / Proyecto de Destino
 		projectSelect?.addEventListener('change', () => {
 			activeProjectId = projectSelect.value;
+			setActiveProjectId(activeProjectId);
 			const newProj = cachedProjects.find((p) => p.project_id === activeProjectId);
 			if (newProj) {
 				updateProjectHint(newProj);
@@ -1235,6 +1246,20 @@
 					url.searchParams.set('projectId', activeProjectId);
 					window.history.replaceState({}, '', url.toString());
 				} catch (e) {}
+			}
+		});
+
+		// Escuchar cambios de obra fijada desde el Header
+		window.addEventListener('obraflow:project-changed', (e: any) => {
+			const newId = e.detail?.projectId;
+			if (newId && newId !== activeProjectId) {
+				activeProjectId = newId;
+				if (projectSelect) projectSelect.value = newId;
+				const newProj = cachedProjects.find((p) => p.project_id === activeProjectId);
+				if (newProj) {
+					updateProjectHint(newProj);
+					renderChapterChips(newProj);
+				}
 			}
 		});
 
@@ -1321,7 +1346,7 @@
 			if (res.syncedCount > 0) {
 				updateNetworkStatusUI();
 				renderExpensesFeed();
-				dispatchToast(`✓ ${res.syncedCount} gasto(s) sincronizado(s) exitosamente.`);
+				dispatchToast(`${res.syncedCount} gasto(s) sincronizado(s) exitosamente.`);
 			}
 		});
 
@@ -1379,9 +1404,9 @@
 			renderExpensesFeed();
 
 			if (result.syncedImmediately) {
-				dispatchToast(`✓ Gasto de ${formatCOP(amount)} guardado y sincronizado con éxito.`);
+				dispatchToast(`Gasto de ${formatCOP(amount)} guardado y sincronizado con éxito.`);
 			} else {
-				dispatchToast(`📶 Gasto de ${formatCOP(amount)} guardado localmente (Modo Sótano Offline).`, 'warning');
+				dispatchToast(`Gasto de ${formatCOP(amount)} guardado localmente (Modo Sótano Offline).`, 'warning');
 			}
 		});
 

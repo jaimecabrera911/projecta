@@ -62,7 +62,7 @@ export interface ProjectScheduleMetrics {
 	chapter_progress: ChapterProgress[];
 }
 
-export const STORAGE_KEY_SCHEDULE_TASKS = 'obraflow_schedule_tasks_v1';
+export const STORAGE_KEY_SCHEDULE_TASKS = 'obraflow_schedule_tasks_v2';
 
 /**
  * Retorna la fecha de hoy en formato YYYY-MM-DD.
@@ -597,51 +597,37 @@ export function getInitialDemoTasks(): ScheduleTask[] {
 		{
 			id: 'task_003',
 			project_id: 'proj_andina_001',
-			chapter_id: 'chap_02', // Mampostería y Drywall
-			title: 'Replanteo y armado de estructura metálica Drywall para isla y sala',
-			description: 'Perfilería galvanizada cal. 26 y refuerzos para mueble flotante de TV.',
+			chapter_id: 'chap_02', // 02. Redes Hidráulicas y Sanitarias
+			title: 'Instalación de tubería de desagüe y punto de lavavajillas',
+			description: 'Tubería PVC sanitaria 2" y prueba hidráulica a presión.',
 			start_date: '2026-11-10',
-			end_date: '2026-11-15',
+			end_date: '2026-11-14',
 			status: 'completed',
-			assigned_to: 'Oficial Iván Duque (Drywall)',
-			assigned_role: 'Técnico Especialista',
+			assigned_to: 'Plomero Especialista Jairo Pérez',
+			assigned_role: 'Fontanero',
 			progress_pct: 100,
-			completed_at: '2026-11-15T16:00:00Z',
+			completed_at: '2026-11-14T18:00:00Z',
 			created_at: '2026-11-05T09:00:00Z'
 		},
 		{
 			id: 'task_004',
 			project_id: 'proj_andina_001',
-			chapter_id: 'chap_03', // Instalaciones Hidrosanitarias y Eléctricas
-			title: 'Instalación de tubería de desagüe y punto de lavavajillas',
-			description: 'Tubería PVC sanitaria 2" y prueba hidráulica a presión.',
-			start_date: '2026-11-12',
-			end_date: '2026-11-17',
+			chapter_id: 'chap_02', // 02. Redes Hidráulicas y Sanitarias
+			title: 'Montaje de red de suministro CPVC y pruebas de presión a 100 PSI',
+			description: 'Distribución de agua fría y caliente en baños y cocina con accesorios RDE 9.',
+			start_date: '2026-11-14',
+			end_date: '2026-11-18',
 			status: 'completed',
 			assigned_to: 'Plomero Especialista Jairo Pérez',
 			assigned_role: 'Fontanero',
 			progress_pct: 100,
-			completed_at: '2026-11-17T18:00:00Z',
+			completed_at: '2026-11-18T17:00:00Z',
 			created_at: '2026-11-08T10:00:00Z'
 		},
 		{
 			id: 'task_005',
 			project_id: 'proj_andina_001',
-			chapter_id: 'chap_03',
-			title: 'Cableado y entubado de 6 tomas pop-up en isla (OC-001)',
-			description: 'Circuito independiente 20A calibre 12 AWG para electrodomésticos.',
-			start_date: '2026-11-18',
-			end_date: '2026-11-20',
-			status: 'in_progress',
-			assigned_to: 'Electricista Certificado Mario Ruiz',
-			assigned_role: 'Técnico Electricista',
-			progress_pct: 70,
-			created_at: '2026-11-18T11:00:00Z'
-		},
-		{
-			id: 'task_006',
-			project_id: 'proj_andina_001',
-			chapter_id: 'chap_04', // Acabados y Enchapes
+			chapter_id: 'chap_03', // 03. Enchapes y Revestimientos Porcelánicos
 			title: 'Enchape porcelanato 60x120 en baño principal y nicho de ducha',
 			description: 'Pegacor flexible blanco y niveladores autonivelantes de cuña.',
 			start_date: '2026-11-16',
@@ -653,30 +639,44 @@ export function getInitialDemoTasks(): ScheduleTask[] {
 			created_at: '2026-11-12T08:30:00Z'
 		},
 		{
+			id: 'task_006',
+			project_id: 'proj_andina_001',
+			chapter_id: 'chap_03', // 03. Enchapes y Revestimientos Porcelánicos
+			title: 'Emboquillado epóxico y sellado impermeable en zonas húmedas',
+			description: 'Sellado antimanchas en juntas de 1.5mm en porcelanato Calacatta.',
+			start_date: '2026-11-20',
+			end_date: '2026-11-23',
+			status: 'in_progress',
+			assigned_to: 'Maestro Enchapador Luis Castaño',
+			assigned_role: 'Oficial Enchapador',
+			progress_pct: 25,
+			created_at: '2026-11-14T09:00:00Z'
+		},
+		{
 			id: 'task_007',
 			project_id: 'proj_andina_001',
-			chapter_id: 'chap_04',
-			title: 'Estuco acrílico y primera mano de pintura vinilo blanco en cielos',
-			description: 'Lijado con máquina orbital y preparación de superficies para luces LED.',
+			chapter_id: 'chap_04', // 04. Carpintería Arquitectónica y Acabados
+			title: 'Instalación de marcos y puertas entableradas en roble',
+			description: 'Fijación con espuma de poliuretano y tornillería oculta.',
 			start_date: '2026-11-22',
 			end_date: '2026-11-26',
 			status: 'pending',
-			assigned_to: 'Cuadrilla Pintura & Estuco Medellín',
-			assigned_role: 'Pintor Oficial',
+			assigned_to: 'Carpintero Ebanista Darío Morales',
+			assigned_role: 'Oficial Carpintero',
 			progress_pct: 0,
 			created_at: '2026-11-15T14:00:00Z'
 		},
 		{
 			id: 'task_008',
 			project_id: 'proj_andina_001',
-			chapter_id: 'chap_05', // Carpintería y Vidriería
-			title: 'Instalación de puerta corrediza en vidrio templado 8mm y cerraduras',
-			description: 'Riel superior de acero inoxidable oculto y jaladera tubular.',
-			start_date: '2026-11-27',
-			end_date: '2026-12-02',
+			chapter_id: 'chap_04', // 04. Carpintería Arquitectónica y Acabados
+			title: 'Aplicación de pintura vinilo tipo 1 y acabados finales en cielo raso',
+			description: 'Dos manos de acabado mate lavable en zona social y pasillos.',
+			start_date: '2026-11-26',
+			end_date: '2026-11-30',
 			status: 'pending',
-			assigned_to: 'Vidriería & Aluminios del Sur',
-			assigned_role: 'Subcontratista',
+			assigned_to: 'Cuadrilla Pintura & Estuco Medellín',
+			assigned_role: 'Pintor Oficial',
 			progress_pct: 0,
 			created_at: '2026-11-18T09:00:00Z'
 		},
@@ -685,7 +685,7 @@ export function getInitialDemoTasks(): ScheduleTask[] {
 		{
 			id: 'task_009',
 			project_id: 'proj_andina_002',
-			chapter_id: 'chap_02_01',
+			chapter_id: 'chap_02_2', // 02. Redes Eléctricas e Iluminación LED
 			title: 'Canalización subterránea de voz y datos Cat 6A para consultorios',
 			description: 'Instalación de tubería EMT de 1 pulgada y cajas de paso.',
 			start_date: '2026-11-15',
@@ -699,7 +699,7 @@ export function getInitialDemoTasks(): ScheduleTask[] {
 		{
 			id: 'task_010',
 			project_id: 'proj_andina_002',
-			chapter_id: 'chap_02_02',
+			chapter_id: 'chap_02_1', // 01. Drywall y Divisiones en Vidrio Templado
 			title: 'Instalación de paneles de yeso acústico SoundStop en sala de juntas',
 			description: 'Aislamiento de lana mineral de 2.5 pulgadas y sello perimetral acústico.',
 			start_date: '2026-11-24',

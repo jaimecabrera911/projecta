@@ -39,7 +39,7 @@ function escapeHtml(str: string): string {
  * Genera el documento HTML imprimible del Reporte Diario con estándares técnicos de interventoría colombiana.
  */
 export function generateDailyLogPdfHtml(entry: DailyLogEntry, projectTitle: string): string {
-	const weatherLabel = entry.weather === 'sunny' ? '☀️ Soleado' : entry.weather === 'rainy' ? '🌧️ Lluvia' : '☁️ Nublado';
+	const weatherLabel = entry.weather === 'sunny' ? 'Soleado' : entry.weather === 'rainy' ? 'Lluvia' : 'Nublado';
 	const formattedDate = formatDateFormal(entry.date);
 	const nowStr = new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
 	const photos = entry.photos || [];
@@ -403,7 +403,7 @@ export function generateDailyLogPdfHtml(entry: DailyLogEntry, projectTitle: stri
 
 		${entry.downtime_hours > 0 ? `
 			<div class="downtime-banner">
-				<div class="downtime-banner-title">⚠️ CONSTANCIA TÉCNICA DE SUSPENSIÓN TEMPORAL DE ACTIVIDADES:</div>
+				<div class="downtime-banner-title">CONSTANCIA TÉCNICA DE SUSPENSIÓN TEMPORAL DE ACTIVIDADES:</div>
 				<div class="downtime-banner-desc">
 					Se registran <strong>${entry.downtime_hours} horas de suspensión</strong> laboral por condiciones climáticas adversas o fuerza mayor.
 					${entry.downtime_reason ? `<br><em>Motivo:</em> ${escapeHtml(entry.downtime_reason)}` : ''}
@@ -462,7 +462,7 @@ export function generateDailyLogPdfHtml(entry: DailyLogEntry, projectTitle: stri
 					${photos.slice(0, 4).map((p) => `
 						<div class="photo-card">
 							<img src="${p.url}" alt="${escapeHtml(p.caption || p.name)}" class="photo-img" />
-							<div class="photo-caption">📷 ${escapeHtml(p.caption || p.name)}</div>
+							<div class="photo-caption">${escapeHtml(p.caption || p.name)}</div>
 						</div>
 					`).join('')}
 				</div>

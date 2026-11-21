@@ -1,6 +1,7 @@
 ---
 // src/components/costing/JobCostingSummaryCards.astro
 // HU-13: Semáforo Financiero Global en Cabecera, Tarjeta de Margen en Vivo y KPIs Clave.
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <section id="job-costing-summary-cards" class="costing-summary-grid" aria-label="Resumen financiero global y semáforo">
@@ -29,9 +30,9 @@
 			<div id="traffic-progress-bar" class="traffic-progress-fill" style="width: 0%;"></div>
 		</div>
 		<div class="traffic-legend">
-			<span class="legend-step legend-green">🟢 &lt; 85%</span>
-			<span class="legend-step legend-amber">🟡 85% - 99.9%</span>
-			<span class="legend-step legend-red">🔴 ≥ 100% Sobrecosto</span>
+			<span class="legend-step legend-green"><Fragment set:html={renderIconSvg('check', { size: 12 })} /> &lt; 85%</span>
+			<span class="legend-step legend-amber"><Fragment set:html={renderIconSvg('alert', { size: 12 })} /> 85% - 99.9%</span>
+			<span class="legend-step legend-red"><Fragment set:html={renderIconSvg('alert', { size: 12 })} /> ≥ 100% Sobrecosto</span>
 		</div>
 	</div>
 

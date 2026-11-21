@@ -54,9 +54,9 @@ export interface ProjectCosting {
 export const STORAGE_KEY_COSTING = 'obraflow_job_costing_v1';
 
 // Semáforo financiero según especificación HU-13:
-// 🟢 Normal (< 85%)
-// 🟡 Advertencia (85% - 99.9%)
-// 🔴 Sobrecosto / Peligro (>= 100%)
+// Normal (< 85%)
+// Advertencia (85% - 99.9%)
+// Sobrecosto / Peligro (>= 100%)
 export function getUtilizationStatus(utilizationPct: number): 'normal' | 'warning' | 'danger' {
 	if (utilizationPct >= 100) return 'danger';
 	if (utilizationPct >= 85) return 'warning';
@@ -193,7 +193,7 @@ export function generateReceiptSvg(vendor: string, amount: number, concept: stri
 			<text x="35" y="415" font-size="10" fill="#64748B">FORMA DE PAGO: TRANSFERENCIA INMEDIATA</text>
 			<g transform="translate(100, 440)">
 				<rect width="200" height="42" fill="#F1F5F9" rx="4" stroke="#CBD5E1"/>
-				<text x="100" y="25" font-size="11" font-weight="bold" text-anchor="middle" fill="#334155">✓ VERIFICADO EN CAMPO</text>
+				<text x="100" y="25" font-size="11" font-weight="bold" text-anchor="middle" fill="#334155">VERIFICADO EN CAMPO</text>
 			</g>
 			<text x="200" y="515" font-size="9" text-anchor="middle" fill="#94A3B8">DOCUMENTO SOPORTE AUDITABLE • OBRAFLOW SAAS</text>
 		</g>

@@ -293,9 +293,9 @@ export function generateWhatsAppShareLink(
 		maximumFractionDigits: 0
 	}).format(order.sale_price_amount);
 
-	const daysText = order.additional_days > 0 ? `\n⏳ Prórroga de entrega: +${order.additional_days} días hábiles` : '';
+	const daysText = order.additional_days > 0 ? `\nPrórroga de entrega: +${order.additional_days} días hábiles` : '';
 
-	const message = `Hola! Te compartimos la Orden de Cambio *${order.code}* para tu aprobación:\n\n*${order.title}*\n💰 Valor adicional: *${formattedPrice}*${daysText}\n\nPuedes revisar los detalles y firmar digitalmente desde tu celular aquí:\n👉 ${link}\n\nQuedamos atentos para iniciar los trabajos! 🏗️`;
+	const message = `Hola! Te compartimos la Orden de Cambio *${order.code}* para tu aprobación:\n\n*${order.title}*\nValor adicional: *${formattedPrice}*${daysText}\n\nPuedes revisar los detalles y firmar digitalmente desde tu celular aquí:\n${link}\n\nQuedamos atentos para iniciar los trabajos!`;
 
 	const cleanPhone = clientPhone.replace(/\D/g, '');
 	const phoneParam = cleanPhone ? `phone=${cleanPhone}&` : '';

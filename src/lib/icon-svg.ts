@@ -1,17 +1,10 @@
 // src/lib/icon-svg.ts
-// Renderiza un icono de react-icons a una cadena SVG estática (mismo glifo que el
-// componente React), para inyectarlo en el HTML generado por los scripts cliente.
-import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { resolveIcon, type IconName, type IconProps } from './icons';
+// Renderiza un icono de react-icons (Tabler Icons) a una cadena SVG estática.
+// Compatible tanto con servidor como con scripts de cliente en navegador.
+import { renderIconSvg, type IconName, type IconProps } from './icons';
 
 export function iconSvg(name: IconName, props: IconProps = {}): string {
-	const Component = resolveIcon(name);
-	return renderToStaticMarkup(
-		createElement(Component, {
-			size: props.size ?? 18,
-			className: props.className,
-			'aria-hidden': 'true'
-		})
-	);
+	return renderIconSvg(name, props);
 }
+
+export { renderIconSvg };

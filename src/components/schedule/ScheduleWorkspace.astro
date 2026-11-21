@@ -9,6 +9,7 @@ import CalendarView from './CalendarView.astro';
 import GanttChartView from './GanttChartView.astro';
 import CreateTaskModal from './CreateTaskModal.astro';
 import TaskDetailModal from './TaskDetailModal.astro';
+import { renderIconSvg } from '../../lib/icons.ts';
 ---
 
 <div id="schedule-workspace-root" class="schedule-workspace-shell">
@@ -19,8 +20,8 @@ import TaskDetailModal from './TaskDetailModal.astro';
 				<label for="schedule-project-select" class="project-select-label">Obra Activa:</label>
 				<div class="custom-select-container">
 					<select id="schedule-project-select" class="schedule-project-select" aria-label="Seleccionar proyecto de obra">
-						<option value="proj_penthouse_poblado" selected>Remodelación Penthouse El Poblado (Dr. Andrés Restrepo)</option>
-						<option value="proj_torre_medica">Adecuación Consultorios Torre Médica (Inversiones Salud)</option>
+						<option value="proj_andina_001" selected>Remodelación Penthouse El Poblado (Dr. Andrés Restrepo)</option>
+						<option value="proj_andina_002">Adecuación Oficinas Coworking Laureles (Inversiones Nova SAS)</option>
 					</select>
 					<div class="select-chevron" aria-hidden="true">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -67,8 +68,8 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					<span class="pulse-indicator"></span>
 					<span>AVANCE FÍSICO DE OBRA</span>
 				</div>
-				<span id="metrics-overdue-alert-pill" class="overdue-alert-pill hidden">
-					⚠️ <span id="overdue-pill-text">1 Tarea Atrasada</span>
+				<span id="metrics-overdue-alert-pill" class="overdue-alert-pill hidden" style="display: inline-flex; align-items: center; gap: 4px;">
+					<span set:html={renderIconSvg('alert', { size: 14 })}></span> <span id="overdue-pill-text">1 Tarea Atrasada</span>
 				</span>
 			</div>
 
@@ -177,7 +178,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 				Completadas
 			</button>
 			<button id="filter-overdue" type="button" class="filter-chip chip-alert" data-filter="overdue">
-				Atrasadas ⚠️
+				Atrasadas
 			</button>
 		</div>
 	</div>
@@ -646,11 +647,16 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		type ScheduleTask
 	} from '../../lib/task-schedule-store.ts';
 	import { getActiveRoleConfig } from '../../lib/role-store.ts';
+	import {
+		getActiveProjectId,
+		setActiveProjectId
+	} from '../../lib/active-project-store.ts';
+	import { renderIconSvg } from '../../lib/icons.ts';
 	import Gantt from 'frappe-gantt';
 	import '../../styles/frappe-gantt.css';
 
-	// Estado local de la sesión
-	let activeProjectId = 'proj_penthouse_poblado';
+	// Estado local de la sesión (sincronizado con Obra Fijada Global)
+	let activeProjectId = getActiveProjectId();
 	let currentView: 'list' | 'calendar' | 'gantt' = 'list';
 	let currentFilter: 'all' | 'pending' | 'in_progress' | 'completed' | 'overdue' = 'all';
 
@@ -682,9 +688,23 @@ import TaskDetailModal from './TaskDetailModal.astro';
 	function setupEventListeners() {
 		// 1. Selector de Proyecto
 		const projectSelect = document.getElementById('schedule-project-select') as HTMLSelectElement | null;
-		projectSelect?.addEventListener('change', () => {
-			activeProjectId = projectSelect.value;
-			updateAll();
+		if (projectSelect) {
+			projectSelect.value = activeProjectId;
+			projectSelect.addEventListener('change', () => {
+				activeProjectId = projectSelect.value;
+				setActiveProjectId(activeProjectId);
+				updateAll();
+			});
+		}
+
+		// Escuchar cambios de obra fijada desde el Header
+		window.addEventListener('obraflow:project-changed', (e: any) => {
+			const newId = e.detail?.projectId;
+			if (newId && newId !== activeProjectId) {
+				activeProjectId = newId;
+				if (projectSelect) projectSelect.value = newId;
+				updateAll();
+			}
 		});
 
 		// 2. Botón Reset Demo
@@ -839,7 +859,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		if (!select) return;
 		const chapters = getProjectChapters(activeProjectId);
 		const currentValue = select.value || 'all';
-		let optionsHtml = '<option value="all">📁 Todos los Capítulos</option>';
+		let optionsHtml = '<option value="all">Todos los Capítulos</option>';
 		chapters.forEach((ch) => {
 			optionsHtml += `<option value="${ch.id}">${escapeHtml(ch.name)}</option>`;
 		});
@@ -863,7 +883,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		});
 		const crews = Array.from(crewsSet).sort();
 		const currentValue = select.value || 'all';
-		let optionsHtml = '<option value="all">👷 Todos los Responsables</option>';
+		let optionsHtml = '<option value="all">Todos los Responsables</option>';
 		crews.forEach((c) => {
 			optionsHtml += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
 		});
@@ -1102,20 +1122,20 @@ import TaskDetailModal from './TaskDetailModal.astro';
 									` : ''}
 
 									${evidencesCount > 0 ? `
-										<span class="evidence-pill" title="${evidencesCount} fotos de avance">
-											📸 ${evidencesCount}
+										<span class="evidence-pill" title="${evidencesCount} fotos de avance" style="display: inline-flex; align-items: center; gap: 4px;">
+											${renderIconSvg('camera', { size: 12 })} ${evidencesCount}
 										</span>
 									` : ''}
 
 									${commentsCount > 0 ? `
-										<span class="comment-pill" title="${commentsCount} notas en bitácora">
-											💬 ${commentsCount}
+										<span class="comment-pill" title="${commentsCount} notas en bitácora" style="display: inline-flex; align-items: center; gap: 4px;">
+											${renderIconSvg('message', { size: 12 })} ${commentsCount}
 										</span>
 									` : ''}
 
 									${isOver ? `
-										<span class="badge-overdue-alert">
-											⚠️ Atrasada (${formatDateShort(task.end_date)})
+										<span class="badge-overdue-alert" style="display: inline-flex; align-items: center; gap: 4px;">
+											${renderIconSvg('alert', { size: 12 })} Atrasada (${formatDateShort(task.end_date)})
 										</span>
 									` : ''}
 								</div>
@@ -1179,7 +1199,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 				const updated = toggleTaskComplete(taskId);
 				if (updated) {
 					const msg = updated.status === 'completed'
-						? `✓ Actividad completada: "${updated.title}"`
+						? `Actividad completada: "${updated.title}"`
 						: `Actividad reabierta: "${updated.title}"`;
 					showToast(msg);
 				}
@@ -1356,9 +1376,9 @@ import TaskDetailModal from './TaskDetailModal.astro';
 								<span class="agenda-chapter-badge">${escapeHtml(chapName)}</span>
 								<span>• ${escapeHtml(t.assigned_to)}</span>
 								<span>• ${formatDateShort(t.start_date)} al ${formatDateShort(t.end_date)}</span>
-								${t.evidences && t.evidences.length > 0 ? `<span class="evidence-pill">📸 ${t.evidences.length}</span>` : ''}
-								${t.comments && t.comments.length > 0 ? `<span class="comment-pill">💬 ${t.comments.length}</span>` : ''}
-								${isOver ? `<span style="color: #DC2626; font-weight: 800;">⚠️ Atrasada</span>` : ''}
+								${t.evidences && t.evidences.length > 0 ? `<span class="evidence-pill" style="display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('camera', { size: 12 })} ${t.evidences.length}</span>` : ''}
+								${t.comments && t.comments.length > 0 ? `<span class="comment-pill" style="display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('message', { size: 12 })} ${t.comments.length}</span>` : ''}
+								${isOver ? `<span style="color: #DC2626; font-weight: 800; display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('alert', { size: 12 })} Atrasada</span>` : ''}
 							</div>
 						</div>
 					</div>
@@ -1444,7 +1464,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 			// 1. Barra Resumen del Capítulo Presupuestal
 			ganttTasks.push({
 				id: `chapter_${chap.id}`,
-				name: `📁 ${chap.name.toUpperCase()} (${chapPct}%)`,
+				name: `${chap.name.toUpperCase()} (${chapPct}%)`,
 				start: minStart,
 				end: maxEnd,
 				progress: chapPct,
@@ -1495,7 +1515,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 				}
 				ganttTasks.push({
 					id: 'chapter_other',
-					name: '📁 OTRAS ACTIVIDADES',
+					name: 'OTRAS ACTIVIDADES',
 					start: oMin,
 					end: oMax,
 					progress: 0,
@@ -1555,8 +1575,8 @@ import TaskDetailModal from './TaskDetailModal.astro';
 								<div style="font-weight: 800; font-size: 0.9375rem; color: #0F172A; margin-bottom: 6px;">
 									${escapeHtml(chapObj?.name || task.name)}
 								</div>
-								<div style="font-size: 0.75rem; color: #64748B; margin-bottom: 8px;">
-									📅 Plazo del capítulo: ${task.start} al ${task.end}
+								<div style="font-size: 0.75rem; color: #64748B; margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+									${renderIconSvg('calendar', { size: 13 })} Plazo del capítulo: ${task.start} al ${task.end}
 								</div>
 								<div style="display: flex; align-items: center; justify-content: space-between; background: #F1F5F9; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem;">
 									<span style="font-weight: 700; color: #334155;">Avance del Capítulo:</span>
@@ -1575,22 +1595,22 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					return `
 						<div style="padding: 12px; font-family: inherit; min-width: 250px;">
 							<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-								<span style="font-size: 0.6875rem; font-weight: 700; background: #E2E8F0; color: #1E293B; padding: 2px 6px; border-radius: 4px;">
-									📁 ${escapeHtml(chapObj?.name || 'Capítulo Presupuestal')}
+								<span style="font-size: 0.6875rem; font-weight: 700; background: #E2E8F0; color: #1E293B; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+									${renderIconSvg('folder', { size: 12 })} ${escapeHtml(chapObj?.name || 'Capítulo Presupuestal')}
 								</span>
 							</div>
 							<div style="font-weight: 800; font-size: 0.875rem; color: #0F172A; margin-bottom: 4px;">
 								${escapeHtml(cleanName)}
 							</div>
-							<div style="font-size: 0.75rem; color: #64748B; margin-bottom: 6px;">
-								📅 ${task.start} al ${task.end}
+							<div style="font-size: 0.75rem; color: #64748B; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+								${renderIconSvg('calendar', { size: 13 })} ${task.start} al ${task.end}
 							</div>
 							<div style="display: flex; gap: 6px; margin-bottom: 8px;">
 								<span style="font-size: 0.6875rem; font-weight: 700; background: #FFEDD5; color: #EA580C; padding: 2px 6px; border-radius: 9999px;">
 									${task.progress}% Avance
 								</span>
-								${evCount > 0 ? `<span style="font-size: 0.6875rem; font-weight: 700; background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 9999px;">📸 ${evCount}</span>` : ''}
-								${cmCount > 0 ? `<span style="font-size: 0.6875rem; font-weight: 700; background: #DBEAFE; color: #1E40AF; padding: 2px 6px; border-radius: 9999px;">💬 ${cmCount}</span>` : ''}
+								${evCount > 0 ? `<span style="font-size: 0.6875rem; font-weight: 700; background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('camera', { size: 12 })} ${evCount}</span>` : ''}
+								${cmCount > 0 ? `<span style="font-size: 0.6875rem; font-weight: 700; background: #DBEAFE; color: #1E40AF; padding: 2px 6px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('message', { size: 12 })} ${cmCount}</span>` : ''}
 							</div>
 							<button type="button" style="width: 100%; min-height: 38px; background: #0F172A; color: #fff; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="window.dispatchEvent(new CustomEvent('open-task-modal-from-gantt', { detail: { taskId: '${task.id}' } }))">
 								Ver Detalle & Evidencias →
@@ -1611,7 +1631,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					const startStr = start.toISOString().split('T')[0];
 					const endStr = end.toISOString().split('T')[0];
 					updateTask(task.id, { start_date: startStr, end_date: endStr });
-					showToast(`✓ Fechas actualizadas: ${startStr} al ${endStr}`);
+					showToast(`Fechas actualizadas: ${startStr} al ${endStr}`);
 				},
 				on_progress_change: function(task: any, progress: number) {
 					if (task.id.startsWith('chapter_')) {
@@ -1619,7 +1639,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					}
 					updateTask(task.id, { progress_pct: progress });
 					const cleanTitle = task.name.replace(/^\s*↳\s*/, '').split(' [')[0];
-					showToast(`✓ Avance de "${cleanTitle}" actualizado a ${progress}%`);
+					showToast(`Avance de "${cleanTitle}" actualizado a ${progress}%`);
 				}
 			});
 			localizeGanttUI();
@@ -1717,7 +1737,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 			});
 
 			closeModal();
-			showToast(`✓ Actividad "${title}" programada con éxito.`);
+			showToast(`Actividad "${title}" programada con éxito.`);
 		});
 	}
 
@@ -1811,7 +1831,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 			if (progressNum) progressNum.textContent = `${val}%`;
 			if (statusPreview) {
 				if (val === 100) {
-					statusPreview.textContent = 'Completada ✓';
+					statusPreview.textContent = 'Completada';
 					statusPreview.style.backgroundColor = '#ECFDF5';
 					statusPreview.style.color = '#047857';
 				} else if (val > 0) {
@@ -1859,7 +1879,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 			});
 
 			closeDetailModal();
-			showToast('✓ Cambios guardados en la actividad.');
+			showToast('Cambios guardados en la actividad.');
 		});
 
 		// Evidencias: botón cámara / archivo
@@ -1889,7 +1909,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					if (captionInput) captionInput.value = '';
 					fileInput.value = '';
 					refreshDetailModalData();
-					showToast('📸 Evidencia fotográfica adjuntada con éxito.');
+					showToast('Evidencia fotográfica adjuntada con éxito.');
 				}
 			};
 			reader.readAsDataURL(file);
@@ -1916,7 +1936,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 
 			if (captionInput) captionInput.value = '';
 			refreshDetailModalData();
-			showToast('📸 Foto técnica con sello de agua generada.');
+			showToast('Foto técnica con sello de agua generada.');
 		});
 
 		// Comentarios: botón publicar
@@ -1935,7 +1955,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 
 			if (commentArea) commentArea.value = '';
 			refreshDetailModalData();
-			showToast('💬 Comentario publicado en la bitácora.');
+			showToast('Comentario publicado en la bitácora.');
 		});
 
 		// Lightbox cierre
@@ -1976,7 +1996,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		if (titleHeader) titleHeader.textContent = task.title;
 		if (chapBadge) chapBadge.textContent = chapName;
 		if (statusBadge) {
-			statusBadge.textContent = task.status === 'completed' ? 'Completada ✓' : task.status === 'in_progress' ? 'En Curso' : 'Pendiente';
+			statusBadge.textContent = task.status === 'completed' ? 'Completada' : task.status === 'in_progress' ? 'En Curso' : 'Pendiente';
 			statusBadge.style.backgroundColor = task.status === 'completed' ? '#ECFDF5' : task.status === 'in_progress' ? '#FFF7ED' : '#F1F5F9';
 			statusBadge.style.color = task.status === 'completed' ? '#047857' : task.status === 'in_progress' ? '#EA580C' : '#475569';
 		}
@@ -2004,7 +2024,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		if (editProgress) editProgress.value = task.progress_pct.toString();
 		if (editProgressNum) editProgressNum.textContent = `${task.progress_pct}%`;
 		if (editStatusPreview) {
-			editStatusPreview.textContent = task.status === 'completed' ? 'Completada ✓' : task.status === 'in_progress' ? 'En Curso' : 'Pendiente';
+			editStatusPreview.textContent = task.status === 'completed' ? 'Completada' : task.status === 'in_progress' ? 'En Curso' : 'Pendiente';
 			editStatusPreview.style.backgroundColor = task.status === 'completed' ? '#ECFDF5' : task.status === 'in_progress' ? '#FFF7ED' : '#F1F5F9';
 			editStatusPreview.style.color = task.status === 'completed' ? '#047857' : task.status === 'in_progress' ? '#EA580C' : '#475569';
 		}
@@ -2028,8 +2048,8 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					<div class="evidence-card" id="ev-card-${ev.id}">
 						<div class="evidence-thumb-wrap" data-lightbox-src="${encodeURI(ev.file_url)}" data-lightbox-cap="${escapeHtml(ev.caption || ev.file_name)}">
 							<img src="${ev.file_url}" alt="${escapeHtml(ev.caption || ev.file_name)}" class="evidence-thumb-img" />
-							<button type="button" class="btn-delete-evidence" data-delete-ev-id="${ev.id}" title="Eliminar evidencia">
-								✕
+							<button type="button" class="btn-delete-evidence" data-delete-ev-id="${ev.id}" title="Eliminar evidencia" style="display: flex; align-items: center; justify-content: center;">
+								${renderIconSvg('x', { size: 14 })}
 							</button>
 						</div>
 						<div class="evidence-caption-box">
@@ -2095,7 +2115,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 					const isDailyLogSync = cmt.message.includes('[Bitácora Diaria');
 					return `
 						<div class="comment-bubble-item ${isDailyLogSync ? 'comment-daily-log-sync' : ''}" id="cmt-item-${cmt.id}">
-							<div class="comment-author-avatar" style="${isDailyLogSync ? 'background-color: #EA580C;' : ''}">${isDailyLogSync ? '📋' : initials}</div>
+							<div class="comment-author-avatar" style="${isDailyLogSync ? 'background-color: #EA580C; display: flex; align-items: center; justify-content: center;' : ''}">${isDailyLogSync ? renderIconSvg('clipboard', { size: 14 }) : initials}</div>
 							<div class="comment-bubble-content" style="${isDailyLogSync ? 'border-color: #FED7AA; background-color: #FFFDFB;' : ''}">
 								<div class="comment-author-meta">
 									<span class="comment-author-name">${escapeHtml(cmt.author_name)}</span>

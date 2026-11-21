@@ -2,11 +2,12 @@
 // src/components/Header.astro
 // Barra superior ejecutiva con selector de roles y accesos directos (HU-14)
 import HeaderRoleSwitcher from './HeaderRoleSwitcher.astro';
+import HeaderProjectSwitcher from './HeaderProjectSwitcher.astro';
 ---
 
 <header class="app-header">
 	<div class="header-inner">
-		<!-- Left: Sidebar Hamburger Toggle + Breadcrumb -->
+		<!-- Left: Sidebar Hamburger Toggle + Breadcrumb + Obra Fijada -->
 		<div class="header-left-cluster">
 			<button
 				id="header-sidebar-toggle"
@@ -36,6 +37,12 @@ import HeaderRoleSwitcher from './HeaderRoleSwitcher.astro';
 				<span class="crumb-separator" aria-hidden="true">/</span>
 				<span id="header-breadcrumb-page" class="crumb-page-title">Embudo Comercial</span>
 			</div>
+
+			<!-- Separador visual -->
+			<div class="header-project-divider desktop-only" aria-hidden="true"></div>
+
+			<!-- Selector y Fijador de Obra Activa -->
+			<HeaderProjectSwitcher />
 		</div>
 
 		<!-- Right: Action Stats & User Controls -->
@@ -214,6 +221,14 @@ import HeaderRoleSwitcher from './HeaderRoleSwitcher.astro';
 		font-weight: 700;
 		color: #F8FAFC;
 		letter-spacing: -0.01em;
+	}
+
+	.header-project-divider {
+		width: 1px;
+		height: 24px;
+		background-color: #334155;
+		margin: 0 0.25rem;
+		flex-shrink: 0;
 	}
 
 	/* Right: Actions Group */

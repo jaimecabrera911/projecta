@@ -878,10 +878,10 @@ import Toast from '../../components/Toast.astro';
 
 		if (headerStatus) {
 			if (order.status === 'approved') {
-				headerStatus.textContent = '✓ Aprobada y Autorizada';
+				headerStatus.textContent = 'Aprobada y Autorizada';
 				headerStatus.className = 'header-status-pill approved';
 			} else {
-				headerStatus.textContent = '⏳ Pendiente de Firma';
+				headerStatus.textContent = 'Pendiente de Firma';
 				headerStatus.className = 'header-status-pill pending';
 			}
 		}
@@ -1054,7 +1054,7 @@ import Toast from '../../components/Toast.astro';
 				currentOrder = result.order;
 				currentProject = getProjectById(currentOrder.project_id);
 
-				dispatchToast('✓ Orden de cambio aprobada y autorizada con éxito.');
+				dispatchToast('Orden de cambio aprobada y autorizada con éxito.');
 				renderOrderDetails(currentOrder, currentProject);
 			} catch (err: any) {
 				console.error(err);

@@ -1,6 +1,7 @@
 ---
 // src/components/HeaderRoleSwitcher.astro
 // Selector interactivo de roles en el Header (Administrador, Residente, Maestro, Cliente).
+import { renderIconSvg } from '../lib/icons';
 ---
 
 <div id="header-role-switcher" class="role-switcher-container">
@@ -50,7 +51,9 @@
 					<span class="option-role-title">Contratista General / Dueño</span>
 					<span class="option-desc">Acceso total a finanzas, márgenes de utilidad y CRM.</span>
 				</div>
-				<span class="option-check" aria-hidden="true">✓</span>
+				<span class="option-check" aria-hidden="true">
+					<Fragment set:html={renderIconSvg('check', { size: 14 })} />
+				</span>
 			</button>
 
 			<!-- 2. Residente de Obra -->
@@ -69,7 +72,9 @@
 					<span class="option-role-title">Residente de Obra</span>
 					<span class="option-desc">Modo campo: registro en 3 toques, sin márgenes ni precios cliente.</span>
 				</div>
-				<span class="option-check" aria-hidden="true">✓</span>
+				<span class="option-check" aria-hidden="true">
+					<Fragment set:html={renderIconSvg('check', { size: 14 })} />
+				</span>
 			</button>
 
 			<!-- 3. Maestro Supervisor -->
@@ -88,7 +93,9 @@
 					<span class="option-role-title">Maestro Supervisor de Obra</span>
 					<span class="option-desc">Captura táctil ultra-rápida de recibos y reporte de jornales.</span>
 				</div>
-				<span class="option-check" aria-hidden="true">✓</span>
+				<span class="option-check" aria-hidden="true">
+					<Fragment set:html={renderIconSvg('check', { size: 14 })} />
+				</span>
 			</button>
 
 			<!-- 4. Cliente Final -->
@@ -107,7 +114,9 @@
 					<span class="option-role-title">Propietario / Cliente Final</span>
 					<span class="option-desc">Portal cliente: estado de cuenta y fotos autorizadas sin costos internos.</span>
 				</div>
-				<span class="option-check" aria-hidden="true">✓</span>
+				<span class="option-check" aria-hidden="true">
+					<Fragment set:html={renderIconSvg('check', { size: 14 })} />
+				</span>
 			</button>
 		</div>
 
