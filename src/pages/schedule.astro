@@ -1,0 +1,31 @@
+---
+// src/pages/schedule.astro
+// HU-16: Cronograma Táctil de Tareas de Obra (Lista / Calendario / Diagrama de Gantt).
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import ScheduleWorkspace from '../components/schedule/ScheduleWorkspace.astro';
+import QuickExpenseFAB from '../components/expenses/QuickExpenseFAB.astro';
+import Toast from '../components/Toast.astro';
+---
+
+<Layout title="Cronograma de Tareas de Obra — ObraFlow">
+	<Header />
+
+	<main class="schedule-page-main">
+		<ScheduleWorkspace />
+	</main>
+
+	<!-- FAB de Captura Rápida de Gastos en Obra -->
+	<QuickExpenseFAB />
+
+	<Toast />
+</Layout>
+
+<style>
+	.schedule-page-main {
+		flex: 1;
+		width: 100%;
+		background-color: #F8FAFC;
+		min-height: calc(100vh - 65px);
+	}
+</style>

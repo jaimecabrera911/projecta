@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import DailyLogWorkspace from '../components/daily-logs/DailyLogWorkspace.astro';
+import QuickExpenseFAB from '../components/expenses/QuickExpenseFAB.astro';
+import Toast from '../components/Toast.astro';
+---
+
+<Layout title="Bitácora Diaria de Obra — ObraFlow">
+  <Header />
+  <main class="daily-logs-page-main" id="daily-logs-page-root">
+    <DailyLogWorkspace />
+  </main>
+  <QuickExpenseFAB />
+  <Toast />
+</Layout>
+
+<style>
+  .daily-logs-page-main {
+    flex: 1;
+    width: 100%;
+    background-color: #F8FAFC;
+    min-height: calc(100vh - 65px);
+    display: flex;
+    flex-direction: column;
+  }
+</style>

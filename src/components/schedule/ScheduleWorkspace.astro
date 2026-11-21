@@ -1,0 +1,2128 @@
+---
+// src/components/schedule/ScheduleWorkspace.astro
+// HU-16: Espacio de Trabajo del Cronograma Táctil de Obra.
+// Integra selector de proyecto, métricas de avance físico, selector de 3 vistas (Lista / Calendario / Gantt),
+// barra de filtros por estado y orquestación reactiva.
+
+import TaskListView from './TaskListView.astro';
+import CalendarView from './CalendarView.astro';
+import GanttChartView from './GanttChartView.astro';
+import CreateTaskModal from './CreateTaskModal.astro';
+import TaskDetailModal from './TaskDetailModal.astro';
+---
+
+<div id="schedule-workspace-root" class="schedule-workspace-shell">
+	<!-- 1. BARRA SUPERIOR DE CONTROL DE OBRA -->
+	<header id="schedule-top-bar" class="schedule-top-bar">
+		<div class="top-bar-left">
+			<div class="project-selector-wrapper">
+				<label for="schedule-project-select" class="project-select-label">Obra Activa:</label>
+				<div class="custom-select-container">
+					<select id="schedule-project-select" class="schedule-project-select" aria-label="Seleccionar proyecto de obra">
+						<option value="proj_penthouse_poblado" selected>Remodelación Penthouse El Poblado (Dr. Andrés Restrepo)</option>
+						<option value="proj_torre_medica">Adecuación Consultorios Torre Médica (Inversiones Salud)</option>
+					</select>
+					<div class="select-chevron" aria-hidden="true">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<polyline points="6 9 12 15 18 9"></polyline>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="top-bar-actions">
+			<button
+				id="schedule-reset-btn"
+				type="button"
+				class="btn-reset-tasks"
+				title="Restablecer tareas de demostración iniciales"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+				</svg>
+				<span class="desktop-only">Reset Demo</span>
+			</button>
+
+			<button
+				id="schedule-new-task-btn"
+				type="button"
+				class="btn-new-task"
+				title="Programar una nueva actividad en el cronograma"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+					<line x1="12" y1="5" x2="12" y2="19"></line>
+					<line x1="5" y1="12" x2="19" y2="12"></line>
+				</svg>
+				<span>+ Nueva Tarea</span>
+			</button>
+		</div>
+	</header>
+
+	<!-- 2. TARJETA DE AVANCE FÍSICO GLOBAL DEL PROYECTO -->
+	<section id="schedule-metrics-card" class="schedule-metrics-card" aria-label="Métricas de avance físico de obra">
+		<div class="metrics-main-col">
+			<div class="metrics-title-row">
+				<div class="metrics-badge-lead">
+					<span class="pulse-indicator"></span>
+					<span>AVANCE FÍSICO DE OBRA</span>
+				</div>
+				<span id="metrics-overdue-alert-pill" class="overdue-alert-pill hidden">
+					⚠️ <span id="overdue-pill-text">1 Tarea Atrasada</span>
+				</span>
+			</div>
+
+			<div class="progress-indicator-row">
+				<div class="progress-big-number">
+					<span id="metrics-overall-pct" class="pct-val">60.0%</span>
+					<span class="pct-label">Completado</span>
+				</div>
+
+				<div class="progress-bar-track">
+					<div id="metrics-progress-bar-fill" class="progress-bar-fill" style="width: 60%;"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Mini contadores -->
+		<div class="metrics-chips-grid">
+			<div class="metric-chip-card">
+				<span class="chip-number" id="metrics-total-count">5</span>
+				<span class="chip-label">Total Tareas</span>
+			</div>
+			<div class="metric-chip-card chip-completed">
+				<span class="chip-number" id="metrics-completed-count">3</span>
+				<span class="chip-label">Completadas</span>
+			</div>
+			<div class="metric-chip-card chip-in-progress">
+				<span class="chip-number" id="metrics-in-progress-count">1</span>
+				<span class="chip-label">En Curso</span>
+			</div>
+			<div class="metric-chip-card chip-overdue" id="chip-overdue-card">
+				<span class="chip-number" id="metrics-overdue-count">1</span>
+				<span class="chip-label">Atrasadas</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- 3. SELECTOR DE VISTAS (CONTROL SEGMENTADO TRIPLE) -->
+	<div class="schedule-controls-cluster">
+		<div id="schedule-view-switcher" class="segmented-view-switcher" role="tablist" aria-label="Modo de visualización de tareas">
+			<button
+				id="tab-view-list"
+				type="button"
+				role="tab"
+				aria-selected="true"
+				class="view-switch-btn active"
+				data-view="list"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="8" y1="6" x2="21" y2="6"></line>
+					<line x1="8" y1="12" x2="21" y2="12"></line>
+					<line x1="8" y1="18" x2="21" y2="18"></line>
+					<line x1="3" y1="6" x2="3.01" y2="6"></line>
+					<line x1="3" y1="12" x2="3.01" y2="12"></line>
+					<line x1="3" y1="18" x2="3.01" y2="18"></line>
+				</svg>
+				<span>Lista de Tareas</span>
+				<span id="tab-list-count" class="tab-badge">5</span>
+			</button>
+
+			<button
+				id="tab-view-calendar"
+				type="button"
+				role="tab"
+				aria-selected="false"
+				class="view-switch-btn"
+				data-view="calendar"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+					<line x1="16" y1="2" x2="16" y2="6"></line>
+					<line x1="8" y1="2" x2="8" y2="6"></line>
+					<line x1="3" y1="10" x2="21" y2="10"></line>
+				</svg>
+				<span>Calendario</span>
+			</button>
+
+			<button
+				id="tab-view-gantt"
+				type="button"
+				role="tab"
+				aria-selected="false"
+				class="view-switch-btn"
+				data-view="gantt"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="3" y1="6" x2="15" y2="6"></line>
+					<line x1="7" y1="12" x2="21" y2="12"></line>
+					<line x1="4" y1="18" x2="18" y2="18"></line>
+				</svg>
+				<span>Diagrama de Gantt</span>
+			</button>
+		</div>
+
+		<!-- 4. CHIPS DE FILTRO POR ESTADO (Visible en Lista y Gantt) -->
+		<div id="schedule-filter-bar" class="filter-chips-bar" role="group" aria-label="Filtrar tareas por estado">
+			<button id="filter-all" type="button" class="filter-chip active" data-filter="all">
+				Todas
+			</button>
+			<button id="filter-pending" type="button" class="filter-chip" data-filter="pending">
+				Pendientes
+			</button>
+			<button id="filter-in_progress" type="button" class="filter-chip" data-filter="in_progress">
+				En Curso
+			</button>
+			<button id="filter-completed" type="button" class="filter-chip" data-filter="completed">
+				Completadas
+			</button>
+			<button id="filter-overdue" type="button" class="filter-chip chip-alert" data-filter="overdue">
+				Atrasadas ⚠️
+			</button>
+		</div>
+	</div>
+
+	<!-- 5. CONTENEDOR DE VISTAS -->
+	<div class="views-stage-area">
+		<!-- Vista 1: Lista (Principal / Operate Mode) -->
+		<TaskListView />
+
+		<!-- Vista 2: Calendario Mensual -->
+		<CalendarView />
+
+		<!-- Vista 3: Diagrama de Gantt Temporal -->
+		<GanttChartView />
+	</div>
+
+	<!-- Modal de Creación de Tarea -->
+	<CreateTaskModal />
+
+	<!-- Modal de Detalle, Edición, Evidencias y Bitácora (HU-16) -->
+	<TaskDetailModal />
+</div>
+
+<style>
+	.schedule-workspace-shell {
+		max-width: 1320px;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 3rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* 1. Top Bar */
+	.schedule-top-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.top-bar-left {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex: 1;
+		min-width: 280px;
+	}
+
+	.project-selector-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		width: 100%;
+		max-width: 520px;
+	}
+
+	.project-select-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #64748B;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.custom-select-container {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.schedule-project-select {
+		width: 100%;
+		min-height: 48px;
+		padding: 0.625rem 2.5rem 0.625rem 1rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.625rem;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: #0F172A;
+		appearance: none;
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.schedule-project-select:focus {
+		outline: none;
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.select-chevron {
+		position: absolute;
+		right: 1rem;
+		pointer-events: none;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+	}
+
+	.top-bar-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.btn-reset-tasks {
+		min-height: 48px;
+		padding: 0 1rem;
+		border-radius: 0.625rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #475569;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-reset-tasks:hover {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.btn-new-task {
+		min-height: 48px;
+		padding: 0 1.35rem;
+		border-radius: 0.625rem;
+		border: none;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		font-size: 0.9375rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+		transition: all 0.15s ease;
+	}
+
+	.btn-new-task:hover {
+		background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 10px rgba(249, 115, 22, 0.45);
+	}
+
+	/* 2. Tarjeta de Métricas */
+	.schedule-metrics-card {
+		background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+		border: 1px solid #E2E8F0;
+		border-radius: 1rem;
+		padding: 1.5rem;
+		box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+		display: grid;
+		grid-template-columns: 1.3fr 1fr;
+		gap: 1.5rem;
+		align-items: center;
+	}
+
+	.metrics-main-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.metrics-title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.metrics-badge-lead {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: 0.05em;
+	}
+
+	.pulse-indicator {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: #10B981;
+		box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+	}
+
+	.overdue-alert-pill {
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #B91C1C;
+		background-color: #FEF2F2;
+		border: 1px solid #FECACA;
+		padding: 0.2rem 0.6rem;
+		border-radius: 9999px;
+	}
+
+	.progress-indicator-row {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.progress-big-number {
+		display: flex;
+		flex-direction: column;
+		line-height: 1;
+	}
+
+	.pct-val {
+		font-size: 2.25rem;
+		font-weight: 900;
+		color: #0F172A;
+		font-family: 'JetBrains Mono', monospace;
+	}
+
+	.pct-label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+		text-transform: uppercase;
+		margin-top: 0.2rem;
+	}
+
+	.progress-bar-track {
+		flex: 1;
+		height: 16px;
+		background-color: #E2E8F0;
+		border-radius: 9999px;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.progress-bar-fill {
+		height: 100%;
+		background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+		border-radius: 9999px;
+		transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.metrics-chips-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.75rem;
+	}
+
+	.metric-chip-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		padding: 0.75rem 0.5rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 0.2rem;
+	}
+
+	.chip-number {
+		font-size: 1.25rem;
+		font-weight: 900;
+		color: #0F172A;
+		font-family: 'JetBrains Mono', monospace;
+	}
+
+	.chip-label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+	}
+
+	.metric-chip-card.chip-completed .chip-number {
+		color: #059669;
+	}
+
+	.metric-chip-card.chip-in-progress .chip-number {
+		color: #EA580C;
+	}
+
+	.metric-chip-card.chip-overdue .chip-number {
+		color: #DC2626;
+	}
+
+	/* 3. Controls Cluster */
+	.schedule-controls-cluster {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.segmented-view-switcher {
+		display: flex;
+		background-color: #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 4px;
+		gap: 4px;
+	}
+
+	.view-switch-btn {
+		min-height: 48px;
+		padding: 0 1.25rem;
+		border-radius: 0.5rem;
+		border: none;
+		background: transparent;
+		color: #475569;
+		font-size: 0.875rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.view-switch-btn:hover {
+		color: #0F172A;
+	}
+
+	.view-switch-btn.active {
+		background-color: #FFFFFF;
+		color: #0F172A;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+	}
+
+	.tab-badge {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		padding: 0.15rem 0.45rem;
+		border-radius: 9999px;
+		background-color: #F1F5F9;
+		color: #0F172A;
+	}
+
+	.view-switch-btn.active .tab-badge {
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	/* 4. Filter Chips */
+	.filter-chips-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.filter-chip {
+		min-height: 44px;
+		padding: 0 1rem;
+		border-radius: 9999px;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #475569;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.filter-chip:hover {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.filter-chip.active {
+		background-color: #0F172A;
+		border-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	.filter-chip.chip-alert.active {
+		background-color: #EF4444;
+		border-color: #EF4444;
+		color: #FFFFFF;
+	}
+
+	.views-stage-area {
+		width: 100%;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 900px) {
+		.schedule-metrics-card {
+			grid-template-columns: 1fr;
+		}
+
+		.metrics-chips-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.schedule-controls-cluster {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.segmented-view-switcher {
+			width: 100%;
+			overflow-x: auto;
+		}
+
+		.view-switch-btn {
+			flex: 1;
+			justify-content: center;
+			padding: 0 0.75rem;
+			font-size: 0.75rem;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.desktop-only {
+			display: none !important;
+		}
+
+		.schedule-top-bar {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.top-bar-actions {
+			justify-content: space-between;
+		}
+
+		.btn-new-task {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+</style>
+
+<script>
+	// HU-16: Orquestador y Motor Reactivo del Cronograma Táctil
+	import {
+		loadAllTasks,
+		getTasksByProject,
+		toggleTaskComplete,
+		deleteTask,
+		createTask,
+		updateTask,
+		addTaskEvidence,
+		deleteTaskEvidence,
+		addTaskComment,
+		generateEvidenceSvg,
+		resetDemoTasks,
+		calculateProjectScheduleMetrics,
+		isTaskOverdue,
+		getProjectChapters,
+		getTodayDateString,
+		type ScheduleTask
+	} from '../../lib/task-schedule-store.ts';
+	import { getActiveRoleConfig } from '../../lib/role-store.ts';
+	import Gantt from 'frappe-gantt';
+	import '../../styles/frappe-gantt.css';
+
+	// Estado local de la sesión
+	let activeProjectId = 'proj_penthouse_poblado';
+	let currentView: 'list' | 'calendar' | 'gantt' = 'list';
+	let currentFilter: 'all' | 'pending' | 'in_progress' | 'completed' | 'overdue' = 'all';
+
+	// Estado del Calendario
+	let calYear = 2026;
+	let calMonth = 10; // Noviembre (0-indexed: 10 = Noviembre)
+	let calSelectedDate = getTodayDateString();
+
+	// Estado del Gantt (Frappe Gantt)
+	let ganttViewMode: 'Day' | 'Week' | 'Month' = 'Day';
+	let ganttChapterFilter: string = 'all';
+	let frappeGanttInstance: any = null;
+	let ganttZoom: 'days' | 'weeks' = 'days';
+
+	function getModeColumnWidth(mode: 'Day' | 'Week' | 'Month'): number {
+		switch (mode) {
+			case 'Day': return 50;
+			case 'Week': return 170; // Ancho generoso para que las fechas semanales (ej: 22 oct - 28 nov) no se partan y las barras sean amplias
+			case 'Month': return 160; // 160px para que los nombres largos como "Septiembre" o "Noviembre" tengan espacio de sobra sin superponerse
+		}
+	}
+
+	function initWorkspace() {
+		setupEventListeners();
+		updateAll();
+	}
+
+	function setupEventListeners() {
+		// 1. Selector de Proyecto
+		const projectSelect = document.getElementById('schedule-project-select') as HTMLSelectElement | null;
+		projectSelect?.addEventListener('change', () => {
+			activeProjectId = projectSelect.value;
+			updateAll();
+		});
+
+		// 2. Botón Reset Demo
+		document.getElementById('schedule-reset-btn')?.addEventListener('click', () => {
+			resetDemoTasks();
+			showToast('Tareas de demostración restablecidas correctamente.');
+		});
+
+		// 3. Botón Nueva Tarea (Abre Modal)
+		document.getElementById('schedule-new-task-btn')?.addEventListener('click', () => {
+			openCreateTaskModal();
+		});
+
+		// 4. Conmutador de Vistas (Lista / Calendario / Gantt)
+		const tabBtns = document.querySelectorAll<HTMLButtonElement>('.view-switch-btn');
+		tabBtns.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const view = btn.dataset.view as 'list' | 'calendar' | 'gantt';
+				if (!view || view === currentView) return;
+				currentView = view;
+
+				tabBtns.forEach((b) => {
+					b.classList.remove('active');
+					b.setAttribute('aria-selected', 'false');
+				});
+				btn.classList.add('active');
+				btn.setAttribute('aria-selected', 'true');
+
+				switchView(currentView);
+			});
+		});
+
+		// 5. Filtros de Estado
+		const filterChips = document.querySelectorAll<HTMLButtonElement>('.filter-chip');
+		filterChips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				const filter = chip.dataset.filter as any;
+				if (!filter) return;
+				currentFilter = filter;
+
+				filterChips.forEach((c) => c.classList.remove('active'));
+				chip.classList.add('active');
+
+				renderCurrentView();
+			});
+		});
+
+		// 6. Controles de Calendario
+		document.getElementById('cal-prev-month-btn')?.addEventListener('click', () => {
+			calMonth--;
+			if (calMonth < 0) {
+				calMonth = 11;
+				calYear--;
+			}
+			renderCalendarView();
+		});
+
+		document.getElementById('cal-next-month-btn')?.addEventListener('click', () => {
+			calMonth++;
+			if (calMonth > 11) {
+				calMonth = 0;
+				calYear++;
+			}
+			renderCalendarView();
+		});
+
+		document.getElementById('cal-today-btn')?.addEventListener('click', () => {
+			const today = new Date();
+			calYear = today.getFullYear();
+			calMonth = today.getMonth();
+			calSelectedDate = getTodayDateString();
+			renderCalendarView();
+		});
+
+		// 7. Controles de Frappe Gantt (Escalas Día / Semana / Mes y Filtro de Capítulos)
+		const setGanttMode = (mode: 'Day' | 'Week' | 'Month', activeBtnId: string) => {
+			ganttViewMode = mode;
+			['gantt-mode-day-btn', 'gantt-mode-week-btn', 'gantt-mode-month-btn'].forEach((id) => {
+				const btn = document.getElementById(id);
+				const isActive = id === activeBtnId;
+				btn?.classList.toggle('active', isActive);
+				btn?.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+			});
+			renderGanttView();
+		};
+
+		document.getElementById('gantt-mode-day-btn')?.addEventListener('click', () => {
+			setGanttMode('Day', 'gantt-mode-day-btn');
+		});
+
+		document.getElementById('gantt-mode-week-btn')?.addEventListener('click', () => {
+			setGanttMode('Week', 'gantt-mode-week-btn');
+		});
+
+		document.getElementById('gantt-mode-month-btn')?.addEventListener('click', () => {
+			setGanttMode('Month', 'gantt-mode-month-btn');
+		});
+
+		document.getElementById('gantt-chapter-select')?.addEventListener('change', (e) => {
+			ganttChapterFilter = (e.target as HTMLSelectElement).value;
+			renderGanttView();
+		});
+
+		window.addEventListener('open-task-modal-from-gantt', (e: any) => {
+			if (e.detail?.taskId) {
+				openTaskDetailModal(e.detail.taskId);
+			}
+		});
+
+		// 8. Modal de Tareas y Modal de Detalle
+		setupModalHandlers();
+		setupTaskDetailModalHandlers();
+
+		// 9. Evento global de actualización
+		window.addEventListener('obraflow:tasks-updated', () => {
+			updateAll();
+		});
+	}
+
+	function switchView(view: 'list' | 'calendar' | 'gantt') {
+		const listView = document.getElementById('schedule-task-list-view');
+		const calView = document.getElementById('schedule-calendar-view');
+		const ganttView = document.getElementById('schedule-gantt-view');
+		const filterBar = document.getElementById('schedule-filter-bar');
+
+		if (listView) listView.classList.toggle('hidden', view !== 'list');
+		if (calView) calView.classList.toggle('hidden', view !== 'calendar');
+		if (ganttView) ganttView.classList.toggle('hidden', view !== 'gantt');
+
+		// Barra de filtros visible principalmente en Lista y Gantt
+		if (filterBar) {
+			filterBar.classList.toggle('hidden', view === 'calendar');
+		}
+
+		renderCurrentView();
+	}
+
+	function updateAll() {
+		updateGanttChapterFilterOptions();
+		renderMetrics();
+		renderCurrentView();
+	}
+
+	function updateGanttChapterFilterOptions() {
+		const select = document.getElementById('gantt-chapter-select') as HTMLSelectElement | null;
+		if (!select) return;
+		const chapters = getProjectChapters(activeProjectId);
+		const currentValue = select.value || 'all';
+		let optionsHtml = '<option value="all">📁 Todos los Capítulos</option>';
+		chapters.forEach((ch) => {
+			optionsHtml += `<option value="${ch.id}">${escapeHtml(ch.name)}</option>`;
+		});
+		select.innerHTML = optionsHtml;
+		if (chapters.some((ch) => ch.id === currentValue)) {
+			select.value = currentValue;
+			ganttChapterFilter = currentValue;
+		} else {
+			select.value = 'all';
+			ganttChapterFilter = 'all';
+		}
+	}
+
+	function localizeGanttUI() {
+		const todayBtn = document.querySelector('#gantt-svg-viewport .today-button');
+		if (todayBtn) {
+			todayBtn.textContent = 'Hoy';
+			todayBtn.setAttribute('title', 'Ir a la fecha actual');
+		}
+	}
+
+	function fixChapterBarsEnclosure() {
+		const chapterWrappers = document.querySelectorAll<SVGGElement>('#gantt-svg-viewport .bar-wrapper.bar-chapter');
+		chapterWrappers.forEach((group) => {
+			const bar = group.querySelector<SVGRectElement>('.bar');
+			const barProgress = group.querySelector<SVGRectElement>('.bar-progress');
+			const label = group.querySelector<SVGTextElement>('.bar-label');
+			if (!bar || !label) return;
+
+			let labelWidth = 240;
+			try {
+				const bbox = label.getBBox();
+				if (bbox && bbox.width > 0) {
+					labelWidth = bbox.width;
+				}
+			} catch (e) {}
+
+			const barX = parseFloat(bar.getAttribute('x') || '0');
+			const currentBarWidth = parseFloat(bar.getAttribute('width') || '0');
+			const minWidthForLabel = labelWidth + 40;
+			const finalWidth = Math.max(currentBarWidth, minWidthForLabel);
+
+			if (finalWidth > currentBarWidth) {
+				bar.setAttribute('width', finalWidth.toString());
+				if (barProgress) {
+					const currentProgWidth = parseFloat(barProgress.getAttribute('width') || '0');
+					if (currentProgWidth > 0 && currentBarWidth > 0) {
+						const pct = currentProgWidth / currentBarWidth;
+						barProgress.setAttribute('width', (finalWidth * pct).toString());
+					}
+				}
+			}
+
+			// Asegura que el texto permanezca 100% adentro del cuadro oscuro con contraste blanco
+			label.classList.remove('big');
+			label.setAttribute('x', (barX + finalWidth / 2).toString());
+			label.setAttribute('text-anchor', 'middle');
+			label.style.fill = '#FFFFFF';
+		});
+	}
+
+	function renderCurrentView() {
+		if (currentView === 'list') {
+			renderListView();
+		} else if (currentView === 'calendar') {
+			renderCalendarView();
+		} else if (currentView === 'gantt') {
+			renderGanttView();
+		}
+	}
+
+	// ==========================================
+	// MÉTRICAS GLOBALES
+	// ==========================================
+	function renderMetrics() {
+		const metrics = calculateProjectScheduleMetrics(activeProjectId);
+
+		const pctElem = document.getElementById('metrics-overall-pct');
+		const barFill = document.getElementById('metrics-progress-bar-fill');
+		const totalElem = document.getElementById('metrics-total-count');
+		const compElem = document.getElementById('metrics-completed-count');
+		const inProgElem = document.getElementById('metrics-in-progress-count');
+		const overdueElem = document.getElementById('metrics-overdue-count');
+		const tabCount = document.getElementById('tab-list-count');
+		const overduePill = document.getElementById('metrics-overdue-alert-pill');
+		const overduePillText = document.getElementById('overdue-pill-text');
+
+		if (pctElem) pctElem.textContent = `${metrics.overall_progress_pct.toFixed(1)}%`;
+		if (barFill) barFill.style.width = `${metrics.overall_progress_pct}%`;
+		if (totalElem) totalElem.textContent = metrics.total_tasks.toString();
+		if (compElem) compElem.textContent = metrics.completed_tasks.toString();
+		if (inProgElem) inProgElem.textContent = metrics.in_progress_tasks.toString();
+		if (overdueElem) overdueElem.textContent = metrics.overdue_tasks.toString();
+		if (tabCount) tabCount.textContent = metrics.total_tasks.toString();
+
+		if (overduePill && overduePillText) {
+			if (metrics.overdue_tasks > 0) {
+				overduePill.classList.remove('hidden');
+				overduePillText.textContent = `${metrics.overdue_tasks} ${metrics.overdue_tasks === 1 ? 'Tarea Atrasada' : 'Tareas Atrasadas'}`;
+			} else {
+				overduePill.classList.add('hidden');
+			}
+		}
+	}
+
+	function filterTasks(tasks: ScheduleTask[]): ScheduleTask[] {
+		const today = getTodayDateString();
+		return tasks.filter((t) => {
+			if (currentFilter === 'all') return true;
+			if (currentFilter === 'completed') return t.status === 'completed';
+			if (currentFilter === 'in_progress') return t.status === 'in_progress';
+			if (currentFilter === 'pending') return t.status === 'pending';
+			if (currentFilter === 'overdue') return isTaskOverdue(t, today);
+			return true;
+		});
+	}
+
+	// ==========================================
+	// VISTA 1: LISTA TÁCTIL (OPERATE MODE)
+	// ==========================================
+	function renderListView() {
+		const container = document.getElementById('tasks-chapters-accordion');
+		const emptyState = document.getElementById('tasks-empty-state');
+		if (!container) return;
+
+		const allProjTasks = getTasksByProject(activeProjectId);
+		const filteredTasks = filterTasks(allProjTasks);
+		const chapters = getProjectChapters(activeProjectId);
+		const today = getTodayDateString();
+
+		if (filteredTasks.length === 0) {
+			container.innerHTML = '';
+			emptyState?.classList.remove('hidden');
+			return;
+		}
+
+		emptyState?.classList.add('hidden');
+		let html = '';
+
+		chapters.forEach((chap) => {
+			const chapTasks = filteredTasks.filter((t) => t.chapter_id === chap.id);
+			if (chapTasks.length === 0 && currentFilter !== 'all') {
+				return;
+			}
+
+			// Calcular avance del capítulo con todas sus tareas
+			const chapAllTasks = allProjTasks.filter((t) => t.chapter_id === chap.id);
+			const chapCompleted = chapAllTasks.filter((t) => t.status === 'completed').length;
+			const chapTotal = chapAllTasks.length;
+			const chapPct = chapTotal > 0 ? Math.round((chapCompleted / chapTotal) * 100) : 0;
+
+			html += `
+				<div class="chapter-task-group" id="chapter-group-${chap.id}">
+					<div class="chapter-group-header">
+						<div class="chapter-title-left">
+							<div class="chapter-folder-icon" aria-hidden="true">
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+								</svg>
+							</div>
+							<h3 class="chapter-name">${escapeHtml(chap.name)}</h3>
+						</div>
+
+						<div class="chapter-stats-right">
+							<span class="chapter-progress-pill">${chapPct}% Avance (${chapCompleted}/${chapTotal})</span>
+						</div>
+					</div>
+
+					<div class="chapter-tasks-list">
+			`;
+
+			if (chapTasks.length === 0) {
+				html += `
+					<div style="padding: 1rem 1.25rem; font-size: 0.8125rem; color: #94A3B8; font-style: italic;">
+						No hay actividades en este capítulo que coincidan con el filtro.
+					</div>
+				`;
+			} else {
+				chapTasks.forEach((task) => {
+					const isDone = task.status === 'completed';
+					const isOver = isTaskOverdue(task, today);
+					const rowClasses = ['task-item-row'];
+					if (isDone) rowClasses.push('completed');
+					if (isOver) rowClasses.push('overdue');
+
+					const evidencesCount = task.evidences ? task.evidences.length : 0;
+					const commentsCount = task.comments ? task.comments.length : 0;
+
+					html += `
+						<div class="${rowClasses.join(' ')}" id="task-row-${task.id}">
+							<!-- Botón Checkbox Circular Táctil (>= 48x48 px) -->
+							<button
+								type="button"
+								class="btn-task-checkbox"
+								data-task-id="${task.id}"
+								aria-label="${isDone ? 'Marcar tarea como pendiente' : 'Marcar tarea como completada'}"
+								title="${isDone ? 'Completada. Clic para desmarcar.' : 'Toque para completar tarea'}"
+							>
+								<div class="checkbox-circle">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+										<polyline points="20 6 9 17 4 12"></polyline>
+									</svg>
+								</div>
+							</button>
+
+							<div class="task-info-col" data-open-detail="${task.id}" title="Toca para ver detalle, fotos y comentarios">
+								<div class="task-title-line">
+									<span class="task-title-text">${escapeHtml(task.title)}</span>
+								</div>
+
+								${task.description ? `<p class="task-desc-text">${escapeHtml(task.description)}</p>` : ''}
+
+								<div class="task-meta-row">
+									<span class="crew-chip">
+										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+											<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+											<circle cx="9" cy="7" r="4"></circle>
+										</svg>
+										${escapeHtml(task.assigned_to)}
+									</span>
+
+									<span class="dates-chip">
+										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+											<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+											<line x1="16" y1="2" x2="16" y2="6"></line>
+											<line x1="8" y1="2" x2="8" y2="6"></line>
+											<line x1="3" y1="10" x2="21" y2="10"></line>
+										</svg>
+										${formatDateShort(task.start_date)} → ${formatDateShort(task.end_date)}
+									</span>
+
+									${task.progress_pct > 0 && task.progress_pct < 100 ? `
+										<span class="crew-chip" style="background-color: #FFF7ED; color: #EA580C; border-color: #FED7AA; font-weight: 800;">
+											${task.progress_pct}% Avance
+										</span>
+									` : ''}
+
+									${evidencesCount > 0 ? `
+										<span class="evidence-pill" title="${evidencesCount} fotos de avance">
+											📸 ${evidencesCount}
+										</span>
+									` : ''}
+
+									${commentsCount > 0 ? `
+										<span class="comment-pill" title="${commentsCount} notas en bitácora">
+											💬 ${commentsCount}
+										</span>
+									` : ''}
+
+									${isOver ? `
+										<span class="badge-overdue-alert">
+											⚠️ Atrasada (${formatDateShort(task.end_date)})
+										</span>
+									` : ''}
+								</div>
+							</div>
+
+							<!-- Botón Editar / Ver Detalle -->
+							<button
+								type="button"
+								class="btn-task-edit-detail"
+								data-open-detail="${task.id}"
+								aria-label="Ver detalle, fotos y notas"
+								title="Editar actividad, fotos y bitácora"
+							>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<path d="M12 20h9"></path>
+									<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+								</svg>
+							</button>
+
+							<!-- Botón Eliminar Tarea -->
+							<button
+								type="button"
+								class="btn-task-delete"
+								data-delete-task-id="${task.id}"
+								aria-label="Eliminar actividad"
+								title="Eliminar actividad"
+							>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<polyline points="3 6 5 6 21 6"></polyline>
+									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+								</svg>
+							</button>
+						</div>
+					`;
+				});
+			}
+
+			html += `
+					</div>
+				</div>
+			`;
+		});
+
+		container.innerHTML = html;
+
+		// Asignar listeners de toques
+		container.querySelectorAll<HTMLElement>('[data-open-detail]').forEach((elem) => {
+			elem.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const taskId = elem.dataset.openDetail;
+				if (!taskId) return;
+				openTaskDetailModal(taskId);
+			});
+		});
+
+		container.querySelectorAll<HTMLButtonElement>('.btn-task-checkbox').forEach((btn) => {
+			btn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const taskId = btn.dataset.taskId;
+				if (!taskId) return;
+				const updated = toggleTaskComplete(taskId);
+				if (updated) {
+					const msg = updated.status === 'completed'
+						? `✓ Actividad completada: "${updated.title}"`
+						: `Actividad reabierta: "${updated.title}"`;
+					showToast(msg);
+				}
+			});
+		});
+
+		container.querySelectorAll<HTMLButtonElement>('.btn-task-delete').forEach((btn) => {
+			btn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const taskId = btn.dataset.deleteTaskId;
+				if (!taskId) return;
+				deleteTask(taskId);
+				showToast('Actividad eliminada del cronograma.');
+			});
+		});
+	}
+
+	// ==========================================
+	// VISTA 2: CALENDARIO MENSUAL
+	// ==========================================
+	const MONTH_NAMES = [
+		'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+	];
+
+	function renderCalendarView() {
+		const monthHeading = document.getElementById('cal-current-month-label');
+		const daysGrid = document.getElementById('calendar-days-grid');
+		if (monthHeading) {
+			monthHeading.textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+		}
+		if (!daysGrid) return;
+
+		const allProjTasks = getTasksByProject(activeProjectId);
+		const todayStr = getTodayDateString();
+
+		// Primer día del mes (1 = Lun, 0 = Dom en JS; ajustamos para que Lun sea 0)
+		const firstDayObj = new Date(calYear, calMonth, 1);
+		let startDay = firstDayObj.getDay() - 1; // Lun = 0, Dom = 6
+		if (startDay < 0) startDay = 6;
+
+		const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+		const daysInPrevMonth = new Date(calYear, calMonth, 0).getDate();
+
+		let html = '';
+
+		// Días del mes previo para rellenar
+		for (let i = startDay - 1; i >= 0; i--) {
+			const dayNum = daysInPrevMonth - i;
+			html += `<div class="cal-day-cell other-month"><div class="day-number">${dayNum}</div></div>`;
+		}
+
+		// Días del mes actual
+		for (let day = 1; day <= daysInMonth; day++) {
+			const currentDayDateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+			const isToday = currentDayDateStr === todayStr;
+			const isSelected = currentDayDateStr === calSelectedDate;
+
+			// Tareas que caen en este día (rango start_date a end_date)
+			const dayTasks = allProjTasks.filter((t) => {
+				return currentDayDateStr >= t.start_date && currentDayDateStr <= t.end_date;
+			});
+
+			const cellClasses = ['cal-day-cell'];
+			if (isToday) cellClasses.push('is-today');
+			if (isSelected) cellClasses.push('is-selected');
+
+			let dotsHtml = '';
+			dayTasks.slice(0, 4).forEach((t) => {
+				const isOver = isTaskOverdue(t, todayStr);
+				let dotClass = t.status;
+				if (isOver && t.status !== 'completed') dotClass = 'overdue';
+				dotsHtml += `<span class="task-dot ${dotClass}" title="${escapeHtml(t.title)}"></span>`;
+			});
+
+			html += `
+				<div
+					class="${cellClasses.join(' ')}"
+					data-cal-date="${currentDayDateStr}"
+					role="button"
+					tabindex="0"
+					aria-label="${day} de ${MONTH_NAMES[calMonth]}, ${dayTasks.length} tareas"
+				>
+					<div class="day-cell-top">
+						<span class="day-number">${day}</span>
+						${dayTasks.length > 0 ? `<span class="day-badge-count">${dayTasks.length}</span>` : ''}
+					</div>
+					<div class="day-dots-wrap">
+						${dotsHtml}
+					</div>
+				</div>
+			`;
+		}
+
+		// Rellenar resto de celdas para completar cuadrícula (múltiplo de 7)
+		const totalCells = startDay + daysInMonth;
+		const remaining = (7 - (totalCells % 7)) % 7;
+		for (let i = 1; i <= remaining; i++) {
+			html += `<div class="cal-day-cell other-month"><div class="day-number">${i}</div></div>`;
+		}
+
+		daysGrid.innerHTML = html;
+
+		// Listeners para selección de día
+		daysGrid.querySelectorAll<HTMLElement>('.cal-day-cell[data-cal-date]').forEach((cell) => {
+			cell.addEventListener('click', () => {
+				const date = cell.dataset.calDate;
+				if (!date) return;
+				calSelectedDate = date;
+				daysGrid.querySelectorAll('.cal-day-cell').forEach((c) => c.classList.remove('is-selected'));
+				cell.classList.add('is-selected');
+				renderDayAgenda();
+			});
+		});
+
+		renderDayAgenda();
+	}
+
+	function renderDayAgenda() {
+		const agendaTitle = document.getElementById('agenda-selected-date-title');
+		const agendaSub = document.getElementById('agenda-tasks-count-subtitle');
+		const tasksContainer = document.getElementById('agenda-tasks-list');
+		const emptyNotice = document.getElementById('agenda-empty-state');
+		if (!tasksContainer) return;
+
+		const allProjTasks = getTasksByProject(activeProjectId);
+		const chapters = getProjectChapters(activeProjectId);
+		const todayStr = getTodayDateString();
+
+		const dayTasks = allProjTasks.filter((t) => {
+			return calSelectedDate >= t.start_date && calSelectedDate <= t.end_date;
+		});
+
+		if (agendaTitle) {
+			agendaTitle.textContent = `Actividades del ${formatDateFull(calSelectedDate)}`;
+		}
+		if (agendaSub) {
+			agendaSub.textContent = `${dayTasks.length} ${dayTasks.length === 1 ? 'actividad programada' : 'actividades programadas'}`;
+		}
+
+		if (dayTasks.length === 0) {
+			tasksContainer.innerHTML = '';
+			emptyNotice?.classList.remove('hidden');
+			return;
+		}
+
+		emptyNotice?.classList.add('hidden');
+		let html = '';
+
+		dayTasks.forEach((t) => {
+			const isDone = t.status === 'completed';
+			const isOver = isTaskOverdue(t, todayStr);
+			const chap = chapters.find((c) => c.id === t.chapter_id);
+			const chapName = chap ? chap.name : 'Capítulo';
+
+			html += `
+				<div class="agenda-task-item ${isDone ? 'completed' : ''} ${isOver ? 'overdue' : ''}">
+					<div class="agenda-task-left">
+						<button
+							type="button"
+							class="btn-task-checkbox"
+							data-agenda-toggle="${t.id}"
+							aria-label="${isDone ? 'Marcar pendiente' : 'Marcar completada'}"
+						>
+							<div class="checkbox-circle">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5">
+									<polyline points="20 6 9 17 4 12"></polyline>
+								</svg>
+							</div>
+						</button>
+						<div class="agenda-task-info" data-open-detail="${t.id}" style="cursor: pointer;" title="Toca para ver detalle, fotos y comentarios">
+							<h5 class="agenda-task-name">${escapeHtml(t.title)}</h5>
+							<div class="agenda-task-meta">
+								<span class="agenda-chapter-badge">${escapeHtml(chapName)}</span>
+								<span>• ${escapeHtml(t.assigned_to)}</span>
+								<span>• ${formatDateShort(t.start_date)} al ${formatDateShort(t.end_date)}</span>
+								${t.evidences && t.evidences.length > 0 ? `<span class="evidence-pill">📸 ${t.evidences.length}</span>` : ''}
+								${t.comments && t.comments.length > 0 ? `<span class="comment-pill">💬 ${t.comments.length}</span>` : ''}
+								${isOver ? `<span style="color: #DC2626; font-weight: 800;">⚠️ Atrasada</span>` : ''}
+							</div>
+						</div>
+					</div>
+				</div>
+			`;
+		});
+
+		tasksContainer.innerHTML = html;
+
+		tasksContainer.querySelectorAll<HTMLElement>('[data-open-detail]').forEach((elem) => {
+			elem.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const taskId = elem.dataset.openDetail;
+				if (!taskId) return;
+				openTaskDetailModal(taskId);
+			});
+		});
+
+		tasksContainer.querySelectorAll<HTMLButtonElement>('[data-agenda-toggle]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const taskId = btn.dataset.agendaToggle;
+				if (!taskId) return;
+				toggleTaskComplete(taskId);
+				showToast('Estado de actividad actualizado.');
+			});
+		});
+	}
+
+	// ==========================================
+	// VISTA 3: DIAGRAMA DE GANTT (CON FRAPPE GANTT)
+	// ==========================================
+	function renderGanttView() {
+		const viewport = document.getElementById('gantt-svg-viewport');
+		if (!viewport) return;
+
+		const allProjTasks = getTasksByProject(activeProjectId);
+		const filtered = filterTasks(allProjTasks);
+		const chapters = getProjectChapters(activeProjectId);
+		const todayStr = getTodayDateString();
+
+		if (filtered.length === 0) {
+			viewport.innerHTML = '<div style="padding: 2rem; color: #64748B; font-size: 0.875rem;">No hay tareas para mostrar en el cronograma con este filtro.</div>';
+			return;
+		}
+
+		// Limpiar completamente el contenedor para evitar cabeceras anidadas o acumuladas entre vistas
+		viewport.innerHTML = '<svg id="frappe-gantt-target"></svg>';
+		const targetSvg = document.getElementById('frappe-gantt-target');
+		if (!targetSvg) return;
+
+		let targetChapters = chapters;
+		if (ganttChapterFilter !== 'all') {
+			targetChapters = chapters.filter((c) => c.id === ganttChapterFilter);
+		}
+
+		const ganttTasks: any[] = [];
+
+		targetChapters.forEach((chap) => {
+			const chapTasks = filtered.filter((t) => t.chapter_id === chap.id);
+			if (chapTasks.length === 0) return;
+
+			// Fechas y avance acumulado del capítulo presupuestal
+			let minStart = chapTasks[0].start_date;
+			let maxEnd = chapTasks[0].end_date;
+			chapTasks.forEach((t) => {
+				if (t.start_date < minStart) minStart = t.start_date;
+				if (t.end_date > maxEnd) maxEnd = t.end_date;
+			});
+
+			const allChapTasks = allProjTasks.filter((t) => t.chapter_id === chap.id);
+			const completedCount = allChapTasks.filter((t) => t.status === 'completed').length;
+			const chapPct = allChapTasks.length > 0 ? Math.round((completedCount / allChapTasks.length) * 100) : 0;
+
+			if (maxEnd <= minStart) {
+				const d = new Date(minStart + 'T00:00:00');
+				d.setDate(d.getDate() + 1);
+				maxEnd = d.toISOString().split('T')[0];
+			}
+
+			// 1. Barra Resumen del Capítulo Presupuestal
+			ganttTasks.push({
+				id: `chapter_${chap.id}`,
+				name: `📁 ${chap.name.toUpperCase()} (${chapPct}%)`,
+				start: minStart,
+				end: maxEnd,
+				progress: chapPct,
+				custom_class: 'bar-chapter'
+			});
+
+			// 2. Actividades del Capítulo
+			chapTasks.forEach((t) => {
+				const isOver = isTaskOverdue(t, todayStr);
+				let customClass = `bar-${t.status}`;
+				if (isOver && t.status !== 'completed') {
+					customClass = 'bar-overdue';
+				}
+
+				let end = t.end_date;
+				if (end <= t.start_date) {
+					const d = new Date(t.start_date + 'T00:00:00');
+					d.setDate(d.getDate() + 1);
+					end = d.toISOString().split('T')[0];
+				}
+
+				ganttTasks.push({
+					id: t.id,
+					name: `  ↳ ${t.title} [${t.assigned_to}]`,
+					start: t.start_date,
+					end: end,
+					progress: t.progress_pct,
+					custom_class: customClass
+				});
+			});
+		});
+
+		// Manejo de tareas huérfanas si las hubiera
+		if (ganttChapterFilter === 'all') {
+			const knownChapterIds = new Set(chapters.map((c) => c.id));
+			const orphanTasks = filtered.filter((t) => !knownChapterIds.has(t.chapter_id));
+			if (orphanTasks.length > 0) {
+				let oMin = orphanTasks[0].start_date;
+				let oMax = orphanTasks[0].end_date;
+				orphanTasks.forEach((t) => {
+					if (t.start_date < oMin) oMin = t.start_date;
+					if (t.end_date > oMax) oMax = t.end_date;
+				});
+				if (oMax <= oMin) {
+					const d = new Date(oMin + 'T00:00:00');
+					d.setDate(d.getDate() + 1);
+					oMax = d.toISOString().split('T')[0];
+				}
+				ganttTasks.push({
+					id: 'chapter_other',
+					name: '📁 OTRAS ACTIVIDADES',
+					start: oMin,
+					end: oMax,
+					progress: 0,
+					custom_class: 'bar-chapter'
+				});
+				orphanTasks.forEach((t) => {
+					let end = t.end_date;
+					if (end <= t.start_date) {
+						const d = new Date(t.start_date + 'T00:00:00');
+						d.setDate(d.getDate() + 1);
+						end = d.toISOString().split('T')[0];
+					}
+					ganttTasks.push({
+						id: t.id,
+						name: `  ↳ ${t.title} [${t.assigned_to}]`,
+						start: t.start_date,
+						end: end,
+						progress: t.progress_pct,
+						custom_class: `bar-${t.status}`
+					});
+				});
+			}
+		}
+
+		if (ganttTasks.length === 0) {
+			targetSvg.innerHTML = '<text x="20" y="40" fill="#64748B" font-size="14">No hay tareas registradas en el capítulo seleccionado.</text>';
+			return;
+		}
+
+		try {
+			frappeGanttInstance = new (Gantt as any)('#frappe-gantt-target', ganttTasks, {
+				header_height: 50,
+				column_width: getModeColumnWidth(ganttViewMode),
+				step: 24,
+				view_modes: ['Day', 'Week', 'Month'],
+				bar_height: 28,
+				bar_corner_radius: 5,
+				arrow_curve: 5,
+				padding: 18,
+				view_mode: ganttViewMode,
+				date_format: 'YYYY-MM-DD',
+				language: 'es', // <--- Configuración oficial en Español para meses (Noviembre, Diciembre, Enero...)
+				infinite_padding: false, // <--- Desactiva los 4 años fantasma (2026-2029) y ajusta la escala a los meses reales del proyecto
+				today_button: true,
+				popup_trigger: 'click',
+				custom_popup_html: function(task: any) {
+					if (task.id.startsWith('chapter_')) {
+						const chapId = task.id.replace('chapter_', '');
+						const chapObj = chapters.find((c) => c.id === chapId);
+						const chapAll = allProjTasks.filter((t) => t.chapter_id === chapId);
+						const chapDone = chapAll.filter((t) => t.status === 'completed').length;
+						return `
+							<div style="padding: 12px; font-family: inherit; min-width: 250px;">
+								<div style="font-size: 0.6875rem; font-weight: 800; color: #EA580C; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">
+									Capítulo Presupuestal
+								</div>
+								<div style="font-weight: 800; font-size: 0.9375rem; color: #0F172A; margin-bottom: 6px;">
+									${escapeHtml(chapObj?.name || task.name)}
+								</div>
+								<div style="font-size: 0.75rem; color: #64748B; margin-bottom: 8px;">
+									📅 Plazo del capítulo: ${task.start} al ${task.end}
+								</div>
+								<div style="display: flex; align-items: center; justify-content: space-between; background: #F1F5F9; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem;">
+									<span style="font-weight: 700; color: #334155;">Avance del Capítulo:</span>
+									<span style="font-weight: 800; color: #059669; font-family: monospace;">${task.progress}% (${chapDone}/${chapAll.length} listas)</span>
+								</div>
+							</div>
+						`;
+					}
+
+					const originTask = allProjTasks.find((t) => t.id === task.id);
+					const chapObj = chapters.find((c) => c.id === originTask?.chapter_id);
+					const evCount = originTask?.evidences?.length || 0;
+					const cmCount = originTask?.comments?.length || 0;
+					const cleanName = task.name.replace(/^\s*↳\s*/, '');
+
+					return `
+						<div style="padding: 12px; font-family: inherit; min-width: 250px;">
+							<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+								<span style="font-size: 0.6875rem; font-weight: 700; background: #E2E8F0; color: #1E293B; padding: 2px 6px; border-radius: 4px;">
+									📁 ${escapeHtml(chapObj?.name || 'Capítulo Presupuestal')}
+								</span>
+							</div>
+							<div style="font-weight: 800; font-size: 0.875rem; color: #0F172A; margin-bottom: 4px;">
+								${escapeHtml(cleanName)}
+							</div>
+							<div style="font-size: 0.75rem; color: #64748B; margin-bottom: 6px;">
+								📅 ${task.start} al ${task.end}
+							</div>
+							<div style="display: flex; gap: 6px; margin-bottom: 8px;">
+								<span style="font-size: 0.6875rem; font-weight: 700; background: #FFEDD5; color: #EA580C; padding: 2px 6px; border-radius: 9999px;">
+									${task.progress}% Avance
+								</span>
+								${evCount > 0 ? `<span style="font-size: 0.6875rem; font-weight: 700; background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 9999px;">📸 ${evCount}</span>` : ''}
+								${cmCount > 0 ? `<span style="font-size: 0.6875rem; font-weight: 700; background: #DBEAFE; color: #1E40AF; padding: 2px 6px; border-radius: 9999px;">💬 ${cmCount}</span>` : ''}
+							</div>
+							<button type="button" style="width: 100%; min-height: 38px; background: #0F172A; color: #fff; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="window.dispatchEvent(new CustomEvent('open-task-modal-from-gantt', { detail: { taskId: '${task.id}' } }))">
+								Ver Detalle & Evidencias →
+							</button>
+						</div>
+					`;
+				},
+				on_click: function(task: any) {
+					if (task.id.startsWith('chapter_')) {
+						return;
+					}
+					openTaskDetailModal(task.id);
+				},
+				on_date_change: function(task: any, start: Date, end: Date) {
+					if (task.id.startsWith('chapter_')) {
+						return;
+					}
+					const startStr = start.toISOString().split('T')[0];
+					const endStr = end.toISOString().split('T')[0];
+					updateTask(task.id, { start_date: startStr, end_date: endStr });
+					showToast(`✓ Fechas actualizadas: ${startStr} al ${endStr}`);
+				},
+				on_progress_change: function(task: any, progress: number) {
+					if (task.id.startsWith('chapter_')) {
+						return;
+					}
+					updateTask(task.id, { progress_pct: progress });
+					const cleanTitle = task.name.replace(/^\s*↳\s*/, '').split(' [')[0];
+					showToast(`✓ Avance de "${cleanTitle}" actualizado a ${progress}%`);
+				}
+			});
+			localizeGanttUI();
+			fixChapterBarsEnclosure();
+
+			requestAnimationFrame(() => {
+				fixChapterBarsEnclosure();
+				localizeGanttUI();
+			});
+			setTimeout(() => {
+				fixChapterBarsEnclosure();
+				localizeGanttUI();
+			}, 60);
+		} catch (err) {
+			console.error('Error inicializando Frappe Gantt:', err);
+		}
+	}
+
+	// ==========================================
+	// MODAL DE CREACIÓN DE TAREAS
+	// ==========================================
+	function setupModalHandlers() {
+		const backdrop = document.getElementById('create-task-modal-backdrop');
+		const modal = document.getElementById('create-task-modal');
+		const form = document.getElementById('create-task-form') as HTMLFormElement | null;
+		const closeBtn = document.getElementById('btn-close-task-modal');
+		const cancelBtn = document.getElementById('btn-cancel-create-task');
+
+		function closeModal() {
+			backdrop?.classList.add('hidden');
+			modal?.classList.add('hidden');
+			form?.reset();
+			document.getElementById('task-form-title-error')?.classList.add('hidden');
+			document.getElementById('task-form-dates-error')?.classList.add('hidden');
+		}
+
+		closeBtn?.addEventListener('click', closeModal);
+		cancelBtn?.addEventListener('click', closeModal);
+		backdrop?.addEventListener('click', closeModal);
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeModal();
+			}
+		});
+
+		form?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const titleInput = document.getElementById('task-form-title') as HTMLInputElement | null;
+			const chapterSelect = document.getElementById('task-form-chapter') as HTMLSelectElement | null;
+			const assignedSelect = document.getElementById('task-form-assigned') as HTMLSelectElement | null;
+			const startDateInput = document.getElementById('task-form-start-date') as HTMLInputElement | null;
+			const endDateInput = document.getElementById('task-form-end-date') as HTMLInputElement | null;
+			const descInput = document.getElementById('task-form-desc') as HTMLTextAreaElement | null;
+
+			const titleErr = document.getElementById('task-form-title-error');
+			const datesErr = document.getElementById('task-form-dates-error');
+
+			if (!titleInput || !chapterSelect || !assignedSelect || !startDateInput || !endDateInput) return;
+
+			const title = titleInput.value.trim();
+			const chapterId = chapterSelect.value;
+			const assignedTo = assignedSelect.value;
+			const startDate = startDateInput.value;
+			const endDate = endDateInput.value;
+			const desc = descInput?.value.trim() || '';
+
+			let hasError = false;
+
+			if (!title) {
+				titleErr?.classList.remove('hidden');
+				hasError = true;
+			} else {
+				titleErr?.classList.add('hidden');
+			}
+
+			if (endDate < startDate) {
+				datesErr?.classList.remove('hidden');
+				hasError = true;
+			} else {
+				datesErr?.classList.add('hidden');
+			}
+
+			if (hasError) return;
+
+			createTask({
+				project_id: activeProjectId,
+				chapter_id: chapterId,
+				title,
+				description: desc,
+				start_date: startDate,
+				end_date: endDate,
+				assigned_to: assignedTo,
+				status: 'pending'
+			});
+
+			closeModal();
+			showToast(`✓ Actividad "${title}" programada con éxito.`);
+		});
+	}
+
+	function openCreateTaskModal() {
+		const backdrop = document.getElementById('create-task-modal-backdrop');
+		const modal = document.getElementById('create-task-modal');
+		const chapterSelect = document.getElementById('task-form-chapter') as HTMLSelectElement | null;
+		const projIdInput = document.getElementById('task-form-project-id') as HTMLInputElement | null;
+		const startDateInput = document.getElementById('task-form-start-date') as HTMLInputElement | null;
+		const endDateInput = document.getElementById('task-form-end-date') as HTMLInputElement | null;
+
+		if (!modal || !backdrop) return;
+
+		// Poblar capítulos del proyecto activo
+		if (chapterSelect) {
+			const chapters = getProjectChapters(activeProjectId);
+			chapterSelect.innerHTML = chapters.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+		}
+
+		if (projIdInput) projIdInput.value = activeProjectId;
+
+		const today = getTodayDateString();
+		if (startDateInput) startDateInput.value = today;
+		if (endDateInput) {
+			const d = new Date();
+			d.setDate(d.getDate() + 3);
+			endDateInput.value = d.toISOString().split('T')[0];
+		}
+
+		backdrop.classList.remove('hidden');
+		modal.classList.remove('hidden');
+
+		const titleInput = document.getElementById('task-form-title') as HTMLInputElement | null;
+		setTimeout(() => titleInput?.focus(), 50);
+	}
+
+	// ==========================================
+	// MODAL DE DETALLE, EDICIÓN, EVIDENCIAS Y BITÁCORA
+	// ==========================================
+	let currentDetailTaskId: string | null = null;
+	let currentDetailTab: 'edit' | 'evidences' | 'comments' = 'edit';
+
+	function setupTaskDetailModalHandlers() {
+		const backdrop = document.getElementById('task-detail-modal-backdrop');
+		const modal = document.getElementById('task-detail-modal');
+		const closeBtn = document.getElementById('btn-close-task-detail');
+		const editForm = document.getElementById('edit-task-form') as HTMLFormElement | null;
+		const progressRange = document.getElementById('edit-task-progress-range') as HTMLInputElement | null;
+		const progressNum = document.getElementById('edit-task-progress-num');
+		const statusPreview = document.getElementById('edit-task-status-preview');
+
+		function closeDetailModal() {
+			backdrop?.classList.add('hidden');
+			modal?.classList.add('hidden');
+			currentDetailTaskId = null;
+		}
+
+		closeBtn?.addEventListener('click', closeDetailModal);
+		backdrop?.addEventListener('click', closeDetailModal);
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeDetailModal();
+			}
+		});
+
+		// Pestañas
+		const tabButtons = document.querySelectorAll<HTMLButtonElement>('.detail-tab-btn');
+		tabButtons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const tab = btn.dataset.tab as 'edit' | 'evidences' | 'comments';
+				if (!tab) return;
+				currentDetailTab = tab;
+
+				tabButtons.forEach((b) => {
+					b.classList.remove('active');
+					b.setAttribute('aria-selected', 'false');
+				});
+				btn.classList.add('active');
+				btn.setAttribute('aria-selected', 'true');
+
+				document.getElementById('panel-tab-edit')?.classList.toggle('hidden', tab !== 'edit');
+				document.getElementById('panel-tab-evidences')?.classList.toggle('hidden', tab !== 'evidences');
+				document.getElementById('panel-tab-comments')?.classList.toggle('hidden', tab !== 'comments');
+			});
+		});
+
+		// Slider de progreso
+		progressRange?.addEventListener('input', () => {
+			const val = parseInt(progressRange.value, 10);
+			if (progressNum) progressNum.textContent = `${val}%`;
+			if (statusPreview) {
+				if (val === 100) {
+					statusPreview.textContent = 'Completada ✓';
+					statusPreview.style.backgroundColor = '#ECFDF5';
+					statusPreview.style.color = '#047857';
+				} else if (val > 0) {
+					statusPreview.textContent = 'En Curso';
+					statusPreview.style.backgroundColor = '#FFF7ED';
+					statusPreview.style.color = '#EA580C';
+				} else {
+					statusPreview.textContent = 'Pendiente';
+					statusPreview.style.backgroundColor = '#F1F5F9';
+					statusPreview.style.color = '#475569';
+				}
+			}
+		});
+
+		// Envío de edición
+		editForm?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			if (!currentDetailTaskId) return;
+
+			const title = (document.getElementById('edit-task-title') as HTMLInputElement)?.value.trim();
+			const chapterId = (document.getElementById('edit-task-chapter') as HTMLSelectElement)?.value;
+			const assignedTo = (document.getElementById('edit-task-assigned') as HTMLSelectElement)?.value;
+			const startDate = (document.getElementById('edit-task-start-date') as HTMLInputElement)?.value;
+			const endDate = (document.getElementById('edit-task-end-date') as HTMLInputElement)?.value;
+			const progressVal = parseInt((document.getElementById('edit-task-progress-range') as HTMLInputElement)?.value || '0', 10);
+			const desc = (document.getElementById('edit-task-desc') as HTMLTextAreaElement)?.value.trim();
+
+			if (!title) {
+				showToast('El título de la tarea es obligatorio.');
+				return;
+			}
+			if (endDate < startDate) {
+				showToast('La fecha de fin no puede ser anterior a la de inicio.');
+				return;
+			}
+
+			updateTask(currentDetailTaskId, {
+				title,
+				chapter_id: chapterId,
+				assigned_to: assignedTo,
+				start_date: startDate,
+				end_date: endDate,
+				progress_pct: progressVal,
+				description: desc
+			});
+
+			closeDetailModal();
+			showToast('✓ Cambios guardados en la actividad.');
+		});
+
+		// Evidencias: botón cámara / archivo
+		const fileInput = document.getElementById('evidence-file-input') as HTMLInputElement | null;
+		document.getElementById('btn-trigger-upload-evidence')?.addEventListener('click', () => {
+			fileInput?.click();
+		});
+
+		fileInput?.addEventListener('change', () => {
+			if (!currentDetailTaskId || !fileInput.files || fileInput.files.length === 0) return;
+			const file = fileInput.files[0];
+			const captionInput = document.getElementById('evidence-caption-input') as HTMLInputElement | null;
+			const caption = captionInput?.value.trim() || file.name;
+			const roleConfig = getActiveRoleConfig();
+
+			const reader = new FileReader();
+			reader.onload = (ev) => {
+				const dataUrl = ev.target?.result as string;
+				if (dataUrl && currentDetailTaskId) {
+					addTaskEvidence(currentDetailTaskId, {
+						file_name: file.name,
+						file_type: 'photo',
+						file_url: dataUrl,
+						caption,
+						uploaded_by: `${roleConfig.name} (${roleConfig.badgeText})`
+					});
+					if (captionInput) captionInput.value = '';
+					fileInput.value = '';
+					refreshDetailModalData();
+					showToast('📸 Evidencia fotográfica adjuntada con éxito.');
+				}
+			};
+			reader.readAsDataURL(file);
+		});
+
+		// Evidencias: botón foto rápida demo
+		document.getElementById('btn-quick-demo-evidence')?.addEventListener('click', () => {
+			if (!currentDetailTaskId) return;
+			const task = loadAllTasks().find((t) => t.id === currentDetailTaskId);
+			if (!task) return;
+
+			const captionInput = document.getElementById('evidence-caption-input') as HTMLInputElement | null;
+			const caption = captionInput?.value.trim() || 'Verificación visual de avance en obra';
+			const roleConfig = getActiveRoleConfig();
+
+			const svgUrl = generateEvidenceSvg(task.title, caption, roleConfig.name);
+			addTaskEvidence(currentDetailTaskId, {
+				file_name: `inspeccion_${Date.now()}.svg`,
+				file_type: 'photo',
+				file_url: svgUrl,
+				caption,
+				uploaded_by: `${roleConfig.name} (${roleConfig.badgeText})`
+			});
+
+			if (captionInput) captionInput.value = '';
+			refreshDetailModalData();
+			showToast('📸 Foto técnica con sello de agua generada.');
+		});
+
+		// Comentarios: botón publicar
+		document.getElementById('btn-submit-comment')?.addEventListener('click', () => {
+			if (!currentDetailTaskId) return;
+			const commentArea = document.getElementById('new-comment-textarea') as HTMLTextAreaElement | null;
+			const message = commentArea?.value.trim();
+			if (!message) return;
+
+			const roleConfig = getActiveRoleConfig();
+			addTaskComment(currentDetailTaskId, {
+				author_name: roleConfig.name,
+				author_role: roleConfig.label,
+				message
+			});
+
+			if (commentArea) commentArea.value = '';
+			refreshDetailModalData();
+			showToast('💬 Comentario publicado en la bitácora.');
+		});
+
+		// Lightbox cierre
+		document.getElementById('btn-close-lightbox')?.addEventListener('click', () => {
+			document.getElementById('evidence-lightbox-modal')?.classList.add('hidden');
+		});
+		document.getElementById('evidence-lightbox-modal')?.addEventListener('click', (e) => {
+			if (e.target === document.getElementById('evidence-lightbox-modal')) {
+				document.getElementById('evidence-lightbox-modal')?.classList.add('hidden');
+			}
+		});
+	}
+
+	function openTaskDetailModal(taskId: string) {
+		currentDetailTaskId = taskId;
+		refreshDetailModalData();
+
+		const backdrop = document.getElementById('task-detail-modal-backdrop');
+		const modal = document.getElementById('task-detail-modal');
+		backdrop?.classList.remove('hidden');
+		modal?.classList.remove('hidden');
+	}
+
+	function refreshDetailModalData() {
+		if (!currentDetailTaskId) return;
+		const task = loadAllTasks().find((t) => t.id === currentDetailTaskId);
+		if (!task) return;
+
+		const chapters = getProjectChapters(activeProjectId);
+		const chap = chapters.find((c) => c.id === task.chapter_id);
+		const chapName = chap ? chap.name : 'Capítulo';
+
+		// Header
+		const titleHeader = document.getElementById('task-detail-title-header');
+		const chapBadge = document.getElementById('task-detail-chapter-badge');
+		const statusBadge = document.getElementById('task-detail-status-badge');
+
+		if (titleHeader) titleHeader.textContent = task.title;
+		if (chapBadge) chapBadge.textContent = chapName;
+		if (statusBadge) {
+			statusBadge.textContent = task.status === 'completed' ? 'Completada ✓' : task.status === 'in_progress' ? 'En Curso' : 'Pendiente';
+			statusBadge.style.backgroundColor = task.status === 'completed' ? '#ECFDF5' : task.status === 'in_progress' ? '#FFF7ED' : '#F1F5F9';
+			statusBadge.style.color = task.status === 'completed' ? '#047857' : task.status === 'in_progress' ? '#EA580C' : '#475569';
+		}
+
+		// Tab 1: Editar
+		const editId = document.getElementById('edit-task-id') as HTMLInputElement | null;
+		const editTitle = document.getElementById('edit-task-title') as HTMLInputElement | null;
+		const editChapter = document.getElementById('edit-task-chapter') as HTMLSelectElement | null;
+		const editAssigned = document.getElementById('edit-task-assigned') as HTMLSelectElement | null;
+		const editStartDate = document.getElementById('edit-task-start-date') as HTMLInputElement | null;
+		const editEndDate = document.getElementById('edit-task-end-date') as HTMLInputElement | null;
+		const editProgress = document.getElementById('edit-task-progress-range') as HTMLInputElement | null;
+		const editProgressNum = document.getElementById('edit-task-progress-num');
+		const editStatusPreview = document.getElementById('edit-task-status-preview');
+		const editDesc = document.getElementById('edit-task-desc') as HTMLTextAreaElement | null;
+
+		if (editId) editId.value = task.id;
+		if (editTitle) editTitle.value = task.title;
+		if (editChapter) {
+			editChapter.innerHTML = chapters.map((c) => `<option value="${c.id}" ${c.id === task.chapter_id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+		}
+		if (editAssigned) editAssigned.value = task.assigned_to;
+		if (editStartDate) editStartDate.value = task.start_date;
+		if (editEndDate) editEndDate.value = task.end_date;
+		if (editProgress) editProgress.value = task.progress_pct.toString();
+		if (editProgressNum) editProgressNum.textContent = `${task.progress_pct}%`;
+		if (editStatusPreview) {
+			editStatusPreview.textContent = task.status === 'completed' ? 'Completada ✓' : task.status === 'in_progress' ? 'En Curso' : 'Pendiente';
+			editStatusPreview.style.backgroundColor = task.status === 'completed' ? '#ECFDF5' : task.status === 'in_progress' ? '#FFF7ED' : '#F1F5F9';
+			editStatusPreview.style.color = task.status === 'completed' ? '#047857' : task.status === 'in_progress' ? '#EA580C' : '#475569';
+		}
+		if (editDesc) editDesc.value = task.description || '';
+
+		// Tab 2: Evidencias
+		const evidencesGrid = document.getElementById('evidences-gallery-grid');
+		const evidencesEmpty = document.getElementById('evidences-empty-state');
+		const evidencesBadge = document.getElementById('tab-evidences-badge');
+		const evidences = task.evidences || [];
+
+		if (evidencesBadge) evidencesBadge.textContent = evidences.length.toString();
+
+		if (evidencesGrid) {
+			if (evidences.length === 0) {
+				evidencesGrid.innerHTML = '';
+				evidencesEmpty?.classList.remove('hidden');
+			} else {
+				evidencesEmpty?.classList.add('hidden');
+				evidencesGrid.innerHTML = evidences.map((ev) => `
+					<div class="evidence-card" id="ev-card-${ev.id}">
+						<div class="evidence-thumb-wrap" data-lightbox-src="${encodeURI(ev.file_url)}" data-lightbox-cap="${escapeHtml(ev.caption || ev.file_name)}">
+							<img src="${ev.file_url}" alt="${escapeHtml(ev.caption || ev.file_name)}" class="evidence-thumb-img" />
+							<button type="button" class="btn-delete-evidence" data-delete-ev-id="${ev.id}" title="Eliminar evidencia">
+								✕
+							</button>
+						</div>
+						<div class="evidence-caption-box">
+							<span class="evidence-caption-text">${escapeHtml(ev.caption || ev.file_name)}</span>
+							<span class="evidence-meta-text">${escapeHtml(ev.uploaded_by)} • ${formatDateShort(ev.created_at.split('T')[0])}</span>
+						</div>
+					</div>
+				`).join('');
+
+				// Click en imagen para abrir lightbox
+				evidencesGrid.querySelectorAll<HTMLElement>('.evidence-thumb-wrap').forEach((thumb) => {
+					thumb.addEventListener('click', (e) => {
+						if ((e.target as HTMLElement).closest('.btn-delete-evidence')) return;
+						const src = thumb.dataset.lightboxSrc;
+						const cap = thumb.dataset.lightboxCap;
+						const lightbox = document.getElementById('evidence-lightbox-modal');
+						const img = document.getElementById('lightbox-image') as HTMLImageElement | null;
+						const captionText = document.getElementById('lightbox-caption');
+						if (lightbox && img && src) {
+							img.src = src;
+							if (captionText) captionText.textContent = cap || '';
+							lightbox.classList.remove('hidden');
+						}
+					});
+				});
+
+				// Eliminar evidencia
+				evidencesGrid.querySelectorAll<HTMLButtonElement>('.btn-delete-evidence').forEach((btn) => {
+					btn.addEventListener('click', (e) => {
+						e.stopPropagation();
+						const evId = btn.dataset.deleteEvId;
+						if (!evId || !currentDetailTaskId) return;
+						deleteTaskEvidence(currentDetailTaskId, evId);
+						refreshDetailModalData();
+						showToast('Evidencia eliminada.');
+					});
+				});
+			}
+		}
+
+		// Tab 3: Comentarios
+		const commentsStream = document.getElementById('comments-history-list');
+		const commentsEmpty = document.getElementById('comments-empty-state');
+		const commentsBadge = document.getElementById('tab-comments-badge');
+		const activeAuthorLabel = document.getElementById('comment-active-author-label');
+		const comments = task.comments || [];
+
+		if (commentsBadge) commentsBadge.textContent = comments.length.toString();
+
+		const roleConfig = getActiveRoleConfig();
+		if (activeAuthorLabel) {
+			activeAuthorLabel.textContent = `${roleConfig.name} (${roleConfig.badgeText})`;
+		}
+
+		if (commentsStream) {
+			if (comments.length === 0) {
+				commentsStream.innerHTML = '';
+				commentsEmpty?.classList.remove('hidden');
+			} else {
+				commentsEmpty?.classList.add('hidden');
+				commentsStream.innerHTML = comments.map((cmt) => {
+					const initials = cmt.author_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+					return `
+						<div class="comment-bubble-item" id="cmt-item-${cmt.id}">
+							<div class="comment-author-avatar">${initials}</div>
+							<div class="comment-bubble-content">
+								<div class="comment-author-meta">
+									<span class="comment-author-name">${escapeHtml(cmt.author_name)}</span>
+									<span class="comment-role-pill">${escapeHtml(cmt.author_role)}</span>
+									<span class="comment-timestamp">${formatDateShort(cmt.created_at.split('T')[0])}</span>
+								</div>
+								<p class="comment-text">${escapeHtml(cmt.message)}</p>
+							</div>
+						</div>
+					`;
+				}).join('');
+			}
+		}
+	}
+
+	// ==========================================
+	// UTILIDADES DE FORMATO
+	// ==========================================
+	function escapeHtml(str: string): string {
+		return str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function formatDateShort(dateStr: string): string {
+		if (!dateStr) return '';
+		const parts = dateStr.split('-');
+		if (parts.length < 3) return dateStr;
+		const day = parts[2];
+		const monthNum = parseInt(parts[1], 10) - 1;
+		const monthName = MONTH_NAMES[monthNum]?.substring(0, 3) || '';
+		return `${day} ${monthName}`;
+	}
+
+	function formatDateFull(dateStr: string): string {
+		if (!dateStr) return '';
+		const parts = dateStr.split('-');
+		if (parts.length < 3) return dateStr;
+		const day = parseInt(parts[2], 10);
+		const monthNum = parseInt(parts[1], 10) - 1;
+		const monthName = MONTH_NAMES[monthNum] || '';
+		return `${day} de ${monthName} de ${parts[0]}`;
+	}
+
+	function showToast(message: string) {
+		window.dispatchEvent(
+			new CustomEvent('show-toast', {
+				detail: {
+					message,
+					type: 'success'
+				}
+			})
+		);
+	}
+
+	// Inicialización
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initWorkspace);
+	} else {
+		initWorkspace();
+	}
+</script>

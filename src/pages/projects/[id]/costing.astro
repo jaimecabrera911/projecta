@@ -1,0 +1,38 @@
+---
+// src/pages/projects/[id]/costing.astro
+// HU-13: Ruta directa por proyecto para Job Costing.
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import JobCostingDashboard from '../../../components/costing/JobCostingDashboard.astro';
+import Toast from '../../../components/Toast.astro';
+
+export async function getStaticPaths() {
+	return [
+		{ params: { id: 'proj_andina_001' } },
+		{ params: { id: 'proj_andina_002' } },
+		{ params: { id: 'proj_12345' } },
+		{ params: { id: 'demo' } }
+	];
+}
+
+const { id } = Astro.params;
+---
+
+<Layout title={`Control de Costos — Proyecto ${id} | ObraFlow`}>
+	<Header />
+
+	<main class="costing-page-main">
+		<JobCostingDashboard initialProjectId={id} />
+	</main>
+
+	<Toast />
+</Layout>
+
+<style>
+	.costing-page-main {
+		flex: 1;
+		width: 100%;
+		background-color: #F8FAFC;
+		min-height: calc(100vh - 65px);
+	}
+</style>

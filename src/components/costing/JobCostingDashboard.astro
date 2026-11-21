@@ -1,0 +1,849 @@
+---
+// src/components/costing/JobCostingDashboard.astro
+// HU-13: Orquestador y Contenedor Principal de la Matriz de Costos (Job Costing).
+import JobCostingHeader from './JobCostingHeader.astro';
+import JobCostingSummaryCards from './JobCostingSummaryCards.astro';
+import JobCostingMatrix from './JobCostingMatrix.astro';
+import ChangeOrdersSection from './ChangeOrdersSection.astro';
+import ReceiptLightboxModal from './ReceiptLightboxModal.astro';
+import AddExpenseModal from './AddExpenseModal.astro';
+import CreateChangeOrderModal from './CreateChangeOrderModal.astro';
+
+interface Props {
+	initialProjectId?: string;
+}
+
+const { initialProjectId } = Astro.props;
+---
+
+<div id="job-costing-dashboard" class="costing-dashboard-container" data-initial-project={initialProjectId || ''}>
+	<!-- Cabecera Ejecutiva -->
+	<JobCostingHeader />
+
+	<div class="costing-content-body">
+		<!-- Semáforo Financiero Global y KPIs Clave -->
+		<JobCostingSummaryCards />
+
+		<!-- Matriz de Costos por Capítulos y Recibos -->
+		<JobCostingMatrix />
+
+		<!-- HU-15: Órdenes de Cambio y Adicionales Formalizados -->
+		<ChangeOrdersSection />
+	</div>
+
+	<!-- Modal de Inspección de Recibos de Campo en HD -->
+	<ReceiptLightboxModal />
+
+	<!-- Modal Ergonómico para Registrar Nuevo Gasto -->
+	<AddExpenseModal />
+
+	<!-- HU-15: Modal Ergonómico para Cotizar y Crear Orden de Cambio -->
+	<CreateChangeOrderModal />
+</div>
+
+<style>
+	.costing-dashboard-container {
+		width: 100%;
+		max-width: 1360px;
+		margin: 0 auto;
+		padding: 0 1rem 3rem;
+		box-sizing: border-box;
+	}
+
+	.costing-content-body {
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* Estilos de Impresión / Exportar PDF */
+	@media print {
+		.costing-dashboard-container {
+			max-width: 100% !important;
+			padding: 0 !important;
+		}
+		:global(#crumb-link-crm),
+		:global(#costing-project-selector),
+		:global(#btn-costing-reset-demo),
+		:global(#btn-costing-export-report),
+		:global(#btn-costing-add-expense),
+		:global(#matrix-toolbar),
+		:global(.btn-row-expand),
+		:global(.btn-add-expense-inline),
+		:global(.receipt-thumbnail-btn) {
+			display: none !important;
+		}
+		:global(#app-sidebar),
+		:global(#sidebar-backdrop),
+		:global(header.app-header) {
+			display: none !important;
+		}
+	}
+</style>
+
+<script>
+	import {
+		loadAllProjects,
+		getProjectById,
+		addExpenseToChapter,
+		resetDemoCostingData,
+		generateReceiptSvg,
+		type ProjectCosting,
+		type CostingChapter,
+		type ExpenseRecord
+	} from '../../lib/costing-store';
+
+	// Formateador de moneda en pesos colombianos con Currency Integrity Rule
+	const formatCOP = (val: number): string => {
+		const formatted = new Intl.NumberFormat('es-CO', {
+			style: 'currency',
+			currency: 'COP',
+			maximumFractionDigits: 0
+		}).format(val || 0);
+		return formatted;
+	};
+
+	let currentProject: ProjectCosting | null = null;
+	let expandedChapters = new Set<string>();
+	let activeFilterStatus: 'all' | 'normal' | 'warning' | 'danger' = 'all';
+	let searchFilterQuery = '';
+
+	function initDashboard() {
+		const container = document.getElementById('job-costing-dashboard');
+		if (!container) return;
+
+		// 1. Determinar ID de Proyecto inicial
+		const urlParams = new URLSearchParams(window.location.search);
+		const urlProjectId = urlParams.get('id') || container.getAttribute('data-initial-project');
+
+		const allProjects = loadAllProjects();
+		if (allProjects.length === 0) return;
+
+		const targetProject = urlProjectId
+			? allProjects.find((p) => p.project_id === urlProjectId) || allProjects[0]
+			: allProjects[0];
+
+		currentProject = targetProject;
+
+		// Expandir por defecto el capítulo con sobrecosto o alerta para visibilidad inmediata
+		const alertChapter = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
+		if (alertChapter) {
+			expandedChapters.add(alertChapter.chapter_id);
+		}
+
+		populateProjectSelector(allProjects, currentProject.project_id);
+		renderAll();
+		setupEventListeners();
+	}
+
+	function populateProjectSelector(projects: ProjectCosting[], selectedId: string) {
+		const selector = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
+		if (!selector) return;
+
+		selector.innerHTML = '';
+		projects.forEach((proj) => {
+			const opt = document.createElement('option');
+			opt.value = proj.project_id;
+			opt.textContent = `${proj.title} (${proj.client_name})`;
+			if (proj.project_id === selectedId) opt.selected = true;
+			selector.appendChild(opt);
+		});
+	}
+
+	function renderAll() {
+		if (!currentProject) return;
+
+		renderHeader(currentProject);
+		renderSummaryCards(currentProject);
+		renderMatrix(currentProject);
+		populateModalChapterSelect(currentProject);
+	}
+
+	function renderHeader(project: ProjectCosting) {
+		const titleEl = document.getElementById('costing-project-title');
+		const clientEl = document.getElementById('costing-client-name');
+		const addressEl = document.getElementById('costing-project-address');
+
+		if (titleEl) titleEl.textContent = project.title;
+		if (clientEl) {
+			const span = clientEl.querySelector('span');
+			if (span) span.textContent = `Cliente: ${project.client_name}`;
+		}
+		if (addressEl) {
+			const span = addressEl.querySelector('span');
+			if (span) span.textContent = `Ubicación: ${project.address}`;
+		}
+	}
+
+	function renderSummaryCards(project: ProjectCosting) {
+		// 1. Semáforo Global
+		const cardTraffic = document.getElementById('card-traffic-light');
+		const trafficPill = document.getElementById('traffic-light-pill');
+		const trafficText = document.getElementById('traffic-light-text');
+		const trafficPct = document.getElementById('traffic-pct-value');
+		const progressBar = document.getElementById('traffic-progress-bar');
+		const iconSvg = document.getElementById('traffic-icon-svg');
+
+		const pct = project.budget_utilization_pct || 0;
+		if (trafficPct) trafficPct.textContent = `${pct.toFixed(1)}%`;
+		if (progressBar) progressBar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+
+		if (cardTraffic && trafficPill && trafficText && iconSvg) {
+			cardTraffic.classList.remove('status-normal', 'status-warning', 'status-danger');
+			trafficPill.classList.remove('pill-normal', 'pill-warning', 'pill-danger');
+
+			if (pct >= 100) {
+				cardTraffic.classList.add('status-danger');
+				trafficPill.classList.add('pill-danger');
+				trafficText.textContent = 'Sobrecosto Crítico (≥ 100%)';
+				iconSvg.innerHTML = `<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>`;
+			} else if (pct >= 85) {
+				cardTraffic.classList.add('status-warning');
+				trafficPill.classList.add('pill-warning');
+				trafficText.textContent = 'Alerta Preventiva (85% - 99.9%)';
+				iconSvg.innerHTML = `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>`;
+			} else {
+				cardTraffic.classList.add('status-normal');
+				trafficPill.classList.add('pill-normal');
+				trafficText.textContent = 'Saludable (< 85%)';
+				iconSvg.innerHTML = `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path>`;
+			}
+		}
+
+		// 2. Margen Comercial en Vivo
+		const projectedMarginEl = document.getElementById('projected-margin-pct');
+		const actualMarginEl = document.getElementById('actual-margin-pct');
+		const projectedAmountEl = document.getElementById('projected-margin-amount');
+		const actualAmountEl = document.getElementById('actual-margin-amount');
+		const deltaPill = document.getElementById('margin-delta-pill');
+		const deltaText = document.getElementById('margin-delta-text');
+
+		const projPct = project.projected_margin_pct || 0;
+		const actPct = project.actual_current_margin_pct || 0;
+		const projProfit = project.target_sale_price - project.current_budget_cost;
+		const actProfit = project.target_sale_price - project.actual_spent_cost;
+		const delta = actPct - projPct;
+
+		if (projectedMarginEl) projectedMarginEl.textContent = `${projPct.toFixed(1)}%`;
+		if (actualMarginEl) actualMarginEl.textContent = `${actPct.toFixed(1)}%`;
+		if (projectedAmountEl) projectedAmountEl.textContent = formatCOP(projProfit);
+		if (actualAmountEl) actualAmountEl.textContent = formatCOP(actProfit);
+
+		if (deltaPill && deltaText) {
+			deltaPill.classList.remove('delta-positive', 'delta-negative');
+			if (delta >= 0) {
+				deltaPill.classList.add('delta-positive');
+				deltaText.textContent = `+${delta.toFixed(1)}% vs Base`;
+			} else {
+				deltaPill.classList.add('delta-negative');
+				deltaText.textContent = `${delta.toFixed(1)}% vs Base`;
+			}
+		}
+
+		// 3. KPI Presupuesto Vigente
+		const currentBudgetEl = document.getElementById('kpi-current-budget-value');
+		const baseBudgetEl = document.getElementById('kpi-base-budget-value');
+		const changeOrdersEl = document.getElementById('kpi-change-orders-value');
+
+		if (currentBudgetEl) currentBudgetEl.textContent = formatCOP(project.current_budget_cost);
+		if (baseBudgetEl) baseBudgetEl.textContent = formatCOP(project.total_budget_direct_cost);
+		if (changeOrdersEl) changeOrdersEl.textContent = `+${formatCOP(project.approved_change_orders_cost)}`;
+
+		// 4. KPI Gastos Reales vs Saldo
+		const spentEl = document.getElementById('kpi-total-spent-value');
+		const balanceEl = document.getElementById('kpi-remaining-balance-value');
+		const availablePctEl = document.getElementById('kpi-available-pct-value');
+		const balanceBadge = document.getElementById('balance-status-badge');
+
+		if (spentEl) spentEl.textContent = formatCOP(project.actual_spent_cost);
+		if (balanceEl) {
+			balanceEl.textContent = formatCOP(project.remaining_balance);
+			if (project.remaining_balance < 0) {
+				balanceEl.classList.remove('text-emerald');
+				balanceEl.classList.add('text-danger');
+			} else {
+				balanceEl.classList.remove('text-danger');
+				balanceEl.classList.add('text-emerald');
+			}
+		}
+
+		if (balanceBadge) {
+			balanceBadge.classList.remove('badge-kpi-success', 'badge-kpi-danger');
+			if (project.remaining_balance < 0) {
+				balanceBadge.classList.add('badge-kpi-danger');
+				balanceBadge.textContent = 'Déficit / Sobrecosto';
+			} else {
+				balanceBadge.classList.add('badge-kpi-success');
+				balanceBadge.textContent = 'Disponible';
+			}
+		}
+
+		if (availablePctEl) {
+			const availPct =
+				project.current_budget_cost > 0
+					? ((project.remaining_balance / project.current_budget_cost) * 100).toFixed(1)
+					: '0.0';
+			availablePctEl.textContent = `${availPct}%`;
+		}
+	}
+
+	function renderMatrix(project: ProjectCosting) {
+		const tbody = document.getElementById('matrix-tbody');
+		const emptyEl = document.getElementById('matrix-empty-state');
+		if (!tbody) return;
+
+		// Actualizar contadores de filtros
+		const allCount = project.chapters.length;
+		const dangerCount = project.chapters.filter((c) => c.status === 'danger').length;
+		const warningCount = project.chapters.filter((c) => c.status === 'warning').length;
+		const normalCount = project.chapters.filter((c) => c.status === 'normal').length;
+
+		document.getElementById('count-all')!.textContent = String(allCount);
+		document.getElementById('count-danger')!.textContent = String(dangerCount);
+		document.getElementById('count-warning')!.textContent = String(warningCount);
+		document.getElementById('count-normal')!.textContent = String(normalCount);
+
+		// Filtrar capítulos
+		const query = searchFilterQuery.toLowerCase().trim();
+		const filteredChapters = project.chapters.filter((chapter) => {
+			const matchesStatus =
+				activeFilterStatus === 'all' || chapter.status === activeFilterStatus;
+			const matchesQuery =
+				!query ||
+				chapter.name.toLowerCase().includes(query) ||
+				chapter.expenses.some(
+					(e) =>
+						e.concept.toLowerCase().includes(query) ||
+						e.vendor.toLowerCase().includes(query)
+				);
+			return matchesStatus && matchesQuery;
+		});
+
+		if (filteredChapters.length === 0) {
+			tbody.innerHTML = '';
+			emptyEl?.classList.remove('hidden');
+			return;
+		}
+
+		emptyEl?.classList.add('hidden');
+
+		let html = '';
+		filteredChapters.forEach((chapter) => {
+			const isExpanded = expandedChapters.has(chapter.chapter_id);
+			const isNegativeVariance = chapter.variance < 0;
+
+			let statusPillHtml = '';
+			if (chapter.status === 'danger') {
+				statusPillHtml = `<span class="status-pill status-pill-danger">🔴 Sobrecosto (${chapter.utilization_pct}%)</span>`;
+			} else if (chapter.status === 'warning') {
+				statusPillHtml = `<span class="status-pill status-pill-warning">🟡 Alerta (${chapter.utilization_pct}%)</span>`;
+			} else {
+				statusPillHtml = `<span class="status-pill status-pill-normal">🟢 Saludable (${chapter.utilization_pct}%)</span>`;
+			}
+
+			html += `
+				<tr class="costing-row ${isExpanded ? 'is-expanded' : ''}" data-chapter-id="${chapter.chapter_id}">
+					<td class="costing-cell costing-cell-center th-expand">
+						<button type="button" class="btn-row-expand ${isExpanded ? 'rotated' : ''}" aria-label="Expandir capítulo" data-toggle-chapter="${chapter.chapter_id}">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+						</button>
+					</td>
+					<td class="costing-cell">
+						<div class="chapter-name-wrap">
+							<span class="chapter-name-text">${escapeHtml(chapter.name)}</span>
+							<span class="chapter-expenses-count">${chapter.expenses.length} comprobante${chapter.expenses.length === 1 ? '' : 's'} de compra</span>
+						</div>
+					</td>
+					<td class="costing-cell costing-cell-num">${formatCOP(chapter.base_cost)}</td>
+					<td class="costing-cell costing-cell-num text-accent">+${formatCOP(chapter.change_orders_cost)}</td>
+					<td class="costing-cell costing-cell-num font-bold">${formatCOP(chapter.current_budget)}</td>
+					<td class="costing-cell costing-cell-num">${formatCOP(chapter.actual_spent)}</td>
+					<td class="costing-cell costing-cell-num">
+						<span class="${isNegativeVariance ? 'variance-negative' : 'variance-positive'}">
+							${formatCOP(chapter.variance)}
+						</span>
+					</td>
+					<td class="costing-cell costing-cell-center font-bold mono-value">${chapter.utilization_pct.toFixed(1)}%</td>
+					<td class="costing-cell costing-cell-center">${statusPillHtml}</td>
+					<td class="costing-cell costing-cell-center">
+						<button type="button" class="btn-add-expense-inline" data-add-to-chapter="${chapter.chapter_id}" title="Registrar compra en este capítulo">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							<span>+ Gasto</span>
+						</button>
+					</td>
+				</tr>
+			`;
+
+			// Fila Expandible Drill-down a Recibos de Campo
+			if (isExpanded) {
+				html += `
+					<tr class="drilldown-row">
+						<td colspan="10" class="drilldown-container">
+							<div class="drilldown-header">
+								<div class="drilldown-title">
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+									<span>Auditoría de Recibos y Compras en Campo — ${escapeHtml(chapter.name)}</span>
+								</div>
+								<button type="button" class="btn-add-expense-inline" data-add-to-chapter="${chapter.chapter_id}">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+									<span>Registrar Factura</span>
+								</button>
+							</div>
+
+							${
+								chapter.expenses.length === 0
+									? `<div class="no-expenses-alert">Aún no se han registrado compras o gastos de campo para este capítulo.</div>`
+									: `
+								<div class="table-responsive-container">
+									<table class="subtable-receipts" aria-label="Recibos del capítulo">
+										<thead>
+											<tr>
+												<th scope="col">Fecha</th>
+												<th scope="col">Concepto / Detalle</th>
+												<th scope="col">Proveedor</th>
+												<th scope="col">Categoría</th>
+												<th scope="col">Registrado Por</th>
+												<th scope="col" style="text-align: right;">Monto</th>
+												<th scope="col" style="text-align: center;">Comprobante</th>
+											</tr>
+										</thead>
+										<tbody>
+											${chapter.expenses
+												.map(
+													(exp) => `
+												<tr>
+													<td class="mono-value" style="font-size: 0.75rem;">${exp.date}</td>
+													<td style="font-weight: 600; color: #0F172A;">${escapeHtml(exp.concept)}</td>
+													<td style="color: #475569;">${escapeHtml(exp.vendor)}</td>
+													<td><span class="category-badge cat-${exp.category}">${exp.category}</span></td>
+													<td style="font-size: 0.75rem; color: #64748B;">${escapeHtml(exp.registered_by)}</td>
+													<td class="costing-cell-num font-bold" style="font-size: 0.8125rem;">${formatCOP(exp.amount)}</td>
+													<td style="text-align: center;">
+														<button type="button" class="receipt-thumbnail-btn" data-view-receipt="${exp.id}" data-chapter-id="${chapter.chapter_id}" title="Ver recibo en alta definición">
+															<img src="${exp.receipt_url}" alt="Recibo" class="receipt-thumb-mini" />
+															<span>Ver Recibo</span>
+														</button>
+													</td>
+												</tr>
+											`
+												)
+												.join('')}
+										</tbody>
+									</table>
+								</div>
+							`
+							}
+						</td>
+					</tr>
+				`;
+			}
+		});
+
+		tbody.innerHTML = html;
+	}
+
+	function populateModalChapterSelect(project: ProjectCosting, preselectedId?: string) {
+		const select = document.getElementById('expense-chapter-select') as HTMLSelectElement | null;
+		if (!select) return;
+
+		select.innerHTML = '';
+		project.chapters.forEach((ch) => {
+			const opt = document.createElement('option');
+			opt.value = ch.chapter_id;
+			opt.textContent = `${ch.name} (Vigente: ${formatCOP(ch.current_budget)})`;
+			if (preselectedId && ch.chapter_id === preselectedId) {
+				opt.selected = true;
+			}
+			select.appendChild(opt);
+		});
+	}
+
+	function setupEventListeners() {
+		// 1. Selector de Proyecto
+		const projectSelector = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
+		projectSelector?.addEventListener('change', (e) => {
+			const selectedId = (e.target as HTMLSelectElement).value;
+			const p = getProjectById(selectedId);
+			if (p) {
+				currentProject = p;
+				expandedChapters.clear();
+				const alertCh = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
+				if (alertCh) expandedChapters.add(alertCh.chapter_id);
+				renderAll();
+			}
+		});
+
+		// 2. Filtros de Estado
+		const filterChips = document.querySelectorAll('.filter-chip');
+		filterChips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				filterChips.forEach((c) => c.classList.remove('active'));
+				chip.classList.add('active');
+				activeFilterStatus = (chip.getAttribute('data-status') as any) || 'all';
+				if (currentProject) renderMatrix(currentProject);
+			});
+		});
+
+		// 3. Búsqueda
+		const searchInput = document.getElementById('matrix-search-input') as HTMLInputElement | null;
+		searchInput?.addEventListener('input', (e) => {
+			searchFilterQuery = (e.target as HTMLInputElement).value;
+			if (currentProject) renderMatrix(currentProject);
+		});
+
+		// Botón Limpiar Filtro
+		document.getElementById('btn-matrix-clear-filter')?.addEventListener('click', () => {
+			searchFilterQuery = '';
+			activeFilterStatus = 'all';
+			if (searchInput) searchInput.value = '';
+			filterChips.forEach((c) => c.classList.remove('active'));
+			document.getElementById('filter-chip-all')?.classList.add('active');
+			if (currentProject) renderMatrix(currentProject);
+		});
+
+		// 4. Click delegation en la tabla de costos
+		const tableContainer = document.getElementById('matrix-table-container');
+		tableContainer?.addEventListener('click', (e) => {
+			const target = e.target as HTMLElement;
+
+			// Expandir fila
+			const expandBtn = target.closest('[data-toggle-chapter]') as HTMLElement | null;
+			if (expandBtn) {
+				const chapterId = expandBtn.getAttribute('data-toggle-chapter');
+				if (chapterId) toggleChapterExpand(chapterId);
+				return;
+			}
+
+			// Botón inline de agregar gasto
+			const addBtn = target.closest('[data-add-to-chapter]') as HTMLElement | null;
+			if (addBtn) {
+				const chapterId = addBtn.getAttribute('data-add-to-chapter');
+				openAddExpenseModal(chapterId || undefined);
+				return;
+			}
+
+			// Botón ver recibo
+			const receiptBtn = target.closest('[data-view-receipt]') as HTMLElement | null;
+			if (receiptBtn) {
+				const expId = receiptBtn.getAttribute('data-view-receipt');
+				const chapterId = receiptBtn.getAttribute('data-chapter-id');
+				if (expId && chapterId) openReceiptLightbox(chapterId, expId);
+				return;
+			}
+
+			// Clic en la fila principal para expandir
+			const row = target.closest('.costing-row') as HTMLElement | null;
+			if (row && !target.closest('button')) {
+				const chapterId = row.getAttribute('data-chapter-id');
+				if (chapterId) toggleChapterExpand(chapterId);
+			}
+		});
+
+		// 5. Botón Reset Demo
+		document.getElementById('btn-costing-reset-demo')?.addEventListener('click', () => {
+			const confirmed = window.confirm(
+				'¿Restablecer los datos de demostración a sus valores de fábrica? Los gastos de prueba ingresados se reiniciarán.'
+			);
+			if (confirmed) {
+				const resetData = resetDemoCostingData();
+				currentProject = resetData[0];
+				expandedChapters.clear();
+				const alertCh = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
+				if (alertCh) expandedChapters.add(alertCh.chapter_id);
+				populateProjectSelector(resetData, currentProject.project_id);
+				renderAll();
+				showToast('Datos de demostración restablecidos correctamente.');
+			}
+		});
+
+		// 6. Botón Exportar PDF / Imprimir
+		document.getElementById('btn-costing-export-report')?.addEventListener('click', () => {
+			window.print();
+		});
+
+		// 7. Botón Header Registrar Gasto
+		document.getElementById('btn-costing-add-expense')?.addEventListener('click', () => {
+			openAddExpenseModal();
+		});
+
+		// 8. Configuración Modal Agregar Gasto
+		setupAddExpenseModalLogic();
+
+		// 9. Configuración Modal Lightbox Recibo
+		setupLightboxModalLogic();
+
+		// 10. Escuchar eventos de actualización de gastos
+		window.addEventListener('obraflow:expense-added', (e: any) => {
+			const updatedProject = e.detail?.project;
+			if (updatedProject && currentProject && updatedProject.project_id === currentProject.project_id) {
+				currentProject = updatedProject;
+				renderAll();
+			}
+		});
+	}
+
+	function toggleChapterExpand(chapterId: string) {
+		if (expandedChapters.has(chapterId)) {
+			expandedChapters.delete(chapterId);
+		} else {
+			expandedChapters.add(chapterId);
+		}
+		if (currentProject) renderMatrix(currentProject);
+	}
+
+	function openAddExpenseModal(chapterId?: string) {
+		const modal = document.getElementById('add-expense-modal');
+		if (!modal || !currentProject) return;
+
+		populateModalChapterSelect(currentProject, chapterId);
+
+		// Establecer fecha de hoy por defecto
+		const dateInput = document.getElementById('expense-date-input') as HTMLInputElement | null;
+		if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+		modal.classList.remove('hidden');
+		modal.setAttribute('aria-hidden', 'false');
+
+		// Enfocar input de monto
+		setTimeout(() => {
+			document.getElementById('expense-amount-input')?.focus();
+		}, 100);
+	}
+
+	function closeAddExpenseModal() {
+		const modal = document.getElementById('add-expense-modal');
+		if (!modal) return;
+		modal.classList.add('hidden');
+		modal.setAttribute('aria-hidden', 'true');
+
+		// Resetear formulario
+		const form = document.getElementById('form-add-expense') as HTMLFormElement | null;
+		if (form) form.reset();
+		document.getElementById('amount-format-preview')!.textContent = '$ 0 COP';
+		document.getElementById('receipt-preview-box')?.classList.add('hidden');
+		document.getElementById('receipt-drop-content')?.classList.remove('hidden');
+	}
+
+	function setupAddExpenseModalLogic() {
+		const modal = document.getElementById('add-expense-modal');
+		const closeBtn = document.getElementById('btn-close-expense-modal');
+		const cancelBtn = document.getElementById('btn-cancel-expense');
+		const form = document.getElementById('form-add-expense') as HTMLFormElement | null;
+		const amountInput = document.getElementById('expense-amount-input') as HTMLInputElement | null;
+		const amountPreview = document.getElementById('amount-format-preview');
+
+		closeBtn?.addEventListener('click', closeAddExpenseModal);
+		cancelBtn?.addEventListener('click', closeAddExpenseModal);
+		modal?.addEventListener('click', (e) => {
+			if (e.target === modal) closeAddExpenseModal();
+		});
+
+		// Preview dinámico del monto en COP
+		amountInput?.addEventListener('input', () => {
+			const val = Number(amountInput.value) || 0;
+			if (amountPreview) amountPreview.textContent = formatCOP(val);
+		});
+
+		// Selector de Categoría (Chips)
+		const categoryChips = document.querySelectorAll('.category-chip');
+		categoryChips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				categoryChips.forEach((c) => c.classList.remove('active'));
+				chip.classList.add('active');
+			});
+		});
+
+		// Manejo de archivo de imagen del recibo
+		const fileInput = document.getElementById('expense-file-input') as HTMLInputElement | null;
+		const dropZone = document.getElementById('receipt-upload-zone');
+		const previewBox = document.getElementById('receipt-preview-box');
+		const dropContent = document.getElementById('receipt-drop-content');
+		const previewImg = document.getElementById('expense-preview-img') as HTMLImageElement | null;
+		const removeImgBtn = document.getElementById('btn-remove-receipt-img');
+
+		let uploadedReceiptDataUrl = '';
+
+		dropZone?.addEventListener('click', (e) => {
+			if (e.target !== removeImgBtn) fileInput?.click();
+		});
+
+		fileInput?.addEventListener('change', () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					uploadedReceiptDataUrl = (event.target?.result as string) || '';
+					if (previewImg) previewImg.src = uploadedReceiptDataUrl;
+					previewBox?.classList.remove('hidden');
+					dropContent?.classList.add('hidden');
+				};
+				reader.readAsDataURL(file);
+			}
+		});
+
+		removeImgBtn?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			uploadedReceiptDataUrl = '';
+			if (fileInput) fileInput.value = '';
+			previewBox?.classList.add('hidden');
+			dropContent?.classList.remove('hidden');
+		});
+
+		// Botón de Simulación de Recibo
+		document.getElementById('btn-simulate-receipt')?.addEventListener('click', () => {
+			const vendor = (document.getElementById('expense-vendor-input') as HTMLInputElement)?.value || 'Ferretería & Suministros Andina';
+			const amount = Number(amountInput?.value) || 350000;
+			const concept = (document.getElementById('expense-concept-input') as HTMLInputElement)?.value || 'Materiales de obra complementarios';
+			const date = (document.getElementById('expense-date-input') as HTMLInputElement)?.value || new Date().toISOString().split('T')[0];
+
+			// Cargar campos sugeridos si están vacíos
+			if (!(document.getElementById('expense-vendor-input') as HTMLInputElement)?.value) {
+				(document.getElementById('expense-vendor-input') as HTMLInputElement).value = vendor;
+			}
+			if (!amountInput?.value) {
+				amountInput!.value = String(amount);
+				if (amountPreview) amountPreview.textContent = formatCOP(amount);
+			}
+			if (!(document.getElementById('expense-concept-input') as HTMLInputElement)?.value) {
+				(document.getElementById('expense-concept-input') as HTMLInputElement).value = concept;
+			}
+
+			uploadedReceiptDataUrl = generateReceiptSvg(vendor, amount, concept, date);
+			if (previewImg) previewImg.src = uploadedReceiptDataUrl;
+			previewBox?.classList.remove('hidden');
+			dropContent?.classList.add('hidden');
+			showToast('Comprobante digital simulado con éxito.');
+		});
+
+		// Submit del Formulario
+		form?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			if (!currentProject) return;
+
+			const chapterId = (document.getElementById('expense-chapter-select') as HTMLSelectElement)?.value;
+			const amount = Number(amountInput?.value) || 0;
+			const concept = (document.getElementById('expense-concept-input') as HTMLInputElement)?.value.trim();
+			const vendor = (document.getElementById('expense-vendor-input') as HTMLInputElement)?.value.trim();
+			const date = (document.getElementById('expense-date-input') as HTMLInputElement)?.value;
+			const notes = (document.getElementById('expense-notes-input') as HTMLTextAreaElement)?.value.trim();
+
+			const activeRadio = document.querySelector('input[name="expense-cat"]:checked') as HTMLInputElement | null;
+			const category = (activeRadio?.value as any) || 'material';
+
+			if (!chapterId || amount <= 0 || !concept || !vendor) {
+				showToast('Por favor completa todos los campos requeridos con montos válidos.', 'error');
+				return;
+			}
+
+			const updated = addExpenseToChapter(currentProject.project_id, chapterId, {
+				concept,
+				category,
+				registered_by: 'Carlos Mendoza (Residente)',
+				amount,
+				vendor,
+				receipt_url: uploadedReceiptDataUrl || undefined,
+				notes,
+				date
+			});
+
+			if (updated) {
+				currentProject = updated;
+				expandedChapters.add(chapterId); // Asegurar que el capítulo quede expandido para ver el nuevo gasto
+				renderAll();
+				closeAddExpenseModal();
+				showToast(`Gasto de ${formatCOP(amount)} imputado exitosamente a la obra.`);
+			}
+		});
+	}
+
+	function openReceiptLightbox(chapterId: string, expenseId: string) {
+		if (!currentProject) return;
+		const chapter = currentProject.chapters.find((c) => c.chapter_id === chapterId);
+		if (!chapter) return;
+		const expense = chapter.expenses.find((e) => e.id === expenseId);
+		if (!expense) return;
+
+		const modal = document.getElementById('receipt-lightbox-modal');
+		const img = document.getElementById('lightbox-receipt-img') as HTMLImageElement | null;
+		const amountEl = document.getElementById('lightbox-amount');
+		const conceptEl = document.getElementById('lightbox-concept');
+		const vendorEl = document.getElementById('lightbox-vendor');
+		const chapterEl = document.getElementById('lightbox-chapter');
+		const categoryEl = document.getElementById('lightbox-category');
+		const dateEl = document.getElementById('lightbox-date');
+		const registrantEl = document.getElementById('lightbox-registrant');
+		const notesEl = document.getElementById('lightbox-notes');
+		const notesContainer = document.getElementById('lightbox-notes-container');
+
+		if (img) img.src = expense.receipt_url;
+		if (amountEl) amountEl.textContent = formatCOP(expense.amount);
+		if (conceptEl) conceptEl.textContent = expense.concept;
+		if (vendorEl) vendorEl.textContent = expense.vendor;
+		if (chapterEl) chapterEl.textContent = chapter.name;
+		if (categoryEl) categoryEl.textContent = expense.category.toUpperCase();
+		if (dateEl) dateEl.textContent = expense.date;
+		if (registrantEl) registrantEl.textContent = expense.registered_by;
+
+		if (expense.notes && notesEl && notesContainer) {
+			notesEl.textContent = expense.notes;
+			notesContainer.style.display = 'flex';
+		} else if (notesContainer) {
+			notesContainer.style.display = 'none';
+		}
+
+		modal?.classList.remove('hidden');
+		modal?.setAttribute('aria-hidden', 'false');
+	}
+
+	function closeReceiptLightbox() {
+		const modal = document.getElementById('receipt-lightbox-modal');
+		if (!modal) return;
+		modal.classList.add('hidden');
+		modal.setAttribute('aria-hidden', 'true');
+	}
+
+	function setupLightboxModalLogic() {
+		const modal = document.getElementById('receipt-lightbox-modal');
+		const closeBtn = document.getElementById('btn-close-lightbox');
+		const doneBtn = document.getElementById('btn-lightbox-done');
+
+		closeBtn?.addEventListener('click', closeReceiptLightbox);
+		doneBtn?.addEventListener('click', closeReceiptLightbox);
+		modal?.addEventListener('click', (e) => {
+			if (e.target === modal) closeReceiptLightbox();
+		});
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				closeReceiptLightbox();
+				closeAddExpenseModal();
+			}
+		});
+	}
+
+	function showToast(message: string, type: 'success' | 'error' = 'success') {
+		const existingToast = document.querySelector('.toast-container');
+		if (existingToast) {
+			window.dispatchEvent(
+				new CustomEvent('obraflow:toast', {
+					detail: { message, type }
+				})
+			);
+		}
+	}
+
+	function escapeHtml(str: string): string {
+		return (str || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	// Inicializar en DOMReady
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initDashboard);
+	} else {
+		initDashboard();
+	}
+</script>

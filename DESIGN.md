@@ -9,11 +9,17 @@ colors:
   secondary-light: "#1E293B"
   success: "#10B981"
   success-light: "#ECFDF5"
+  warning: "#F59E0B"
+  warning-light: "#FEF3C7"
+  danger: "#EF4444"
+  danger-light: "#FEE2E2"
   neutral-bg: "#F8FAFC"
   neutral-surface: "#FFFFFF"
   neutral-border: "#E2E8F0"
+  neutral-border-medium: "#CBD5E1"
   neutral-text: "#0F172A"
   neutral-muted: "#475569"
+  neutral-subtle: "#64748B"
 typography:
   display:
     fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
@@ -87,9 +93,11 @@ Paleta de alto contraste inspirada en la seguridad industrial y la solidez const
 - **Naranja Seguridad** (`#F97316` / hover: `#EA580C`): Color de acción principal (CTA), botones flotantes FAB, estados activos y focus rings en Operate Mode.
 - **Naranja Tenue** (`#FFF7ED` / borde `#FED7AA`): Fondo para estados de advertencia suave y chips destacados.
 
-### Secondary
+### Secondary & Semantic
 - **Pizarra Obra / Slate 900** (`#0F172A` / `#1E293B`): Superficies de navegación principal, cabeceras fijas y texto de máximo contraste.
 - **Verde Éxito / Esmeralda** (`#10B981` / hover: `#059669`): Presupuestos aprobados, obras activas, sincronización guardada y enlaces directos de WhatsApp.
+- **Ámbar Advertencia / Job Costing** (`#F59E0B` / `#D97706` / fondo `#FEF3C7`): Alerta preventiva cuando el consumo presupuestal está entre 85% y 99.9%.
+- **Rojo Peligro / Sobrecosto** (`#EF4444` / `#DC2626` / fondo `#FEE2E2`): Sobrecostos críticos ($\ge 100\%$) y saldo disponible en déficit negativo.
 
 ### Neutral
 - **Fondo Lienzo** (`#F8FAFC`): Base limpia y fría para reducir el deslumbramiento exterior.

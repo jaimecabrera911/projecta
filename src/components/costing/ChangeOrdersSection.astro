@@ -1,0 +1,992 @@
+---
+// src/components/costing/ChangeOrdersSection.astro
+// HU-15: Sección de Gestión, Seguimiento y Envío de Órdenes de Cambio (Adicionales de Obra).
+---
+
+<section id="costing-change-orders-section" class="co-section-card" aria-label="Gestión de órdenes de cambio y adicionales de obra">
+	<!-- Cabecera de la Sección -->
+	<div class="co-section-header">
+		<div class="co-header-info">
+			<div class="co-header-icon" aria-hidden="true">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+					<polyline points="14 2 14 8 20 8"></polyline>
+					<path d="M12 18v-6"></path>
+					<path d="m9 15 3 3 3-3"></path>
+				</svg>
+			</div>
+			<div>
+				<div class="co-title-kicker-wrap">
+					<span class="co-kicker-pill">Blindaje Legal & Cobro 100% · HU-15</span>
+				</div>
+				<h2 class="co-section-title">Órdenes de Cambio y Adicionales</h2>
+				<p class="co-section-desc">Cotiza adicionales solicitados en obra y envíalos por WhatsApp para aprobación y firma digital del cliente.</p>
+			</div>
+		</div>
+
+		<div class="co-header-actions">
+			<button
+				id="btn-section-new-co"
+				type="button"
+				class="btn-new-change-order"
+				title="Crear nueva orden de cambio para esta obra"
+				aria-label="Crear nueva orden de cambio"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="12" y1="5" x2="12" y2="19"></line>
+					<line x1="5" y1="12" x2="19" y2="12"></line>
+				</svg>
+				<span>+ Nueva Orden de Cambio</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- KPIs de Consolidado de Adicionales -->
+	<div class="co-summary-pills-row" id="co-summary-pills-row">
+		<div class="co-kpi-pill">
+			<span class="kpi-label">Adicionales Contratados:</span>
+			<span id="kpi-co-total-sale" class="kpi-value text-emerald mono-value">$ 0 COP</span>
+		</div>
+		<div class="co-kpi-pill">
+			<span class="kpi-label">Costo Directo Adicional:</span>
+			<span id="kpi-co-total-cost" class="kpi-value text-slate mono-value">$ 0 COP</span>
+		</div>
+		<div class="co-kpi-pill">
+			<span class="kpi-label">Prórroga Acumulada:</span>
+			<span id="kpi-co-total-days" class="kpi-value text-orange mono-value">+ 0 días</span>
+		</div>
+		<div class="co-kpi-pill">
+			<span class="kpi-label">Pendientes de Firma:</span>
+			<span id="kpi-co-pending-count" class="kpi-value text-amber mono-value">0</span>
+		</div>
+	</div>
+
+	<!-- Lista de Órdenes de Cambio del Proyecto -->
+	<div class="co-cards-list" id="co-cards-list">
+		<!-- Inyectado dinámicamente con JavaScript -->
+	</div>
+
+	<!-- Estado Vacío -->
+	<div id="co-empty-state" class="co-empty-box hidden">
+		<div class="empty-icon-bubble" aria-hidden="true">
+			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+				<polyline points="14 2 14 8 20 8"></polyline>
+				<line x1="16" y1="13" x2="8" y2="13"></line>
+				<line x1="16" y1="17" x2="8" y2="17"></line>
+			</svg>
+		</div>
+		<h3 class="empty-title">Sin órdenes de cambio registradas</h3>
+		<p class="empty-desc">Todo trabajo extra que solicite el cliente debe cotizarse y firmarse aquí para garantizar su cobro sin disputas.</p>
+		<button id="btn-empty-new-co" type="button" class="btn-empty-create">
+			<span>+ Crear Primera Orden de Cambio</span>
+		</button>
+	</div>
+</section>
+
+<!-- Modal Lightbox para Visualizar Firma Digital Formal -->
+<div id="co-signature-lightbox" class="lightbox-backdrop hidden" role="dialog" aria-modal="true" aria-label="Comprobante de firma digital">
+	<div class="lightbox-sheet">
+		<div class="lightbox-head">
+			<div class="lightbox-title-wrap">
+				<span class="status-verified-pill">✓ Firma Digital Verificada</span>
+				<h3 id="lightbox-co-code" class="lightbox-title">Acta de Aprobación</h3>
+			</div>
+			<button id="btn-close-lightbox" type="button" class="btn-lightbox-close" aria-label="Cerrar comprobante">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+			</button>
+		</div>
+
+		<div class="lightbox-body">
+			<div class="evidence-box">
+				<div class="evidence-img-wrap">
+					<img id="lightbox-signature-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E" alt="Firma digital del cliente" class="client-signature-img" />
+				</div>
+				<div class="evidence-meta">
+					<div class="meta-row">
+						<span class="meta-lbl">Firmante:</span>
+						<strong id="lightbox-signer-name" class="meta-val">-</strong>
+					</div>
+					<div class="meta-row">
+						<span class="meta-lbl">Identificación:</span>
+						<strong id="lightbox-signer-id" class="meta-val">-</strong>
+					</div>
+					<div class="meta-row">
+						<span class="meta-lbl">Fecha y Hora:</span>
+						<strong id="lightbox-signed-at" class="meta-val mono-value">-</strong>
+					</div>
+					<div class="meta-row">
+						<span class="meta-lbl">Monto Aprobado:</span>
+						<strong id="lightbox-signed-amount" class="meta-val text-emerald mono-value">-</strong>
+					</div>
+				</div>
+			</div>
+			<p class="legal-disclaimer">Este documento constituye aceptación contractual expresa según la Ley 527 de 1999 de Comercio Electrónico y Firmas Digitales de Colombia.</p>
+		</div>
+	</div>
+</div>
+
+<style>
+	.co-section-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1.5rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		margin-top: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.co-section-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.co-header-info {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		max-width: 800px;
+	}
+
+	.co-header-icon {
+		width: 44px;
+		height: 44px;
+		border-radius: 0.625rem;
+		background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+		color: #F8FAFC;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.co-title-kicker-wrap {
+		margin-bottom: 0.25rem;
+	}
+
+	.co-kicker-pill {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		color: #EA580C;
+		background-color: #FFF7ED;
+		border: 1px solid #FFEDD5;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.co-section-title {
+		font-size: 1.1875rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.01em;
+		margin: 0;
+	}
+
+	.co-section-desc {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin: 0.2rem 0 0;
+		line-height: 1.4;
+	}
+
+	.btn-new-change-order {
+		min-height: 48px;
+		padding: 0 1.25rem;
+		border-radius: 0.625rem;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		border: none;
+		font-size: 0.875rem;
+		font-weight: 800;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+		transition: all 0.15s ease;
+	}
+
+	.btn-new-change-order:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 16px rgba(249, 115, 22, 0.45);
+	}
+
+	/* KPI Pills */
+	.co-summary-pills-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		padding: 0.75rem 1rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+	}
+
+	.co-kpi-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		padding-right: 0.75rem;
+		border-right: 1px solid #CBD5E1;
+	}
+
+	.co-kpi-pill:last-child {
+		border-right: none;
+		padding-right: 0;
+	}
+
+	.kpi-label {
+		color: #64748B;
+		font-weight: 600;
+	}
+
+	.kpi-value {
+		font-weight: 800;
+	}
+
+	.text-emerald { color: #059669; }
+	.text-slate { color: #334155; }
+	.text-orange { color: #EA580C; }
+	.text-amber { color: #D97706; }
+
+	.mono-value {
+		font-family: var(--font-mono, 'JetBrains Mono', monospace);
+		white-space: nowrap;
+	}
+
+	/* Cards Feed */
+	.co-cards-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+	}
+
+	:global(.co-card-item) {
+		background-color: #FFFFFF;
+		border: 1.5px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		transition: all 0.15s ease;
+	}
+
+	:global(.co-card-item:hover) {
+		border-color: #CBD5E1;
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+	}
+
+	:global(.co-card-item.approved) {
+		border-color: #A7F3D0;
+		background-color: #FAFFFD;
+	}
+
+	:global(.co-card-item.pending) {
+		border-color: #FDE68A;
+		background-color: #FFFDF8;
+	}
+
+	:global(.co-card-top-row) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	:global(.co-left-badges) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.co-code-badge) {
+		font-family: var(--font-mono, monospace);
+		font-size: 0.75rem;
+		font-weight: 800;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.375rem;
+	}
+
+	:global(.co-chapter-badge) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #475569;
+		background-color: #F1F5F9;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.375rem;
+		border: 1px solid #E2E8F0;
+	}
+
+	:global(.co-status-pill) {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		padding: 0.2rem 0.6rem;
+		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	:global(.status-pill-approved) {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	:global(.status-pill-pending) {
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FDE68A;
+	}
+
+	:global(.status-pill-rejected) {
+		background-color: #FEF2F2;
+		color: #B91C1C;
+		border: 1px solid #FECACA;
+	}
+
+	:global(.co-content-row) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	:global(.co-card-title) {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+		line-height: 1.35;
+	}
+
+	:global(.co-card-desc) {
+		font-size: 0.8125rem;
+		color: #475569;
+		margin: 0;
+		line-height: 1.45;
+	}
+
+	:global(.co-metrics-strip) {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+		padding: 0.625rem 0.875rem;
+		background-color: #F8FAFC;
+		border-radius: 0.5rem;
+		border: 1px solid #E2E8F0;
+		flex-wrap: wrap;
+	}
+
+	:global(.metric-unit) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+
+	:global(.metric-unit-lbl) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	:global(.metric-unit-val) {
+		font-size: 0.9375rem;
+		font-weight: 800;
+	}
+
+	:global(.co-actions-bottom-row) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		padding-top: 0.5rem;
+		border-top: 1px solid #F1F5F9;
+	}
+
+	:global(.co-action-btns-right) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	:global(.btn-co-action) {
+		min-height: 40px;
+		padding: 0 0.875rem;
+		border-radius: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		cursor: pointer;
+		text-decoration: none;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-co-wa) {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	:global(.btn-co-wa:hover) {
+		background-color: #D1FAE5;
+		border-color: #34D399;
+	}
+
+	:global(.btn-co-link) {
+		background-color: #F8FAFC;
+		color: #334155;
+		border: 1px solid #CBD5E1;
+	}
+
+	:global(.btn-co-link:hover) {
+		background-color: #F1F5F9;
+		color: #0F172A;
+		border-color: #94A3B8;
+	}
+
+	:global(.btn-co-sign) {
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border: none;
+	}
+
+	:global(.btn-co-sign:hover) {
+		background-color: #1E293B;
+		color: #F97316;
+	}
+
+	:global(.btn-co-verified) {
+		background-color: #F0FDF4;
+		color: #15803D;
+		border: 1px solid #BBF7D0;
+	}
+
+	:global(.co-signature-stamp-note) {
+		font-size: 0.75rem;
+		color: #059669;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	/* Empty state */
+	.co-empty-box {
+		padding: 2.5rem 1.5rem;
+		text-align: center;
+		background-color: #F8FAFC;
+		border: 2px dashed #CBD5E1;
+		border-radius: 0.75rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.empty-icon-bubble {
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.empty-title {
+		font-size: 1rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.empty-desc {
+		font-size: 0.8125rem;
+		color: #64748B;
+		max-width: 460px;
+		margin: 0;
+		line-height: 1.45;
+	}
+
+	.btn-empty-create {
+		min-height: 44px;
+		padding: 0 1.25rem;
+		border-radius: 0.5rem;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border: none;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		margin-top: 0.5rem;
+		transition: all 0.15s ease;
+	}
+
+	.btn-empty-create:hover {
+		background-color: #F97316;
+	}
+
+	/* Lightbox de Firma */
+	.lightbox-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 110;
+		background-color: rgba(15, 23, 42, 0.75);
+		backdrop-filter: blur(4px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+	}
+
+	.lightbox-sheet {
+		background-color: #FFFFFF;
+		border-radius: 1rem;
+		border: 1px solid #E2E8F0;
+		width: 100%;
+		max-width: 520px;
+		overflow: hidden;
+		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+	}
+
+	.lightbox-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem 1.25rem;
+		background-color: #F8FAFC;
+		border-bottom: 1px solid #E2E8F0;
+	}
+
+	.status-verified-pill {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		color: #047857;
+		background-color: #ECFDF5;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		border: 1px solid #A7F3D0;
+		display: inline-block;
+		margin-bottom: 0.2rem;
+	}
+
+	.lightbox-title {
+		font-size: 1rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.btn-lightbox-close {
+		width: 38px;
+		height: 38px;
+		border-radius: 0.375rem;
+		background: transparent;
+		border: 1px solid #CBD5E1;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.lightbox-body {
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.evidence-box {
+		border: 1px solid #CBD5E1;
+		border-radius: 0.625rem;
+		overflow: hidden;
+		background-color: #FFFFFF;
+	}
+
+	.evidence-img-wrap {
+		padding: 1rem;
+		background-color: #F8FAFC;
+		border-bottom: 1px solid #E2E8F0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 100px;
+	}
+
+	.client-signature-img {
+		max-width: 100%;
+		max-height: 90px;
+		object-fit: contain;
+	}
+
+	.evidence-meta {
+		padding: 0.875rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		background-color: #FFFFFF;
+	}
+
+	.meta-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.8125rem;
+	}
+
+	.meta-lbl {
+		color: #64748B;
+		font-weight: 600;
+	}
+
+	.meta-val {
+		color: #0F172A;
+		font-weight: 700;
+	}
+
+	.legal-disclaimer {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		text-align: center;
+		line-height: 1.35;
+		margin: 0;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+</style>
+
+<script>
+	import {
+		loadAllChangeOrders,
+		getChangeOrdersByProject,
+		generateWhatsAppShareLink,
+		type ChangeOrder
+	} from '../../lib/change-order-store';
+	import { loadAllProjects, type ProjectCosting } from '../../lib/costing-store';
+
+	const formatCOP = (val: number): string => {
+		return new Intl.NumberFormat('es-CO', {
+			style: 'currency',
+			currency: 'COP',
+			maximumFractionDigits: 0
+		}).format(val || 0);
+	};
+
+	let activeProjectId = 'proj_andina_001';
+
+	function initChangeOrdersSection() {
+		const section = document.getElementById('costing-change-orders-section');
+		if (!section) return;
+
+		// 1. Determinar proyecto activo
+		const urlParams = new URLSearchParams(window.location.search);
+		const requestedId = urlParams.get('id') || urlParams.get('projectId');
+		if (requestedId) {
+			activeProjectId = requestedId;
+		}
+
+		renderSection();
+		setupSectionEventListeners();
+	}
+
+	function renderSection() {
+		const cardsContainer = document.getElementById('co-cards-list');
+		const emptyState = document.getElementById('co-empty-state');
+		if (!cardsContainer || !emptyState) return;
+
+		const allProjects = loadAllProjects();
+		const currentProject = allProjects.find((p) => p.project_id === activeProjectId) || allProjects[0];
+		const orders = getChangeOrdersByProject(activeProjectId);
+
+		// Actualizar KPIs de consolidado
+		updateKpiSummary(orders);
+
+		if (orders.length === 0) {
+			cardsContainer.innerHTML = '';
+			emptyState.classList.remove('hidden');
+			return;
+		}
+
+		emptyState.classList.add('hidden');
+
+		cardsContainer.innerHTML = orders
+			.map((order) => {
+				const chapter = currentProject?.chapters.find((c) => c.chapter_id === order.chapter_id);
+				const chapterName = chapter ? chapter.name : 'Capítulo Asignado';
+
+				const statusClass =
+					order.status === 'approved'
+						? 'status-pill-approved'
+						: order.status === 'rejected'
+						? 'status-pill-rejected'
+						: 'status-pill-pending';
+
+				const statusText =
+					order.status === 'approved'
+						? '✓ Aprobada y Firmada'
+						: order.status === 'rejected'
+						? '✕ Rechazada'
+						: '⏳ Pendiente de Firma';
+
+				const isApproved = order.status === 'approved';
+				const waUrl = generateWhatsAppShareLink(order, '', window.location.origin);
+				const magicUrl = `${window.location.origin}/change-orders/view?token=${encodeURIComponent(order.magic_token)}`;
+
+				const dateFormatted = new Date(order.created_at).toLocaleDateString('es-CO', {
+					day: 'numeric',
+					month: 'short',
+					year: 'numeric'
+				});
+
+				return `
+				<article class="co-card-item ${order.status}" id="co-card-${order.id}">
+					<div class="co-card-top-row">
+						<div class="co-left-badges">
+							<span class="co-code-badge">${escapeHtml(order.code)}</span>
+							<span class="co-chapter-badge">${escapeHtml(chapterName)}</span>
+							<span class="co-chapter-badge">${dateFormatted}</span>
+						</div>
+						<span class="co-status-pill ${statusClass}">${statusText}</span>
+					</div>
+
+					<div class="co-content-row">
+						<h3 class="co-card-title">${escapeHtml(order.title)}</h3>
+						<p class="co-card-desc">${escapeHtml(order.justification)}</p>
+					</div>
+
+					<div class="co-metrics-strip">
+						<div class="metric-unit">
+							<span class="metric-unit-lbl">Cobro al Cliente:</span>
+							<strong class="metric-unit-val text-emerald mono-value">${formatCOP(order.sale_price_amount)}</strong>
+						</div>
+						<div class="metric-unit">
+							<span class="metric-unit-lbl">Costo Directo Obra:</span>
+							<strong class="metric-unit-val text-slate mono-value">${formatCOP(order.cost_amount)}</strong>
+						</div>
+						<div class="metric-unit">
+							<span class="metric-unit-lbl">Margen Bruto:</span>
+							<strong class="metric-unit-val text-orange mono-value">${order.margin_pct.toFixed(1)}%</strong>
+						</div>
+						${
+							order.additional_days > 0
+								? `
+							<div class="metric-unit">
+								<span class="metric-unit-lbl">Prórroga Entrega:</span>
+								<strong class="metric-unit-val text-amber mono-value">+ ${order.additional_days} días</strong>
+							</div>
+						`
+								: ''
+						}
+					</div>
+
+					<div class="co-actions-bottom-row">
+						<div>
+							${
+								isApproved
+									? `
+								<span class="co-signature-stamp-note">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+									<span>Firmado por ${escapeHtml(order.signed_by_name || 'Cliente')} (${new Date(order.signed_at || '').toLocaleDateString('es-CO')})</span>
+								</span>
+							`
+									: `
+								<span class="text-amber" style="font-size: 0.75rem; font-weight: 700;">
+									⚠️ No ejecutable en obra hasta contar con la firma del cliente
+								</span>
+							`
+							}
+						</div>
+
+						<div class="co-action-btns-right">
+							${
+								!isApproved
+									? `
+								<a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn-co-action btn-co-wa" title="Enviar enlace de aprobación por WhatsApp">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+									<span>WhatsApp</span>
+								</a>
+
+								<button type="button" class="btn-co-action btn-co-link btn-copy-magic-link" data-url="${magicUrl}" title="Copiar enlace para el cliente">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+									<span>Copiar Link</span>
+								</button>
+
+								<a href="/change-orders/view?token=${encodeURIComponent(order.magic_token)}" target="_blank" class="btn-co-action btn-co-sign" title="Abrir pantalla de firma cliente">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+									<span>Firmar</span>
+								</a>
+							`
+									: `
+								<button type="button" class="btn-co-action btn-co-verified btn-view-signature" data-order-id="${order.id}">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+									<span>Ver Acta Firmada</span>
+								</button>
+								<a href="/change-orders/view?token=${encodeURIComponent(order.magic_token)}" target="_blank" class="btn-co-action btn-co-link">
+									<span>Ver Detalle</span>
+								</a>
+							`
+							}
+						</div>
+					</div>
+				</article>
+			`;
+			})
+			.join('');
+
+		// Eventos de copiar link
+		document.querySelectorAll('.btn-copy-magic-link').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const url = btn.getAttribute('data-url') || '';
+				if (url) {
+					navigator.clipboard.writeText(url).then(() => {
+						dispatchToast('✓ Enlace copiado al portapapeles. Listo para enviar al cliente.');
+					});
+				}
+			});
+		});
+
+		// Eventos de ver firma
+		document.querySelectorAll('.btn-view-signature').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const orderId = btn.getAttribute('data-order-id');
+				const order = orders.find((o) => o.id === orderId);
+				if (order) openSignatureLightbox(order);
+			});
+		});
+	}
+
+	function updateKpiSummary(orders: ChangeOrder[]) {
+		const approvedOrders = orders.filter((o) => o.status === 'approved');
+		const pendingOrders = orders.filter((o) => o.status === 'pending_signature');
+
+		const totalSale = approvedOrders.reduce((sum, o) => sum + o.sale_price_amount, 0);
+		const totalCost = approvedOrders.reduce((sum, o) => sum + o.cost_amount, 0);
+		const totalDays = approvedOrders.reduce((sum, o) => sum + o.additional_days, 0);
+
+		const elSale = document.getElementById('kpi-co-total-sale');
+		const elCost = document.getElementById('kpi-co-total-cost');
+		const elDays = document.getElementById('kpi-co-total-days');
+		const elPending = document.getElementById('kpi-co-pending-count');
+
+		if (elSale) elSale.textContent = formatCOP(totalSale);
+		if (elCost) elCost.textContent = formatCOP(totalCost);
+		if (elDays) elDays.textContent = `+ ${totalDays} días`;
+		if (elPending) elPending.textContent = String(pendingOrders.length);
+	}
+
+	function setupSectionEventListeners() {
+		const newCoBtn = document.getElementById('btn-section-new-co');
+		const emptyNewCoBtn = document.getElementById('btn-empty-new-co');
+
+		function openModal() {
+			window.dispatchEvent(
+				new CustomEvent('open-create-change-order-modal', {
+					detail: { projectId: activeProjectId }
+				})
+			);
+		}
+
+		newCoBtn?.addEventListener('click', openModal);
+		emptyNewCoBtn?.addEventListener('click', openModal);
+
+		// Sincronizar si cambia el proyecto en el dashboard
+		window.addEventListener('costing:project-changed', (e: any) => {
+			if (e.detail?.projectId) {
+				activeProjectId = e.detail.projectId;
+				renderSection();
+			}
+		});
+
+		// Recargar si se crea o aprueba una orden de cambio
+		window.addEventListener('obraflow:change-orders-updated', renderSection);
+		window.addEventListener('obraflow:change-order-approved', renderSection);
+
+		// Lightbox cierre
+		document.getElementById('btn-close-lightbox')?.addEventListener('click', closeSignatureLightbox);
+		document.getElementById('co-signature-lightbox')?.addEventListener('click', (e) => {
+			if (e.target === document.getElementById('co-signature-lightbox')) {
+				closeSignatureLightbox();
+			}
+		});
+	}
+
+	function openSignatureLightbox(order: ChangeOrder) {
+		const lb = document.getElementById('co-signature-lightbox');
+		if (!lb) return;
+
+		const codeEl = document.getElementById('lightbox-co-code');
+		const imgEl = document.getElementById('lightbox-signature-img') as HTMLImageElement | null;
+		const nameEl = document.getElementById('lightbox-signer-name');
+		const idEl = document.getElementById('lightbox-signer-id');
+		const atEl = document.getElementById('lightbox-signed-at');
+		const amtEl = document.getElementById('lightbox-signed-amount');
+
+		if (codeEl) codeEl.textContent = `Acta de Aprobación · ${order.code}`;
+		if (imgEl) imgEl.src = order.signature_data_url || '';
+		if (nameEl) nameEl.textContent = order.signed_by_name || 'Cliente';
+		if (idEl) idEl.textContent = order.signed_by_id_number || 'No especificado';
+		if (atEl) {
+			atEl.textContent = order.signed_at
+				? new Date(order.signed_at).toLocaleString('es-CO')
+				: 'Fecha no registrada';
+		}
+		if (amtEl) amtEl.textContent = formatCOP(order.sale_price_amount);
+
+		lb.classList.remove('hidden');
+	}
+
+	function closeSignatureLightbox() {
+		document.getElementById('co-signature-lightbox')?.classList.add('hidden');
+	}
+
+	function dispatchToast(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+		window.dispatchEvent(
+			new CustomEvent('obraflow:toast', {
+				detail: { message, type }
+			})
+		);
+	}
+
+	function escapeHtml(str: string): string {
+		return (str || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initChangeOrdersSection);
+	} else {
+		initChangeOrdersSection();
+	}
+</script>

@@ -1,0 +1,31 @@
+---
+// src/pages/costing.astro
+// HU-13: Matriz Financiera Presupuesto vs Real (Job Costing).
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import JobCostingDashboard from '../components/costing/JobCostingDashboard.astro';
+import QuickExpenseFAB from '../components/expenses/QuickExpenseFAB.astro';
+import Toast from '../components/Toast.astro';
+---
+
+<Layout title="Control de Costos (Job Costing) — ObraFlow">
+	<Header />
+
+	<main class="costing-page-main">
+		<JobCostingDashboard />
+	</main>
+
+	<!-- HU-14: FAB de Captura Rápida de Gastos -->
+	<QuickExpenseFAB />
+
+	<Toast />
+</Layout>
+
+<style>
+	.costing-page-main {
+		flex: 1;
+		width: 100%;
+		background-color: #F8FAFC;
+		min-height: calc(100vh - 65px);
+	}
+</style>

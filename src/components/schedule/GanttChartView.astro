@@ -1,0 +1,379 @@
+---
+// src/components/schedule/GanttChartView.astro
+// HU-16: Vista de Diagrama de Gantt interactivo con Frappe Gantt (Drag & Drop, Duración, Avance y Detalle).
+---
+
+<div id="schedule-gantt-view" class="gantt-view-container hidden" aria-label="Diagrama de Gantt interactivo de obra">
+	<!-- Barra Superior de Controles del Gantt -->
+	<div class="gantt-toolbar-card">
+		<div class="gantt-toolbar-left">
+			<!-- Selector de Escala de Vista (Día / Semana / Mes) -->
+			<div class="gantt-zoom-group" role="group" aria-label="Escala de tiempo de Gantt">
+				<span class="zoom-label">Escala:</span>
+				<div class="segmented-zoom-control">
+					<button
+						id="gantt-mode-day-btn"
+						type="button"
+						class="btn-zoom-option active"
+						data-mode="Day"
+						aria-pressed="true"
+					>
+						Día
+					</button>
+					<button
+						id="gantt-mode-week-btn"
+						type="button"
+						class="btn-zoom-option"
+						data-mode="Week"
+						aria-pressed="false"
+					>
+						Semana
+					</button>
+					<button
+						id="gantt-mode-month-btn"
+						type="button"
+						class="btn-zoom-option"
+						data-mode="Month"
+						aria-pressed="false"
+					>
+						Mes
+					</button>
+				</div>
+			</div>
+
+			<!-- Selector de Filtro por Capítulo Presupuestal -->
+			<div class="gantt-chapter-filter-box" role="group" aria-label="Filtrar diagrama por capítulo presupuestal">
+				<label for="gantt-chapter-select" class="gantt-chapter-label">Capítulo:</label>
+				<div class="gantt-select-wrapper">
+					<select id="gantt-chapter-select" class="gantt-chapter-select" aria-label="Seleccionar capítulo presupuestal">
+						<option value="all">📁 Todos los Capítulos</option>
+					</select>
+					<div class="select-chevron-mini" aria-hidden="true">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<polyline points="6 9 12 15 18 9"></polyline>
+						</svg>
+					</div>
+				</div>
+			</div>
+
+			<span class="gantt-hint-badge desktop-only">
+				💡 Arrastra las barras para mover fechas o el tirador circular para % de avance
+			</span>
+		</div>
+
+		<!-- Leyenda de Estados de ObraFlow -->
+		<div class="gantt-legend-wrap" aria-label="Leyenda de estados del cronograma">
+			<span class="legend-item"><span class="legend-color color-chapter"></span>Capítulo Presupuestal</span>
+			<span class="legend-item"><span class="legend-color color-completed"></span>Completada</span>
+			<span class="legend-item"><span class="legend-color color-in-progress"></span>En Curso</span>
+			<span class="legend-item"><span class="legend-color color-overdue"></span>Atrasada</span>
+			<span class="legend-item"><span class="legend-color color-pending"></span>Pendiente</span>
+		</div>
+	</div>
+
+	<!-- Tablero SVG de Frappe Gantt -->
+	<div class="gantt-board-wrapper">
+		<div id="gantt-svg-viewport" class="gantt-scroll-viewport">
+			<svg id="frappe-gantt-target"></svg>
+		</div>
+	</div>
+</div>
+
+<style>
+	.gantt-view-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		width: 100%;
+		position: relative;
+	}
+
+	.gantt-toolbar-card {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		background-color: #FFFFFF;
+		padding: 0.875rem 1.25rem;
+		border-radius: 0.875rem;
+		border: 1px solid #E2E8F0;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	}
+
+	.gantt-toolbar-left {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.gantt-zoom-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.zoom-label {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #64748B;
+	}
+
+	.segmented-zoom-control {
+		display: flex;
+		background-color: #F1F5F9;
+		border-radius: 0.5rem;
+		padding: 3px;
+		border: 1px solid #E2E8F0;
+	}
+
+	.btn-zoom-option {
+		padding: 0.35rem 0.875rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		border-radius: 0.375rem;
+		border: none;
+		background: transparent;
+		color: #64748B;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		min-height: 38px;
+	}
+
+	.btn-zoom-option.active {
+		background-color: #FFFFFF;
+		color: #0F172A;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+	}
+
+	.gantt-hint-badge {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #475569;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		padding: 0.35rem 0.75rem;
+		border-radius: 0.5rem;
+	}
+
+	.gantt-legend-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		flex-wrap: wrap;
+	}
+
+	.legend-item {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #475569;
+	}
+
+	.legend-color {
+		width: 10px;
+		height: 10px;
+		border-radius: 3px;
+	}
+
+	.color-chapter { background-color: #0F172A; border: 1px solid #334155; }
+	.color-completed { background-color: #10B981; }
+	.color-in-progress { background-color: #F97316; }
+	.color-overdue { background-color: #EF4444; }
+	.color-pending { background-color: #94A3B8; }
+
+	/* Selector de Capítulo Presupuestal */
+	.gantt-chapter-filter-box {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.gantt-chapter-label {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #64748B;
+	}
+
+	.gantt-select-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.gantt-chapter-select {
+		background-color: #F8FAFC;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.5rem;
+		padding: 0.35rem 2rem 0.35rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #0F172A;
+		appearance: none;
+		cursor: pointer;
+		min-height: 38px;
+		max-width: 280px;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.gantt-chapter-select:focus {
+		outline: none;
+		border-color: #F97316;
+		box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
+	}
+
+	.select-chevron-mini {
+		position: absolute;
+		right: 0.625rem;
+		pointer-events: none;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+	}
+
+	/* Tablero con scroll horizontal */
+	.gantt-board-wrapper {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		overflow: hidden;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		min-height: 380px;
+		position: relative;
+	}
+
+	.gantt-scroll-viewport {
+		overflow-x: auto;
+		overflow-y: hidden;
+		width: 100%;
+		position: relative;
+		min-height: 380px;
+		padding-bottom: 1.5rem;
+	}
+
+	/* Estilos personalizados de Frappe Gantt para ObraFlow */
+	:global(.gantt .bar-wrapper) {
+		cursor: pointer;
+	}
+
+	:global(.gantt .bar-label) {
+		fill: #0F172A !important;
+		font-family: inherit !important;
+		font-size: 12px !important;
+		font-weight: 700 !important;
+	}
+
+	/* Estados de tareas en las barras */
+	:global(.gantt .bar-completed .bar) {
+		fill: #10B981 !important;
+	}
+	:global(.gantt .bar-completed .bar-progress) {
+		fill: #059669 !important;
+	}
+
+	:global(.gantt .bar-in-progress .bar) {
+		fill: #F97316 !important;
+	}
+	:global(.gantt .bar-in-progress .bar-progress) {
+		fill: #EA580C !important;
+	}
+
+	:global(.gantt .bar-overdue .bar) {
+		fill: #EF4444 !important;
+	}
+	:global(.gantt .bar-overdue .bar-progress) {
+		fill: #DC2626 !important;
+	}
+
+	:global(.gantt .bar-pending .bar) {
+		fill: #94A3B8 !important;
+	}
+	:global(.gantt .bar-pending .bar-progress) {
+		fill: #64748B !important;
+	}
+
+	/* Barra Resumen de Capítulo Presupuestal */
+	:global(.gantt .bar-chapter .bar) {
+		fill: #0F172A !important;
+		stroke: #334155 !important;
+		stroke-width: 1.5px !important;
+		rx: 6px !important;
+	}
+	:global(.gantt .bar-chapter .bar-progress) {
+		fill: #F97316 !important;
+		rx: 5px !important;
+	}
+	:global(.gantt .bar-chapter .bar-label) {
+		fill: #FFFFFF !important;
+		font-weight: 800 !important;
+		font-size: 11px !important;
+		letter-spacing: 0.03em !important;
+	}
+	:global(.gantt .bar-chapter .bar-label.big) {
+		fill: #FFFFFF !important;
+		font-weight: 800 !important;
+		font-size: 11px !important;
+	}
+	:global(.gantt .bar-chapter .handle) {
+		display: none !important;
+	}
+
+	/* Evitar texto apretado o saltos de línea feos en fechas de cabecera de Gantt */
+	:global(.gantt-container .lower-text) {
+		white-space: nowrap !important;
+		font-size: 11px !important;
+		font-weight: 700 !important;
+		color: #475569 !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
+
+	:global(.gantt-container .upper-text) {
+		font-weight: 800 !important;
+		font-size: 13px !important;
+		color: #0F172A !important;
+	}
+
+	/* Botón Hoy de Frappe Gantt */
+	:global(.gantt-container .today-button) {
+		background: #1E293B !important;
+		border: 1px solid #334155 !important;
+		color: #F8FAFC !important;
+		font-weight: 700 !important;
+		font-size: 0.75rem !important;
+		border-radius: 0.375rem !important;
+		padding: 0.25rem 0.75rem !important;
+		cursor: pointer !important;
+		transition: all 0.15s ease !important;
+	}
+	:global(.gantt-container .today-button:hover) {
+		background: #334155 !important;
+		color: #F97316 !important;
+	}
+
+	:global(.gantt .current-highlight) {
+		background: #EF4444 !important;
+		width: 2px !important;
+	}
+
+	:global(.gantt-container .popup-wrapper) {
+		border-radius: 0.5rem !important;
+		border: 1px solid #E2E8F0 !important;
+		box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25) !important;
+		font-family: inherit !important;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 768px) {
+		.desktop-only {
+			display: none !important;
+		}
+	}
+</style>

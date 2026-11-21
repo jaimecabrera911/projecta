@@ -1,0 +1,1427 @@
+---
+// src/components/expenses/QuickExpenseSheet.astro
+// HU-14: Registro Rápido de Gastos de Obra en 3 Toques (Mobile-First / PWA Offline).
+---
+
+<section id="quick-expense-sheet" class="quick-expense-container" aria-label="Registro rápido de gastos de obra">
+	<!-- 1. Barra de Red & Modo Sótano (Tolerancia Offline) -->
+	<div class="network-status-bar" id="network-status-bar">
+		<div class="network-info-left">
+			<span class="status-indicator-dot" id="network-status-dot"></span>
+			<div class="network-text-group">
+				<span class="network-title" id="network-status-title">Conectado a la Red</span>
+				<span class="network-subtitle" id="network-status-subtitle">Sincronización automática activa</span>
+			</div>
+		</div>
+
+		<div class="network-actions-right">
+			<!-- Toggle Simular Sótano / Offline -->
+			<button
+				id="btn-toggle-offline-simulation"
+				type="button"
+				class="btn-offline-toggle"
+				title="Alternar simulación de pérdida de señal en sótano"
+				aria-pressed="false"
+			>
+				<span class="signal-icon" aria-hidden="true">📶</span>
+				<span id="offline-toggle-label">Simular Sótano (Sin Señal)</span>
+			</button>
+
+			<!-- Contador de pendientes -->
+			<span id="pending-sync-badge" class="badge-pending hidden">
+				<span id="pending-sync-count">0</span> en cola
+			</span>
+		</div>
+	</div>
+
+	<!-- 2. Formulario Táctil en 3 Toques (Operate Mode en Campo) -->
+	<div class="expense-card-main">
+		<div class="card-kicker-row">
+			<span class="step-pill">Operate Mode · 3 Toques</span>
+			<span id="role-context-badge" class="role-field-badge">Modo Campo: Residente</span>
+		</div>
+
+		<h2 class="expense-card-title">Captura Inmediata de Gasto</h2>
+		<p class="expense-card-desc">Toma la foto al recibo, digita el monto y asígnalo al capítulo de obra.</p>
+
+		<form id="form-quick-expense" class="quick-expense-form" novalidate>
+			<!-- PASO PREVIO: Selector de Obra / Proyecto de Destino (Obligatorio) -->
+			<div class="project-selection-block">
+				<label for="quick-project-select" class="project-select-label">
+					<div class="project-label-left">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M2 20h20"></path>
+							<path d="m5 20 5-15h4l5 15"></path>
+							<path d="M9 13h6"></path>
+						</svg>
+						<span>Obra / Proyecto de Destino *</span>
+					</div>
+					<span id="project-client-hint" class="project-client-hint">Cargando obra...</span>
+				</label>
+				<div class="project-select-wrap">
+					<select id="quick-project-select" class="quick-project-select" required aria-label="Seleccionar obra de destino">
+						<!-- Inyectado dinámicamente con proyectos activos -->
+					</select>
+				</div>
+			</div>
+
+			<!-- TOQUE 1: Captura Fotográfica con Cámara Nativa y Compresión Automática -->
+			<div class="touch-step-block">
+				<div class="step-header">
+					<span class="step-number-circle">1</span>
+					<span class="step-label">Foto del Recibo o Factura *</span>
+					<span id="compression-feedback" class="compression-tag hidden">
+						✓ Comprimido a <span id="compressed-size-text">0 KB</span>
+					</span>
+				</div>
+
+				<div class="camera-drop-zone" id="camera-drop-zone">
+					<input
+						id="camera-file-input"
+						type="file"
+						accept="image/*"
+						capture="environment"
+						class="sr-only"
+						aria-label="Tomar foto del recibo con la cámara"
+					/>
+					
+					<div id="camera-prompt-view" class="camera-prompt">
+						<div class="camera-icon-bubble" aria-hidden="true">
+							<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+								<circle cx="12" cy="13" r="4"></circle>
+							</svg>
+						</div>
+						<div class="prompt-text-group">
+							<strong class="prompt-main">Toca aquí para tomar foto del recibo</strong>
+							<span class="prompt-sub">Compresión automática instantánea (&lt; 800 KB)</span>
+						</div>
+					</div>
+
+					<!-- Vista previa de foto capturada -->
+					<div id="camera-preview-view" class="camera-preview hidden">
+						<img id="quick-preview-img" src="" alt="Comprobante capturado" class="preview-receipt-img" />
+						<div class="preview-overlay-info">
+							<span id="preview-filename-badge" class="preview-badge">Recibo listo</span>
+							<button id="btn-retake-photo" type="button" class="btn-retake" title="Tomar otra foto">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+								<span>Cambiar foto</span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Botón Rápido de Simulación para Pruebas en Desktop sin Cámara -->
+				<div class="quick-simulation-row">
+					<button id="btn-quick-sample-receipt" type="button" class="btn-sample-receipt">
+						<span>⚡ Simular foto de recibo de ferretería (para pruebas rápidas)</span>
+					</button>
+				</div>
+			</div>
+
+			<!-- TOQUE 2: Monto en Pesos Colombianos con Teclado Numérico Directo -->
+			<div class="touch-step-block">
+				<div class="step-header">
+					<span class="step-number-circle">2</span>
+					<label for="quick-amount-input" class="step-label">Valor del Gasto (COP) *</label>
+					<span id="quick-amount-preview" class="amount-live-preview mono-value">$ 0 COP</span>
+				</div>
+
+				<div class="amount-field-wrapper">
+					<span class="amount-currency-symbol" aria-hidden="true">$</span>
+					<input
+						id="quick-amount-input"
+						type="number"
+						inputmode="numeric"
+						step="1000"
+						min="1"
+						placeholder="Ej: 85000"
+						class="quick-amount-input mono-value"
+						required
+					/>
+				</div>
+			</div>
+
+			<!-- TOQUE 3: Selección de Capítulo con Chips Táctiles Grandes (Enmascaramiento de Cifras) -->
+			<div class="touch-step-block">
+				<div class="step-header">
+					<span class="step-number-circle">3</span>
+					<span class="step-label">Capítulo de Obra Imputado *</span>
+					<span class="masking-note">Cifras internas protegidas</span>
+				</div>
+
+				<div class="chapter-chips-grid" id="chapter-chips-grid" role="radiogroup" aria-label="Seleccionar capítulo de imputación">
+					<!-- Chips inyectados dinámicamente con tamaño táctil >= 48px -->
+				</div>
+			</div>
+
+			<!-- Datos Complementarios Opcionales (Proveedor y Concepto) -->
+			<div class="optional-details-panel">
+				<div class="optional-field-row">
+					<div class="optional-group">
+						<label for="quick-concept-input" class="optional-label">Concepto / Materiales:</label>
+						<input
+							id="quick-concept-input"
+							type="text"
+							placeholder="Ej: Compra de 3 bultos de yeso y tornillos"
+							class="optional-input"
+						/>
+					</div>
+
+					<div class="optional-group">
+						<label for="quick-vendor-input" class="optional-label">Proveedor / Comercio:</label>
+						<input
+							id="quick-vendor-input"
+							type="text"
+							placeholder="Ej: Ferretería Central"
+							class="optional-input"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<!-- BOTÓN DE GUARDADO EN 1 TOQUE FINAL (Thumb Zone) -->
+			<div class="submit-action-zone">
+				<button id="btn-submit-quick-expense" type="submit" class="btn-save-expense">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+						<polyline points="17 21 17 13 7 13 7 21"></polyline>
+						<polyline points="7 3 7 8 15 8"></polyline>
+					</svg>
+					<span id="btn-save-text">Guardar Gasto e Imputar</span>
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- 3. Lista Cronológica de Gastos de Campo (Hoy en Obra) -->
+	<div class="field-expenses-history-card">
+		<div class="history-header-row">
+			<div class="history-title-group">
+				<div class="history-icon-bubble" aria-hidden="true">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+						<circle cx="12" cy="12" r="10"></circle>
+						<polyline points="12 6 12 12 16 14"></polyline>
+					</svg>
+				</div>
+				<div>
+					<h3 class="history-title">Registro de Gastos de Campo (Hoy)</h3>
+					<p class="history-subtitle">Historial local con estado de sincronización en tiempo real</p>
+				</div>
+			</div>
+
+			<button id="btn-force-sync" type="button" class="btn-sync-now hidden">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+				</svg>
+				<span>Sincronizar Pendientes</span>
+			</button>
+		</div>
+
+		<div class="expenses-feed-list" id="expenses-feed-list">
+			<!-- Lista de gastos inyectada dinámicamente -->
+		</div>
+	</div>
+</section>
+
+<style>
+	.quick-expense-container {
+		width: 100%;
+		max-width: 680px;
+		margin: 0 auto;
+		padding: 1rem;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	/* 1. Barra de Red & Modo Sótano */
+	.network-status-bar {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 0.75rem 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		flex-wrap: wrap;
+	}
+
+	.network-info-left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.status-indicator-dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background-color: #10B981;
+		box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+		flex-shrink: 0;
+		transition: all 0.2s ease;
+	}
+
+	.status-indicator-dot.offline {
+		background-color: #F59E0B;
+		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+	}
+
+	.network-text-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.network-title {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.network-subtitle {
+		font-size: 0.6875rem;
+		color: #64748B;
+	}
+
+	.network-actions-right {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.btn-offline-toggle {
+		height: 38px;
+		padding: 0 0.75rem;
+		border-radius: 0.5rem;
+		background-color: #F8FAFC;
+		border: 1px solid #CBD5E1;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #334155;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		transition: all 0.15s ease;
+	}
+
+	.btn-offline-toggle:hover {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+	}
+
+	.btn-offline-toggle.active {
+		background-color: #FEF3C7;
+		border-color: #F59E0B;
+		color: #B45309;
+	}
+
+	.badge-pending {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.25rem 0.5rem;
+		border-radius: 9999px;
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FDE68A;
+		font-size: 0.6875rem;
+		font-weight: 800;
+	}
+
+	/* 2. Tarjeta Principal de Registro */
+	.expense-card-main {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1.5rem;
+		box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+	}
+
+	.card-kicker-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.5rem;
+	}
+
+	.step-pill {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		background-color: #FFF7ED;
+		color: #EA580C;
+		padding: 0.2rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.role-field-badge {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #1D4ED8;
+		background-color: #EFF6FF;
+		padding: 0.2rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.expense-card-title {
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.02em;
+		margin: 0;
+	}
+
+	.expense-card-desc {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin: 0.25rem 0 1.25rem;
+	}
+
+	.quick-expense-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* Selector de Proyecto */
+	.project-selection-block {
+		background-color: #F8FAFC;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.75rem;
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.project-select-label {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #0F172A;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.project-label-left {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		color: #0F172A;
+	}
+
+	.project-client-hint {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #047857;
+		background-color: #ECFDF5;
+		border: 1px solid #A7F3D0;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.quick-project-select {
+		width: 100%;
+		height: 52px;
+		padding: 0 2.25rem 0 1rem;
+		border-radius: 0.5rem;
+		border: 1.5px solid #CBD5E1;
+		background-color: #FFFFFF;
+		font-family: inherit;
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #0F172A;
+		outline: none;
+		cursor: pointer;
+		appearance: none;
+		background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+		background-repeat: no-repeat;
+		background-position: right 0.75rem center;
+		background-size: 14px;
+		transition: all 0.15s ease;
+		box-sizing: border-box;
+	}
+
+	.quick-project-select:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.touch-step-block {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+
+	.step-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.step-number-circle {
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		font-size: 0.75rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.step-label {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.compression-tag {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #047857;
+		background-color: #ECFDF5;
+		padding: 0.15rem 0.45rem;
+		border-radius: 9999px;
+		margin-left: auto;
+	}
+
+	.masking-note {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: #94A3B8;
+		margin-left: auto;
+	}
+
+	/* Zona de Cámara */
+	.camera-drop-zone {
+		border: 2px dashed #CBD5E1;
+		border-radius: 0.75rem;
+		background-color: #F8FAFC;
+		padding: 1.25rem;
+		text-align: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		min-height: 120px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.camera-drop-zone:hover {
+		border-color: #F97316;
+		background-color: #FFF7ED;
+	}
+
+	.camera-prompt {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.camera-icon-bubble {
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+	}
+
+	.prompt-text-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.prompt-main {
+		font-size: 0.875rem;
+		color: #0F172A;
+	}
+
+	.prompt-sub {
+		font-size: 0.75rem;
+		color: #64748B;
+	}
+
+	.camera-preview {
+		position: relative;
+		width: 100%;
+		max-width: 280px;
+		margin: 0 auto;
+	}
+
+	.preview-receipt-img {
+		width: 100%;
+		height: auto;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.preview-overlay-info {
+		margin-top: 0.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.preview-badge {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #047857;
+		background-color: #ECFDF5;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.btn-retake {
+		height: 36px;
+		padding: 0 0.75rem;
+		border-radius: 0.375rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #0F172A;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.quick-simulation-row {
+		margin-top: 0.25rem;
+	}
+
+	.btn-sample-receipt {
+		width: 100%;
+		padding: 0.6rem;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background-color: #F1F5F9;
+		color: #334155;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-sample-receipt:hover {
+		background-color: #E2E8F0;
+		color: #0F172A;
+	}
+
+	/* Input de Monto */
+	.amount-field-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.amount-currency-symbol {
+		position: absolute;
+		left: 1rem;
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: #64748B;
+		pointer-events: none;
+	}
+
+	.quick-amount-input {
+		width: 100%;
+		height: 58px;
+		padding-left: 2.75rem;
+		padding-right: 1rem;
+		border: 2px solid #CBD5E1;
+		border-radius: 0.625rem;
+		background-color: #FFFFFF;
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: #0F172A;
+		outline: none;
+		transition: all 0.15s ease;
+		box-sizing: border-box;
+	}
+
+	.quick-amount-input:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+	}
+
+	.amount-live-preview {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #059669;
+		margin-left: auto;
+	}
+
+	.mono-value {
+		font-family: var(--font-mono, 'JetBrains Mono', monospace);
+		white-space: nowrap;
+	}
+
+	/* Chips Táctiles de Capítulos (>= 48px de alto) */
+	.chapter-chips-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.625rem;
+	}
+
+	:global(.chapter-touch-chip) {
+		min-height: 52px;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.5rem;
+		border: 1.5px solid #CBD5E1;
+		background-color: #F8FAFC;
+		color: #1E293B;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		user-select: none;
+		line-height: 1.25;
+	}
+
+	:global(.chapter-touch-chip:hover) {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+	}
+
+	:global(.chapter-touch-chip.active) {
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border-color: #0F172A;
+		box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+	}
+
+	/* Campos Opcionales */
+	.optional-details-panel {
+		padding: 0.875rem 1rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+	}
+
+	.optional-field-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	.optional-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.optional-label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #475569;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.optional-input {
+		height: 42px;
+		padding: 0 0.75rem;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.375rem;
+		font-size: 0.8125rem;
+		color: #0F172A;
+		background-color: #FFFFFF;
+		outline: none;
+		transition: border-color 0.15s ease;
+	}
+
+	.optional-input:focus {
+		border-color: #F97316;
+	}
+
+	/* Botón de Guardado */
+	.submit-action-zone {
+		margin-top: 0.5rem;
+	}
+
+	.btn-save-expense {
+		width: 100%;
+		height: 56px;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		border: none;
+		border-radius: 0.75rem;
+		color: #FFFFFF;
+		font-size: 1rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		cursor: pointer;
+		box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+		transition: all 0.15s ease;
+	}
+
+	.btn-save-expense:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
+	}
+
+	.btn-save-expense:focus-visible {
+		outline: 3px solid #0F172A;
+		outline-offset: 2px;
+	}
+
+	/* 3. Lista Cronológica de Hoy */
+	.field-expenses-history-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1.25rem 1.5rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	}
+
+	.history-header-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid #E2E8F0;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.history-title-group {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+	}
+
+	.history-icon-bubble {
+		width: 34px;
+		height: 34px;
+		border-radius: 0.5rem;
+		background-color: #F1F5F9;
+		color: #334155;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.history-title {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.history-subtitle {
+		font-size: 0.75rem;
+		color: #64748B;
+		margin: 0.1rem 0 0;
+	}
+
+	.btn-sync-now {
+		height: 36px;
+		padding: 0 0.875rem;
+		border-radius: 0.375rem;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border: none;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.expenses-feed-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	:global(.feed-item-card) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem 1rem;
+		border-radius: 0.625rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		gap: 0.75rem;
+	}
+
+	:global(.feed-left-info) {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-width: 0;
+	}
+
+	:global(.feed-thumb-img) {
+		width: 44px;
+		height: 44px;
+		border-radius: 0.375rem;
+		object-fit: cover;
+		border: 1px solid #CBD5E1;
+		flex-shrink: 0;
+	}
+
+	:global(.feed-meta-text) {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	:global(.feed-concept) {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #0F172A;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	:global(.feed-subline) {
+		font-size: 0.6875rem;
+		color: #64748B;
+		margin-top: 0.15rem;
+	}
+
+	:global(.feed-right-kpi) {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.25rem;
+		flex-shrink: 0;
+	}
+
+	:global(.feed-amount) {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	:global(.feed-sync-pill) {
+		font-size: 0.625rem;
+		font-weight: 700;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+		text-transform: uppercase;
+	}
+
+	:global(.sync-pill-online) {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	:global(.sync-pill-offline) {
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FDE68A;
+	}
+
+	:global(.feed-project-tag) {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #EA580C;
+		background-color: #FFF7ED;
+		border: 1px solid #FFEDD5;
+		padding: 0.1rem 0.45rem;
+		border-radius: 0.25rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		width: fit-content;
+		margin-top: 0.2rem;
+	}
+
+	:global(.feed-empty-msg) {
+		padding: 1.5rem;
+		text-align: center;
+		color: #64748B;
+		font-size: 0.8125rem;
+		border: 1px dashed #CBD5E1;
+		border-radius: 0.5rem;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 500px) {
+		.chapter-chips-grid {
+			grid-template-columns: 1fr;
+		}
+		.optional-field-row {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<script>
+	import {
+		isOffline,
+		setSimulatedOffline,
+		recordQuickExpense,
+		syncPendingExpenses,
+		loadAllOfflineExpenses,
+		compressImageClient,
+		countPendingExpenses,
+		type OfflineExpenseItem
+	} from '../../lib/offline-expense-store';
+	import { loadAllProjects, generateReceiptSvg, type ProjectCosting } from '../../lib/costing-store';
+	import { getActiveRoleConfig } from '../../lib/role-store';
+
+	const formatCOP = (val: number): string => {
+		return new Intl.NumberFormat('es-CO', {
+			style: 'currency',
+			currency: 'COP',
+			maximumFractionDigits: 0
+		}).format(val || 0);
+	};
+
+	let selectedChapterId = '';
+	let currentPhotoDataUrl = '';
+	let currentPhotoSizeKb = 0;
+	let activeProjectId = 'proj_andina_001';
+	let cachedProjects: ProjectCosting[] = [];
+
+	function initQuickExpense() {
+		const container = document.getElementById('quick-expense-sheet');
+		if (!container) return;
+
+		// 1. Cargar proyectos para alimentar los capítulos y el selector
+		cachedProjects = loadAllProjects();
+		if (cachedProjects.length === 0) return;
+
+		// Revisar si viene projectId en la URL (?projectId=... o ?id=...)
+		const urlParams = new URLSearchParams(window.location.search);
+		const requestedId = urlParams.get('projectId') || urlParams.get('id');
+		if (requestedId && cachedProjects.some((p) => p.project_id === requestedId)) {
+			activeProjectId = requestedId;
+		} else {
+			activeProjectId = cachedProjects[0].project_id;
+		}
+
+		const currentProject = cachedProjects.find((p) => p.project_id === activeProjectId) || cachedProjects[0];
+
+		// 2. Poblar selector de obras y actualizar hint
+		populateProjectSelector(cachedProjects, activeProjectId);
+		updateProjectHint(currentProject);
+
+		// 3. Renderizar chips de capítulos para la obra seleccionada
+		renderChapterChips(currentProject);
+
+		// 4. Actualizar estado de red e interfaz inicial
+		updateNetworkStatusUI();
+		updateRoleContextUI();
+		renderExpensesFeed();
+		setupEventListeners();
+	}
+
+	function populateProjectSelector(projects: ProjectCosting[], selectedId: string) {
+		const select = document.getElementById('quick-project-select') as HTMLSelectElement | null;
+		if (!select) return;
+
+		select.innerHTML = '';
+		projects.forEach((proj) => {
+			const opt = document.createElement('option');
+			opt.value = proj.project_id;
+			opt.textContent = `${proj.title} (${proj.client_name || 'Cliente'})`;
+			if (proj.project_id === selectedId) opt.selected = true;
+			select.appendChild(opt);
+		});
+	}
+
+	function updateProjectHint(project?: ProjectCosting) {
+		const hint = document.getElementById('project-client-hint');
+		if (!hint) return;
+		if (project) {
+			hint.textContent = `Cliente: ${project.client_name} · ${project.chapters.length} Capítulos`;
+		} else {
+			hint.textContent = 'Obra no seleccionada';
+		}
+	}
+
+	function renderChapterChips(project: ProjectCosting) {
+		const grid = document.getElementById('chapter-chips-grid');
+		if (!grid) return;
+
+		grid.innerHTML = '';
+		selectedChapterId = '';
+
+		project.chapters.forEach((chapter, index) => {
+			const chip = document.createElement('button');
+			chip.type = 'button';
+			chip.className = 'chapter-touch-chip';
+			chip.setAttribute('data-chapter-id', chapter.chapter_id);
+			chip.setAttribute('role', 'radio');
+			chip.setAttribute('aria-checked', 'false');
+
+			// Regla de Enmascaramiento Estricto: solo muestra el nombre del capítulo, NO márgenes ni presupuestos
+			chip.textContent = chapter.name;
+
+			// Seleccionar el primer capítulo por defecto
+			if (index === 0) {
+				chip.classList.add('active');
+				chip.setAttribute('aria-checked', 'true');
+				selectedChapterId = chapter.chapter_id;
+			}
+
+			chip.addEventListener('click', () => {
+				document.querySelectorAll('.chapter-touch-chip').forEach((c) => {
+					c.classList.remove('active');
+					c.setAttribute('aria-checked', 'false');
+				});
+				chip.classList.add('active');
+				chip.setAttribute('aria-checked', 'true');
+				selectedChapterId = chapter.chapter_id;
+			});
+
+			grid.appendChild(chip);
+		});
+	}
+
+	function updateNetworkStatusUI() {
+		const offlineNow = isOffline();
+		const dot = document.getElementById('network-status-dot');
+		const title = document.getElementById('network-status-title');
+		const subtitle = document.getElementById('network-status-subtitle');
+		const toggleBtn = document.getElementById('btn-toggle-offline-simulation');
+		const pendingBadge = document.getElementById('pending-sync-badge');
+		const pendingCount = document.getElementById('pending-sync-count');
+		const forceSyncBtn = document.getElementById('btn-force-sync');
+
+		const pending = countPendingExpenses();
+
+		if (dot && title && subtitle) {
+			if (offlineNow) {
+				dot.classList.add('offline');
+				title.textContent = 'Modo Sin Señal (Offline / Sótano)';
+				subtitle.textContent = 'Los gastos se guardan en el teléfono de forma segura';
+				toggleBtn?.classList.add('active');
+				toggleBtn?.setAttribute('aria-pressed', 'true');
+				document.getElementById('offline-toggle-label')!.textContent = 'Desactivar Modo Sótano';
+			} else {
+				dot.classList.remove('offline');
+				title.textContent = 'Conectado a la Red';
+				subtitle.textContent = 'Sincronización automática activa con servidor';
+				toggleBtn?.classList.remove('active');
+				toggleBtn?.setAttribute('aria-pressed', 'false');
+				document.getElementById('offline-toggle-label')!.textContent = 'Simular Sótano (Sin Señal)';
+			}
+		}
+
+		if (pendingBadge && pendingCount) {
+			if (pending > 0) {
+				pendingBadge.classList.remove('hidden');
+				pendingCount.textContent = String(pending);
+				if (!offlineNow) forceSyncBtn?.classList.remove('hidden');
+			} else {
+				pendingBadge.classList.add('hidden');
+				forceSyncBtn?.classList.add('hidden');
+			}
+		}
+	}
+
+	function updateRoleContextUI() {
+		const badge = document.getElementById('role-context-badge');
+		if (badge) {
+			const config = getActiveRoleConfig();
+			badge.textContent = `Perfil Activo: ${config.label}`;
+		}
+	}
+
+	function renderExpensesFeed() {
+		const feed = document.getElementById('expenses-feed-list');
+		if (!feed) return;
+
+		const expenses = loadAllOfflineExpenses();
+
+		if (expenses.length === 0) {
+			feed.innerHTML = `<div class="feed-empty-msg">No hay gastos registrados hoy en este dispositivo. Toca el botón de cámara para empezar.</div>`;
+			return;
+		}
+
+		feed.innerHTML = expenses
+			.map((exp) => {
+				const time = new Date(exp.created_at).toLocaleTimeString('es-CO', {
+					hour: '2-digit',
+					minute: '2-digit'
+				});
+				const project = cachedProjects.find((p) => p.project_id === exp.project_id);
+				const projectTitle = project ? project.title : exp.project_id;
+
+				return `
+				<div class="feed-item-card">
+					<div class="feed-left-info">
+						<img src="${exp.receipt_photo}" alt="Recibo" class="feed-thumb-img" />
+						<div class="feed-meta-text">
+							<span class="feed-concept">${escapeHtml(exp.concept)}</span>
+							<span class="feed-project-tag">📍 ${escapeHtml(projectTitle)}</span>
+							<span class="feed-subline">${escapeHtml(exp.vendor)} · ${time} · ${escapeHtml(exp.registered_by)}</span>
+						</div>
+					</div>
+					<div class="feed-right-kpi">
+						<span class="feed-amount mono-value">${formatCOP(exp.amount)}</span>
+						<span class="feed-sync-pill ${exp.synced ? 'sync-pill-online' : 'sync-pill-offline'}">
+							${exp.synced ? '✓ Sincronizado' : '⏳ En Cola (Offline)'}
+						</span>
+					</div>
+				</div>
+			`;
+			})
+			.join('');
+	}
+
+	function setupEventListeners() {
+		const form = document.getElementById('form-quick-expense') as HTMLFormElement | null;
+		const projectSelect = document.getElementById('quick-project-select') as HTMLSelectElement | null;
+		const amountInput = document.getElementById('quick-amount-input') as HTMLInputElement | null;
+		const amountPreview = document.getElementById('quick-amount-preview');
+		const fileInput = document.getElementById('camera-file-input') as HTMLInputElement | null;
+		const dropZone = document.getElementById('camera-drop-zone');
+		const promptView = document.getElementById('camera-prompt-view');
+		const previewView = document.getElementById('camera-preview-view');
+		const previewImg = document.getElementById('quick-preview-img') as HTMLImageElement | null;
+		const retakeBtn = document.getElementById('btn-retake-photo');
+		const compressionTag = document.getElementById('compression-feedback');
+		const compressionSize = document.getElementById('compressed-size-text');
+
+		// 0. Selector de Obra / Proyecto de Destino
+		projectSelect?.addEventListener('change', () => {
+			activeProjectId = projectSelect.value;
+			const newProj = cachedProjects.find((p) => p.project_id === activeProjectId);
+			if (newProj) {
+				updateProjectHint(newProj);
+				renderChapterChips(newProj);
+				try {
+					const url = new URL(window.location.href);
+					url.searchParams.set('projectId', activeProjectId);
+					window.history.replaceState({}, '', url.toString());
+				} catch (e) {}
+			}
+		});
+
+		// 1. Preview de Monto en Vivo
+		amountInput?.addEventListener('input', () => {
+			const val = Number(amountInput.value) || 0;
+			if (amountPreview) amountPreview.textContent = formatCOP(val);
+		});
+
+		// 2. Disparar Cámara
+		dropZone?.addEventListener('click', (e) => {
+			if (e.target !== retakeBtn && !retakeBtn?.contains(e.target as Node)) {
+				fileInput?.click();
+			}
+		});
+
+		retakeBtn?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			fileInput?.click();
+		});
+
+		// 3. Procesar Foto con Compresión Automática (< 800 KB en < 1s)
+		fileInput?.addEventListener('change', async () => {
+			const file = fileInput.files?.[0];
+			if (file) {
+				try {
+					const compressed = await compressImageClient(file, 1280, 0.8);
+					currentPhotoDataUrl = compressed.dataUrl;
+					currentPhotoSizeKb = compressed.sizeKb;
+
+					if (previewImg) previewImg.src = currentPhotoDataUrl;
+					promptView?.classList.add('hidden');
+					previewView?.classList.remove('hidden');
+
+					if (compressionTag && compressionSize) {
+						compressionSize.textContent = `${currentPhotoSizeKb} KB`;
+						compressionTag.classList.remove('hidden');
+					}
+				} catch (err) {
+					console.error('Error comprimiendo foto:', err);
+				}
+			}
+		});
+
+		// 4. Botón de Muestra para Pruebas Rápidas
+		document.getElementById('btn-quick-sample-receipt')?.addEventListener('click', () => {
+			const amount = Number(amountInput?.value) || 68000;
+			if (!amountInput?.value) {
+				amountInput!.value = String(amount);
+				if (amountPreview) amountPreview.textContent = formatCOP(amount);
+			}
+
+			const vendor = (document.getElementById('quick-vendor-input') as HTMLInputElement)?.value || 'Ferretería & Suministros El Martillo';
+			const concept = (document.getElementById('quick-concept-input') as HTMLInputElement)?.value || 'Compra de 2 galones de estuco acrílico y lija';
+
+			(document.getElementById('quick-vendor-input') as HTMLInputElement).value = vendor;
+			(document.getElementById('quick-concept-input') as HTMLInputElement).value = concept;
+
+			const today = new Date().toISOString().split('T')[0];
+			currentPhotoDataUrl = generateReceiptSvg(vendor, amount, concept, today);
+			currentPhotoSizeKb = 42;
+
+			if (previewImg) previewImg.src = currentPhotoDataUrl;
+			promptView?.classList.add('hidden');
+			previewView?.classList.remove('hidden');
+
+			if (compressionTag && compressionSize) {
+				compressionSize.textContent = `${currentPhotoSizeKb} KB`;
+				compressionTag.classList.remove('hidden');
+			}
+		});
+
+		// 5. Toggle de Simulación Offline
+		document.getElementById('btn-toggle-offline-simulation')?.addEventListener('click', () => {
+			const nowOffline = isOffline();
+			setSimulatedOffline(!nowOffline);
+			updateNetworkStatusUI();
+			renderExpensesFeed();
+		});
+
+		// 6. Botón Forzar Sincronización
+		document.getElementById('btn-force-sync')?.addEventListener('click', () => {
+			const res = syncPendingExpenses();
+			if (res.syncedCount > 0) {
+				updateNetworkStatusUI();
+				renderExpensesFeed();
+				dispatchToast(`✓ ${res.syncedCount} gasto(s) sincronizado(s) exitosamente.`);
+			}
+		});
+
+		// 7. Envío del Formulario (Guardado en 3 Toques)
+		form?.addEventListener('submit', (e) => {
+			e.preventDefault();
+
+			const amount = Number(amountInput?.value) || 0;
+			const concept = (document.getElementById('quick-concept-input') as HTMLInputElement)?.value.trim() || 'Compra de materiales de campo';
+			const vendor = (document.getElementById('quick-vendor-input') as HTMLInputElement)?.value.trim() || 'Ferretería Local';
+
+			if (amount <= 0) {
+				dispatchToast('Por favor digita un monto válido.', 'error');
+				amountInput?.focus();
+				return;
+			}
+
+			if (!selectedChapterId) {
+				dispatchToast('Selecciona un capítulo de obra.', 'error');
+				return;
+			}
+
+			// Si no tomó foto real, generar comprobante SVG auditado automático
+			const finalPhoto =
+				currentPhotoDataUrl ||
+				generateReceiptSvg(vendor, amount, concept, new Date().toISOString().split('T')[0]);
+
+			const roleConfig = getActiveRoleConfig();
+
+			const result = recordQuickExpense({
+				project_id: activeProjectId,
+				chapter_id: selectedChapterId,
+				amount,
+				concept,
+				vendor,
+				receipt_photo: finalPhoto,
+				photo_size_kb: currentPhotoSizeKb || 40,
+				registered_by: `${roleConfig.name} (${roleConfig.badgeText})`
+			});
+
+			// Resetear formulario para el siguiente gasto rápido
+			form.reset();
+			if (projectSelect) projectSelect.value = activeProjectId;
+			const curProj = cachedProjects.find((p) => p.project_id === activeProjectId);
+			if (curProj) renderChapterChips(curProj);
+
+			if (amountPreview) amountPreview.textContent = '$ 0 COP';
+			currentPhotoDataUrl = '';
+			currentPhotoSizeKb = 0;
+			promptView?.classList.remove('hidden');
+			previewView?.classList.add('hidden');
+			compressionTag?.classList.add('hidden');
+
+			updateNetworkStatusUI();
+			renderExpensesFeed();
+
+			if (result.syncedImmediately) {
+				dispatchToast(`✓ Gasto de ${formatCOP(amount)} guardado y sincronizado con éxito.`);
+			} else {
+				dispatchToast(`📶 Gasto de ${formatCOP(amount)} guardado localmente (Modo Sótano Offline).`, 'warning');
+			}
+		});
+
+		// Listeners de Red Reales
+		window.addEventListener('online', () => {
+			syncPendingExpenses();
+			updateNetworkStatusUI();
+			renderExpensesFeed();
+			dispatchToast('Conexión reestablecida: gastos offline sincronizados.');
+		});
+
+		window.addEventListener('offline', () => {
+			updateNetworkStatusUI();
+		});
+
+		window.addEventListener('obraflow:role-change', () => {
+			updateRoleContextUI();
+		});
+	}
+
+	function dispatchToast(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+		window.dispatchEvent(
+			new CustomEvent('obraflow:toast', {
+				detail: { message, type }
+			})
+		);
+	}
+
+	function escapeHtml(str: string): string {
+		return (str || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initQuickExpense);
+	} else {
+		initQuickExpense();
+	}
+</script>

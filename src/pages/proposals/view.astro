@@ -30,7 +30,67 @@ import Layout from '../../layouts/Layout.astro';
 			<a href="/budgets" class="ps-btn ps-btn-primary">Volver a Presupuestos</a>
 		</div>
 
+		<div id="ps-track-status" class="ps-track-status hidden" aria-live="polite"></div>
 		<article id="proposal-sheet" class="proposal-sheet hidden" aria-label="Propuesta comercial"></article>
+
+		<section id="ps-signature" class="ps-signature hidden" aria-label="Firma electrónica">
+			<div class="ps-sign-head">
+				<p class="ps-sign-kicker">Aprobación de propuesta</p>
+				<h2 class="ps-sign-title">Firma electrónica</h2>
+				<p class="ps-sign-desc">Firma con tu dedo o mouse. Al aprobar, registraremos la evidencia de aceptación.</p>
+			</div>
+
+			<div id="ps-sign-form" class="ps-sign-form">
+				<label class="ps-field">
+					<span>Nombre legal completo *</span>
+					<input id="ps-signer-name" type="text" autocomplete="name" maxlength="120" placeholder="Ej. Carlos Alberto Rodríguez" />
+				</label>
+				<label class="ps-field">
+					<span>Cédula / DNI del firmante *</span>
+					<input id="ps-signer-id" type="text" autocomplete="off" maxlength="60" placeholder="Ej. CC 79.845.120" />
+				</label>
+
+				<div class="ps-field">
+					<span>Firma aquí con su dedo *</span>
+					<div id="ps-canvas-wrap" class="ps-canvas-wrap">
+						<canvas id="ps-sign-canvas" width="900" height="360" aria-label="Lienzo de firma"></canvas>
+						<div class="ps-canvas-guide" aria-hidden="true"></div>
+						<div class="ps-canvas-hint" aria-hidden="true">Firme aquí con su dedo</div>
+					</div>
+					<div class="ps-canvas-actions">
+						<button id="ps-clear-sign" type="button" class="ps-btn ps-btn-ghost ps-btn-sm">Borrar trazo y volver a firmar</button>
+					</div>
+					<p id="ps-sign-error" class="ps-field-error hidden" role="alert">Por favor dibuja tu firma antes de continuar.</p>
+				</div>
+
+				<label class="ps-check">
+					<input id="ps-terms" type="checkbox" />
+					<span>He leído, comprendido y acepto los términos de alcance, hitos de pago y especificaciones descritas en este documento.</span>
+				</label>
+				<p id="ps-form-error" class="ps-field-error hidden" role="alert"></p>
+
+				<button id="ps-approve-btn" type="button" class="ps-btn ps-btn-primary ps-btn-full">
+					<span id="ps-approve-label">Aprobar y Firmar Contrato</span>
+				</button>
+			</div>
+
+			<div id="ps-sign-success" class="ps-sign-success hidden">
+				<div class="ps-success-icon" aria-hidden="true">
+					<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+				</div>
+				<h3>Contrato firmado y aprobado</h3>
+				<p id="ps-success-meta" class="ps-success-meta"></p>
+				<p id="ps-success-project" class="ps-success-project hidden"></p>
+				<div class="ps-signature-proof">
+					<p class="ps-proof-label">Firma del cliente</p>
+					<img id="ps-signature-img" class="ps-signature-img" alt="Firma del cliente" />
+				</div>
+				<div class="ps-success-actions">
+					<a id="ps-go-project" href="/budgets" class="ps-btn ps-btn-ghost">Ir al Panel de Obra</a>
+					<button id="ps-download-pdf" type="button" class="ps-btn ps-btn-primary">Descargar copia en PDF</button>
+				</div>
+			</div>
+		</section>
 	</div>
 </Layout>
 
@@ -127,6 +187,18 @@ import Layout from '../../layouts/Layout.astro';
 		flex-direction: column;
 		align-items: center;
 		gap: 0.75rem;
+	}
+
+	.ps-track-status {
+		width: 100%;
+		max-width: 820px;
+		padding: 0.625rem 0.875rem;
+		border-radius: 0.625rem;
+		background: #ECFDF5;
+		border: 1px solid #A7F3D0;
+		color: #065F46;
+		font-size: 0.8125rem;
+		font-weight: 600;
 	}
 
 	/* Documento (tamaño Carta/A4) */
@@ -433,6 +505,37 @@ import Layout from '../../layouts/Layout.astro';
 		color: #94A3B8;
 	}
 
+	/* HU-11 firma */
+	.ps-signature { width:100%; max-width:820px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:0.75rem; padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
+	.ps-sign-kicker { font-size:0.6875rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#EA580C; }
+	.ps-sign-title { font-size:1.375rem; font-weight:800; color:#0F172A; margin-top:0.125rem; }
+	.ps-sign-desc { font-size:0.875rem; color:#475569; margin-top:0.25rem; }
+	.ps-sign-form { display:flex; flex-direction:column; gap:1rem; }
+	.ps-field { display:flex; flex-direction:column; gap:0.375rem; font-size:0.8125rem; font-weight:700; color:#334155; }
+	.ps-field input[type="text"] { min-height:48px; padding:0.625rem 0.75rem; border:1.5px solid #CBD5E1; border-radius:0.5rem; font-size:1rem; color:#0F172A; }
+	.ps-field input[type="text"]:focus { outline:2px solid #F97316; outline-offset:1px; border-color:#F97316; }
+	.ps-canvas-wrap { position:relative; border:2px dashed #94A3B8; border-radius:0.625rem; background:#FFFBF5; overflow:hidden; touch-action:none; }
+	.ps-canvas-wrap.has-error { border-color:#DC2626; background:#FEF2F2; }
+	#ps-sign-canvas { display:block; width:100%; height:180px; cursor:crosshair; }
+	.ps-canvas-guide { position:absolute; left:1rem; right:1rem; bottom:2.5rem; border-bottom:1px dashed #CBD5E1; pointer-events:none; }
+	.ps-canvas-hint { position:absolute; left:0; right:0; bottom:0.75rem; text-align:center; font-size:0.8125rem; color:#94A3B8; pointer-events:none; }
+	.ps-canvas-actions { display:flex; justify-content:flex-end; }
+	.ps-btn-sm { min-height:44px; font-size:0.75rem; padding:0.375rem 0.625rem; }
+	.ps-btn-full { width:100%; min-height:52px; font-size:1rem; }
+	.ps-check { display:flex; gap:0.625rem; align-items:flex-start; font-size:0.8125rem; color:#334155; line-height:1.45; }
+	.ps-check input { width:20px; height:20px; margin-top:0.125rem; accent-color:#EA580C; flex-shrink:0; }
+	.ps-field-error { font-size:0.8125rem; color:#DC2626; font-weight:600; }
+	.ps-sign-success { text-align:center; padding:1.5rem 1rem; display:flex; flex-direction:column; align-items:center; gap:0.75rem; }
+	.ps-success-icon { width:56px; height:56px; border-radius:9999px; background:#ECFDF5; color:#059669; display:flex; align-items:center; justify-content:center; }
+	.ps-sign-success h3 { font-size:1.25rem; font-weight:800; color:#065F46; }
+	.ps-success-meta { font-size:0.875rem; color:#475569; max-width:36rem; }
+	.ps-success-project { font-size:0.875rem; color:#065F46; font-weight:600; max-width:36rem; }
+	.ps-success-actions { display:flex; gap:0.75rem; flex-wrap:wrap; justify-content:center; }
+	.ps-approved-stamp { display:inline-flex; align-items:center; gap:0.375rem; padding:0.375rem 0.75rem; border-radius:9999px; background:#ECFDF5; color:#047857; font-size:0.75rem; font-weight:800; border:1px solid #A7F3D0; }
+	.ps-signature-proof { width:100%; max-width:28rem; border:1px solid #CBD5E1; border-radius:0.625rem; background:#FFFFFF; padding:0.75rem; }
+	.ps-proof-label { font-size:0.6875rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:#64748B; margin-bottom:0.5rem; text-align:left; }
+	.ps-signature-img { display:block; width:100%; max-height:140px; object-fit:contain; border-bottom:1px dashed #94A3B8; background:#FFFBF5; }
+
 	@media (max-width: 720px) {
 		.proposal-sheet {
 			padding: 1.5rem 1.25rem;
@@ -468,7 +571,10 @@ import Layout from '../../layouts/Layout.astro';
 		}
 
 		.ps-toolbar,
-		.ps-not-found {
+		.ps-not-found,
+		.ps-track-status,
+		.ps-sign-form,
+		.ps-canvas-actions {
 			display: none !important;
 		}
 
@@ -513,6 +619,12 @@ import Layout from '../../layouts/Layout.astro';
 		WORK_EXCLUSIONS,
 		type CommercialProposal
 	} from '../../lib/proposal';
+	import {
+		findProposalToken,
+		recordProposalView
+	} from '../../lib/proposal-tracking';
+	import { buildContractPayload, finalizeSignedProposal, isCanvasBlank, sha256Hex } from '../../lib/proposal-signature';
+	import type { BudgetSignature } from '../../lib/budget-store';
 
 	function escapeHtml(value: string): string {
 		return String(value)
@@ -527,17 +639,68 @@ import Layout from '../../layouts/Layout.astro';
 		return Number.isInteger(value) ? String(value) : value.toLocaleString('es-CO', { maximumFractionDigits: 2 });
 	}
 
+	const LEADS_KEY = 'obraflow_leads';
+
+	function loadLeads(): any[] {
+		try {
+			const raw = localStorage.getItem(LEADS_KEY);
+			if (!raw) return [];
+			const parsed = JSON.parse(raw);
+			return Array.isArray(parsed) ? parsed : [];
+		} catch (_) {
+			return [];
+		}
+	}
+
 	function loadLeadAddress(leadId?: string): string | undefined {
 		if (!leadId) return undefined;
+		const lead = loadLeads().find((entry) => entry && entry.id === leadId);
+		return lead?.project_address;
+	}
+
+	function markLeadProposalOpened(leadId?: string) {
+		if (!leadId) return;
+		const leads = loadLeads();
+		const lead = leads.find((entry) => entry && entry.id === leadId);
+		if (!lead) return;
+		let changed = false;
+		if (lead.stage === 'proposal_sent') {
+			lead.stage = 'opened';
+			changed = true;
+		}
+		const now = new Date().toISOString();
+		if (!changed) {
+			// still update updated_at only when stage changed? avoid noisy writes
+		} else {
+			lead.updated_at = now;
+		}
+		if (changed) {
+			try { localStorage.setItem(LEADS_KEY, JSON.stringify(leads)); } catch (_) {}
+		}
+	}
+
+	function trackProposalViewIfNeeded(budget: any) {
+		const tokenParam = params.get('t') || params.get('token');
+		if (!tokenParam) return;
+		const tokenRecord = findProposalToken(tokenParam);
+		if (!tokenRecord || tokenRecord.budget_id !== budget.id) return;
+
+		const sessionKey = `obraflow_pv_tracked_${tokenParam}`;
+		if (sessionStorage.getItem(sessionKey) === '1') return;
+
 		try {
-			const raw = localStorage.getItem('obraflow_leads');
-			if (!raw) return undefined;
-			const leads = JSON.parse(raw);
-			if (!Array.isArray(leads)) return undefined;
-			const lead = leads.find((entry) => entry && entry.id === leadId);
-			return lead?.project_address;
+			recordProposalView({
+				token: tokenParam,
+				budget_id: budget.id,
+				lead_id: budget.lead_id || tokenRecord.lead_id,
+				screen_resolution: `${window.screen.width}x${window.screen.height}`,
+				referrer: document.referrer || undefined,
+				user_agent: navigator.userAgent
+			});
+			sessionStorage.setItem(sessionKey, '1');
+			markLeadProposalOpened(budget.lead_id || tokenRecord.lead_id);
 		} catch (_) {
-			return undefined;
+			// tracking silencioso: no bloquear la propuesta al cliente
 		}
 	}
 
@@ -652,15 +815,127 @@ import Layout from '../../layouts/Layout.astro';
 	}
 
 	const params = new URLSearchParams(window.location.search);
-	const budget = findBudget(params.get('id'));
+	const tokenParam = params.get('t') || params.get('token');
+	const tokenRecord = tokenParam ? findProposalToken(tokenParam) : null;
+	const budgetId = params.get('id') || tokenRecord?.budget_id || null;
+	const budget = findBudget(budgetId);
+
+	function showApproved(signature: BudgetSignature, projectName?: string) {
+		const sec = document.getElementById('ps-signature');
+		const form = document.getElementById('ps-sign-form');
+		const ok = document.getElementById('ps-sign-success');
+		const meta = document.getElementById('ps-success-meta');
+		const projectMsg = document.getElementById('ps-success-project');
+		const img = document.getElementById('ps-signature-img') as HTMLImageElement | null;
+		sec?.classList.remove('hidden');
+		form?.classList.add('hidden');
+		ok?.classList.remove('hidden');
+		const when = signature.signed_at ? new Date(signature.signed_at).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' }) : '';
+		if (meta) meta.textContent = `Firmado por ${signature.signer_name} (${signature.signer_id_number})${when ? ` el ${when}` : ''}.`;
+		if (projectMsg) {
+			projectMsg.textContent = projectName ? `El proyecto "${projectName}" ha sido creado y está listo para ejecución.` : '';
+			projectMsg.classList.toggle('hidden', !projectName);
+		}
+		if (img && signature.signature_png_base64) img.src = signature.signature_png_base64;
+	}
+
+	function initSignatureUI(currentBudget: any, commercial: CommercialProposal) {
+		const sec = document.getElementById('ps-signature');
+		if (!tokenParam || !tokenRecord || tokenRecord.budget_id !== currentBudget.id) return;
+		sec?.classList.remove('hidden');
+		if ((currentBudget.status === 'approved' || currentBudget.status === 'frozen') && currentBudget.signature) {
+			showApproved(currentBudget.signature as BudgetSignature, currentBudget.title);
+			return;
+		}
+
+		const canvas = document.getElementById('ps-sign-canvas') as HTMLCanvasElement | null;
+		const wrap = document.getElementById('ps-canvas-wrap');
+		const clearBtn = document.getElementById('ps-clear-sign');
+		const approveBtn = document.getElementById('ps-approve-btn') as HTMLButtonElement | null;
+		const approveLabel = document.getElementById('ps-approve-label');
+		const signErr = document.getElementById('ps-sign-error');
+		const formErr = document.getElementById('ps-form-error');
+		const nameInput = document.getElementById('ps-signer-name') as HTMLInputElement | null;
+		const idInput = document.getElementById('ps-signer-id') as HTMLInputElement | null;
+		const terms = document.getElementById('ps-terms') as HTMLInputElement | null;
+		if (!canvas) return;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+		ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0F172A';
+		let drawing = false; let hasInk = false; let lastX = 0; let lastY = 0;
+
+		const pos = (e: PointerEvent) => {
+			const r = canvas.getBoundingClientRect();
+			return { x: (e.clientX - r.left) * (canvas.width / r.width), y: (e.clientY - r.top) * (canvas.height / r.height) };
+		};
+		const clear = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); hasInk = false; wrap?.classList.remove('has-error'); signErr?.classList.add('hidden'); };
+		canvas.addEventListener('pointerdown', (e) => { drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; canvas.setPointerCapture(e.pointerId); });
+		canvas.addEventListener('pointermove', (e) => {
+			if (!drawing) return;
+			const p = pos(e);
+			ctx.beginPath(); ctx.moveTo(lastX, lastY);
+			const mx = (lastX + p.x) / 2; const my = (lastY + p.y) / 2;
+			ctx.quadraticCurveTo(lastX, lastY, mx, my); ctx.stroke();
+			lastX = p.x; lastY = p.y; hasInk = true; wrap?.classList.remove('has-error'); signErr?.classList.add('hidden');
+		});
+		const stop = () => { drawing = false; };
+		canvas.addEventListener('pointerup', stop); canvas.addEventListener('pointercancel', stop); canvas.addEventListener('pointerleave', stop);
+		clearBtn?.addEventListener('click', clear);
+
+		approveBtn?.addEventListener('click', async () => {
+			formErr?.classList.add('hidden');
+			const name = (nameInput?.value || '').trim();
+			const doc = (idInput?.value || '').trim();
+			const accepted = !!terms?.checked;
+			let bad = false;
+			if (!hasInk || isCanvasBlank(canvas)) { wrap?.classList.add('has-error'); signErr?.classList.remove('hidden'); bad = true; }
+			if (!name || !doc || !accepted) {
+				if (formErr) { formErr.textContent = 'Completa nombre, documento y la aceptación de términos para continuar.'; formErr.classList.remove('hidden'); }
+				bad = true;
+			}
+			if (bad || !approveBtn) return;
+			approveBtn.disabled = true;
+			if (approveLabel) approveLabel.textContent = 'Sellando y asegurando contrato...';
+			try {
+				const signedAt = new Date().toISOString();
+				const contractHash = await sha256Hex(buildContractPayload({
+					budgetId: currentBudget.id, title: commercial.title, clientName: commercial.clientName || '', total: commercial.totals.grandTotal, taxLabel: commercial.totals.taxLabel,
+					signerName: name, signerId: doc, signedAt
+				}));
+				const signature: BudgetSignature = {
+					signer_name: name, signer_id_number: doc, signature_png_base64: canvas.toDataURL('image/png'),
+					signed_at: signedAt, signer_user_agent: navigator.userAgent, screen_resolution: `${window.screen.width}x${window.screen.height}`,
+					referrer: document.referrer || undefined, contract_hash_sha256: contractHash, terms_accepted: true, proposal_token: tokenParam || undefined
+				};
+				const result = finalizeSignedProposal(currentBudget.id, signature, loadLeadAddress(currentBudget.lead_id));
+				if (!result) throw new Error('No se pudo finalizar la propuesta');
+				showApproved(result.budget.signature as BudgetSignature, result.project.name);
+				window.dispatchEvent(new CustomEvent('show-toast', {
+					detail: {
+						title: '¡Contrato firmado!',
+						message: `El proyecto "${result.project.name}" ha sido creado y está listo para ejecución.`,
+						type: 'success'
+					}
+				}));
+			} catch (_) {
+				if (formErr) { formErr.textContent = 'No pudimos sellar el contrato. Intenta de nuevo.'; formErr.classList.remove('hidden'); }
+				approveBtn.disabled = false;
+				if (approveLabel) approveLabel.textContent = 'Aprobar y Firmar Contrato';
+			}
+		});
+	}
 
 	if (!budget) {
 		document.getElementById('ps-not-found')?.classList.remove('hidden');
 	} else {
-		renderProposal(buildCommercialProposal(budget, { address: loadLeadAddress(budget.lead_id) }));
+		const commercial = buildCommercialProposal(budget, { address: loadLeadAddress(budget.lead_id) });
+		renderProposal(commercial);
 		const backLink = document.getElementById('ps-back') as HTMLAnchorElement | null;
 		if (backLink) backLink.href = `/budgets/editor?id=${encodeURIComponent(budget.id)}`;
+		trackProposalViewIfNeeded(budget);
+		initSignatureUI(budget, commercial);
 	}
 
 	document.getElementById('ps-print')?.addEventListener('click', () => window.print());
+	document.getElementById('ps-download-pdf')?.addEventListener('click', () => window.print());
 </script>

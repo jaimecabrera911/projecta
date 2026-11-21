@@ -1,0 +1,531 @@
+---
+// src/components/HeaderRoleSwitcher.astro
+// Selector interactivo de roles en el Header (Administrador, Residente, Maestro, Cliente).
+---
+
+<div id="header-role-switcher" class="role-switcher-container">
+	<!-- Botón Disparador del Dropdown de Roles -->
+	<button
+		id="btn-role-trigger"
+		type="button"
+		class="btn-role-trigger"
+		aria-haspopup="true"
+		aria-expanded="false"
+		aria-label="Cambiar rol de usuario activo"
+	>
+		<div id="role-avatar" class="role-avatar" aria-hidden="true">CM</div>
+		<div class="role-text-cluster desktop-only">
+			<span id="role-user-name" class="role-user-name">Carlos Mendoza</span>
+			<div class="role-badge-row">
+				<span id="role-badge-pill" class="role-badge-pill">Admin</span>
+				<svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="6 9 12 15 18 9"></polyline>
+				</svg>
+			</div>
+		</div>
+	</button>
+
+	<!-- Menú Desplegable de Selección de Roles -->
+	<div id="role-dropdown-menu" class="role-dropdown-menu hidden" role="menu" aria-label="Lista de roles de usuario">
+		<div class="dropdown-header">
+			<span class="dropdown-kicker">Simulación de Contexto</span>
+			<h4 class="dropdown-title">Seleccionar Rol Activo</h4>
+			<p class="dropdown-subtitle">Cambia la perspectiva, permisos y ergonomía visual</p>
+		</div>
+
+		<div class="role-options-list" role="none">
+			<!-- 1. Administrador / Dueño -->
+			<button
+				type="button"
+				class="role-option-item active"
+				data-role="admin"
+				role="menuitem"
+			>
+				<div class="option-avatar" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);">CM</div>
+				<div class="option-info">
+					<div class="option-title-row">
+						<span class="option-name">Carlos Mendoza</span>
+						<span class="option-badge badge-admin">Admin</span>
+					</div>
+					<span class="option-role-title">Contratista General / Dueño</span>
+					<span class="option-desc">Acceso total a finanzas, márgenes de utilidad y CRM.</span>
+				</div>
+				<span class="option-check" aria-hidden="true">✓</span>
+			</button>
+
+			<!-- 2. Residente de Obra -->
+			<button
+				type="button"
+				class="role-option-item"
+				data-role="resident"
+				role="menuitem"
+			>
+				<div class="option-avatar" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);">MG</div>
+				<div class="option-info">
+					<div class="option-title-row">
+						<span class="option-name">Ing. Mateo Gómez</span>
+						<span class="option-badge badge-resident">Residente</span>
+					</div>
+					<span class="option-role-title">Residente de Obra</span>
+					<span class="option-desc">Modo campo: registro en 3 toques, sin márgenes ni precios cliente.</span>
+				</div>
+				<span class="option-check" aria-hidden="true">✓</span>
+			</button>
+
+			<!-- 3. Maestro Supervisor -->
+			<button
+				type="button"
+				class="role-option-item"
+				data-role="supervisor"
+				role="menuitem"
+			>
+				<div class="option-avatar" style="background: linear-gradient(135deg, #D97706 0%, #B45309 100%);">PF</div>
+				<div class="option-info">
+					<div class="option-title-row">
+						<span class="option-name">Maestro Pedro Flórez</span>
+						<span class="option-badge badge-supervisor">Maestro</span>
+					</div>
+					<span class="option-role-title">Maestro Supervisor de Obra</span>
+					<span class="option-desc">Captura táctil ultra-rápida de recibos y reporte de jornales.</span>
+				</div>
+				<span class="option-check" aria-hidden="true">✓</span>
+			</button>
+
+			<!-- 4. Cliente Final -->
+			<button
+				type="button"
+				class="role-option-item"
+				data-role="client"
+				role="menuitem"
+			>
+				<div class="option-avatar" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">AR</div>
+				<div class="option-info">
+					<div class="option-title-row">
+						<span class="option-name">Dr. Andrés Restrepo</span>
+						<span class="option-badge badge-client">Cliente</span>
+					</div>
+					<span class="option-role-title">Propietario / Cliente Final</span>
+					<span class="option-desc">Portal cliente: estado de cuenta y fotos autorizadas sin costos internos.</span>
+				</div>
+				<span class="option-check" aria-hidden="true">✓</span>
+			</button>
+		</div>
+
+		<!-- Footer del Dropdown con Acceso Directo a HU-14 -->
+		<div class="dropdown-footer">
+			<a href="/expenses/quick" id="btn-quick-expense-nav" class="btn-quick-expense-link">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+					<circle cx="12" cy="13" r="4"></circle>
+				</svg>
+				<span>Ir a Registro de Gastos en 3 Toques (HU-14)</span>
+			</a>
+		</div>
+	</div>
+</div>
+
+<style>
+	.role-switcher-container {
+		position: relative;
+		display: inline-block;
+	}
+
+	.btn-role-trigger {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		height: 48px;
+		padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+		border-radius: 9999px;
+		background-color: #1E293B;
+		border: 1px solid #334155;
+		color: #FFFFFF;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		user-select: none;
+	}
+
+	.btn-role-trigger:hover {
+		background-color: #334155;
+		border-color: #475569;
+	}
+
+	.btn-role-trigger:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.role-avatar {
+		width: 38px;
+		height: 38px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #FFFFFF;
+		letter-spacing: 0.02em;
+		flex-shrink: 0;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	}
+
+	.role-text-cluster {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		text-align: left;
+		line-height: 1.2;
+	}
+
+	.role-user-name {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #F8FAFC;
+		white-space: nowrap;
+	}
+
+	.role-badge-row {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin-top: 0.15rem;
+	}
+
+	.role-badge-pill {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+		background-color: #FFF7ED;
+		color: #EA580C;
+	}
+
+	.chevron-icon {
+		color: #94A3B8;
+		transition: transform 0.2s ease;
+	}
+
+	.btn-role-trigger[aria-expanded="true"] .chevron-icon {
+		transform: rotate(180deg);
+	}
+
+	/* Menú Desplegable */
+	.role-dropdown-menu {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		right: 0;
+		width: 360px;
+		max-width: calc(100vw - 2rem);
+		background-color: #0F172A;
+		border: 1px solid #334155;
+		border-radius: 0.875rem;
+		box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+		z-index: 100;
+		overflow: hidden;
+		animation: dropdown-fade-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes dropdown-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.dropdown-header {
+		padding: 1rem 1.25rem 0.75rem;
+		border-bottom: 1px solid #1E293B;
+		background-color: #1E293B;
+	}
+
+	.dropdown-kicker {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #F97316;
+		display: block;
+	}
+
+	.dropdown-title {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #F8FAFC;
+		margin: 0.2rem 0 0;
+	}
+
+	.dropdown-subtitle {
+		font-size: 0.75rem;
+		color: #94A3B8;
+		margin: 0.15rem 0 0;
+	}
+
+	.role-options-list {
+		padding: 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		max-height: 380px;
+		overflow-y: auto;
+	}
+
+	.role-option-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem;
+		border-radius: 0.625rem;
+		background-color: transparent;
+		border: 1px solid transparent;
+		color: #F8FAFC;
+		cursor: pointer;
+		text-align: left;
+		transition: all 0.15s ease;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.role-option-item:hover {
+		background-color: #1E293B;
+		border-color: #334155;
+	}
+
+	.role-option-item.active {
+		background-color: #1E293B;
+		border-color: #F97316;
+	}
+
+	.role-option-item:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 1px;
+	}
+
+	.option-avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #FFFFFF;
+		flex-shrink: 0;
+	}
+
+	.option-info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.option-title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.option-name {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #FFFFFF;
+	}
+
+	.option-badge {
+		font-size: 0.625rem;
+		font-weight: 800;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.badge-admin { background-color: #FFF7ED; color: #EA580C; }
+	.badge-resident { background-color: #EFF6FF; color: #1D4ED8; }
+	.badge-supervisor { background-color: #FEF3C7; color: #B45309; }
+	.badge-client { background-color: #ECFDF5; color: #047857; }
+
+	.option-role-title {
+		font-size: 0.75rem;
+		color: #CBD5E1;
+		font-weight: 600;
+		display: block;
+		margin-top: 0.1rem;
+	}
+
+	.option-desc {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		display: block;
+		margin-top: 0.15rem;
+		line-height: 1.3;
+	}
+
+	.option-check {
+		font-size: 1rem;
+		font-weight: 800;
+		color: #F97316;
+		opacity: 0;
+		transition: opacity 0.15s ease;
+	}
+
+	.role-option-item.active .option-check {
+		opacity: 1;
+	}
+
+	.dropdown-footer {
+		padding: 0.75rem;
+		border-top: 1px solid #1E293B;
+		background-color: #0A0F1D;
+	}
+
+	.btn-quick-expense-link {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		height: 44px;
+		background-color: #F97316;
+		color: #FFFFFF;
+		text-decoration: none;
+		border-radius: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		transition: background-color 0.15s ease;
+	}
+
+	.btn-quick-expense-link:hover {
+		background-color: #EA580C;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 640px) {
+		.role-dropdown-menu {
+			right: -0.5rem;
+			width: 320px;
+		}
+	}
+</style>
+
+<script>
+	import { getActiveRole, setActiveRole, ROLES_CONFIG, type UserRole } from '../lib/role-store';
+
+	function initRoleSwitcher() {
+		const container = document.getElementById('header-role-switcher');
+		if (!container) return;
+
+		const triggerBtn = document.getElementById('btn-role-trigger');
+		const dropdownMenu = document.getElementById('role-dropdown-menu');
+		const avatarEl = document.getElementById('role-avatar');
+		const nameEl = document.getElementById('role-user-name');
+		const badgeEl = document.getElementById('role-badge-pill');
+		const optionItems = document.querySelectorAll('.role-option-item');
+
+		function updateUiForRole(roleKey: UserRole) {
+			const config = ROLES_CONFIG[roleKey] || ROLES_CONFIG.admin;
+
+			if (avatarEl) {
+				avatarEl.textContent = config.avatar;
+				avatarEl.style.background = config.avatarBg;
+			}
+			if (nameEl) nameEl.textContent = config.name;
+			if (badgeEl) {
+				badgeEl.textContent = config.badgeText;
+				badgeEl.style.backgroundColor = config.badgeBg;
+				badgeEl.style.color = config.badgeColor;
+			}
+
+			optionItems.forEach((item) => {
+				const itemRole = item.getAttribute('data-role');
+				if (itemRole === roleKey) {
+					item.classList.add('active');
+					item.setAttribute('aria-selected', 'true');
+				} else {
+					item.classList.remove('active');
+					item.removeAttribute('aria-selected');
+				}
+			});
+		}
+
+		// Leer rol guardado
+		const initialRole = getActiveRole();
+		updateUiForRole(initialRole);
+
+		// Abrir / Cerrar dropdown
+		function toggleDropdown() {
+			const isHidden = dropdownMenu?.classList.contains('hidden');
+			if (isHidden) {
+				dropdownMenu?.classList.remove('hidden');
+				triggerBtn?.setAttribute('aria-expanded', 'true');
+			} else {
+				dropdownMenu?.classList.add('hidden');
+				triggerBtn?.setAttribute('aria-expanded', 'false');
+			}
+		}
+
+		function closeDropdown() {
+			dropdownMenu?.classList.add('hidden');
+			triggerBtn?.setAttribute('aria-expanded', 'false');
+		}
+
+		triggerBtn?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			toggleDropdown();
+		});
+
+		// Selección de rol
+		optionItems.forEach((item) => {
+			item.addEventListener('click', () => {
+				const role = (item.getAttribute('data-role') as UserRole) || 'admin';
+				const config = setActiveRole(role);
+				updateUiForRole(role);
+				closeDropdown();
+
+				// Disparar toast informativo
+				window.dispatchEvent(
+					new CustomEvent('obraflow:toast', {
+						detail: {
+							message: `Perfil cambiado a: ${config.label} (${config.name})`,
+							type: 'success'
+						}
+					})
+				);
+			});
+		});
+
+		// Cerrar al hacer clic fuera o con Escape
+		document.addEventListener('click', (e) => {
+			if (!container.contains(e.target as Node)) {
+				closeDropdown();
+			}
+		});
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !dropdownMenu?.classList.contains('hidden')) {
+				closeDropdown();
+			}
+		});
+
+		// Escuchar cambios de rol emitidos por otras partes
+		window.addEventListener('obraflow:role-change', (e: any) => {
+			if (e.detail?.role) {
+				updateUiForRole(e.detail.role);
+			}
+		});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initRoleSwitcher);
+	} else {
+		initRoleSwitcher();
+	}
+</script>

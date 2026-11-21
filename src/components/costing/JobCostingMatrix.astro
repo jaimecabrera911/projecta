@@ -1,0 +1,572 @@
+---
+// src/components/costing/JobCostingMatrix.astro
+// HU-13: Matriz Financiera por Capítulos con Drill-down interactivo a Recibos de Campo.
+---
+
+<section id="job-costing-matrix" class="costing-matrix-card" aria-label="Matriz comparativa de costos por capítulos">
+	<!-- Barra de Herramientas y Filtros Rápidos (Operate Mode) -->
+	<div class="matrix-toolbar" id="matrix-toolbar">
+		<div class="matrix-title-wrap">
+			<div class="matrix-heading-icon" aria-hidden="true">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+					<line x1="8" y1="6" x2="21" y2="6"></line>
+					<line x1="8" y1="12" x2="21" y2="12"></line>
+					<line x1="8" y1="18" x2="21" y2="18"></line>
+					<line x1="3" y1="6" x2="3.01" y2="6"></line>
+					<line x1="3" y1="12" x2="3.01" y2="12"></line>
+					<line x1="3" y1="18" x2="3.01" y2="18"></line>
+				</svg>
+			</div>
+			<div>
+				<h2 class="matrix-title">Desglose por Capítulos de Obra</h2>
+				<p class="matrix-subtitle">Toca cualquier capítulo para inspeccionar los gastos de campo y recibos asociados</p>
+			</div>
+		</div>
+
+		<!-- Filtros de Estado & Búsqueda -->
+		<div class="matrix-controls-group">
+			<div class="matrix-search-box">
+				<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input
+					id="matrix-search-input"
+					type="search"
+					placeholder="Buscar capítulo..."
+					class="matrix-search-input"
+					aria-label="Buscar capítulo o partida"
+				/>
+			</div>
+
+			<div class="filter-chips-wrap" role="group" aria-label="Filtro de estado de capítulos">
+				<button id="filter-chip-all" type="button" class="filter-chip active" data-status="all">Todos (<span id="count-all">0</span>)</button>
+				<button id="filter-chip-danger" type="button" class="filter-chip chip-danger" data-status="danger">Sobrecosto (<span id="count-danger">0</span>)</button>
+				<button id="filter-chip-warning" type="button" class="filter-chip chip-warning" data-status="warning">En Alerta (<span id="count-warning">0</span>)</button>
+				<button id="filter-chip-normal" type="button" class="filter-chip chip-normal" data-status="normal">Saludables (<span id="count-normal">0</span>)</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tabla Principal de Job Costing -->
+	<div class="table-responsive-container" id="matrix-table-container">
+		<table id="job-costing-table" class="costing-table" aria-label="Tabla de presupuesto vs real">
+			<thead>
+				<tr>
+					<th scope="col" class="th-expand" aria-label="Expandir"></th>
+					<th scope="col" class="th-chapter">Capítulo de Obra</th>
+					<th scope="col" class="th-num">Presupuesto Base</th>
+					<th scope="col" class="th-num">Adicionales</th>
+					<th scope="col" class="th-num">Presupuesto Vigente</th>
+					<th scope="col" class="th-num">Gasto Real Ejecutado</th>
+					<th scope="col" class="th-num">Saldo Disponible</th>
+					<th scope="col" class="th-center">% Ejecutado</th>
+					<th scope="col" class="th-center">Estado</th>
+					<th scope="col" class="th-actions">Acción</th>
+				</tr>
+			</thead>
+			<tbody id="matrix-tbody">
+				<!-- Filas inyectadas dinámicamente -->
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Estado vacío si el filtro no arroja resultados -->
+	<div id="matrix-empty-state" class="matrix-empty hidden">
+		<div class="empty-icon" aria-hidden="true">
+			<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+				<circle cx="11" cy="11" r="8"></circle>
+				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+			</svg>
+		</div>
+		<p class="empty-text">No se encontraron capítulos con el filtro seleccionado</p>
+		<button id="btn-matrix-clear-filter" type="button" class="btn-clear-filter">Ver todos los capítulos</button>
+	</div>
+</section>
+
+<style>
+	.costing-matrix-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		overflow: hidden;
+		margin-bottom: 2rem;
+	}
+
+	.matrix-toolbar {
+		padding: 1.25rem 1.5rem;
+		border-bottom: 1px solid #E2E8F0;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.25rem;
+		background-color: #F8FAFC;
+	}
+
+	.matrix-title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+	}
+
+	.matrix-heading-icon {
+		width: 40px;
+		height: 40px;
+		border-radius: 0.5rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #0F172A;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.matrix-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.01em;
+		margin: 0;
+	}
+
+	.matrix-subtitle {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin: 0.15rem 0 0;
+	}
+
+	.matrix-controls-group {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.matrix-search-box {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 0.75rem;
+		color: #94A3B8;
+		pointer-events: none;
+	}
+
+	.matrix-search-input {
+		height: 40px;
+		padding: 0 0.75rem 0 2.25rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.5rem;
+		font-family: inherit;
+		font-size: 0.8125rem;
+		color: #0F172A;
+		outline: none;
+		transition: all 0.15s ease;
+		width: 200px;
+	}
+
+	.matrix-search-input:focus {
+		border-color: #F97316;
+		width: 240px;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.filter-chips-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.filter-chip {
+		height: 38px;
+		padding: 0 0.75rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 700;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #475569;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.filter-chip:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+	}
+
+	.filter-chip.active {
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border-color: #0F172A;
+	}
+
+	.filter-chip.chip-danger.active {
+		background-color: #DC2626;
+		border-color: #B91C1C;
+		color: #FFFFFF;
+	}
+
+	.filter-chip.chip-warning.active {
+		background-color: #D97706;
+		border-color: #B45309;
+		color: #FFFFFF;
+	}
+
+	.filter-chip.chip-normal.active {
+		background-color: #059669;
+		border-color: #047857;
+		color: #FFFFFF;
+	}
+
+	/* Tabla Responsive */
+	.table-responsive-container {
+		width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.costing-table {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: left;
+		font-size: 0.875rem;
+	}
+
+	.costing-table thead tr {
+		background-color: #F8FAFC;
+		border-bottom: 2px solid #E2E8F0;
+	}
+
+	.costing-table th {
+		padding: 0.875rem 1rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #475569;
+		white-space: nowrap;
+	}
+
+	.th-expand {
+		width: 48px;
+		padding-left: 1.25rem;
+	}
+
+	.th-chapter {
+		min-width: 220px;
+	}
+
+	.th-num {
+		text-align: right;
+		min-width: 130px;
+	}
+
+	.th-center {
+		text-align: center;
+		min-width: 110px;
+	}
+
+	.th-actions {
+		text-align: center;
+		min-width: 120px;
+		padding-right: 1.25rem;
+	}
+
+	/* Filas de la Tabla */
+	:global(.costing-row) {
+		border-bottom: 1px solid #E2E8F0;
+		transition: background-color 0.15s ease;
+		cursor: pointer;
+	}
+
+	:global(.costing-row:hover) {
+		background-color: #F8FAFC;
+	}
+
+	:global(.costing-row.is-expanded) {
+		background-color: #F8FAFC;
+		border-bottom: 1px solid #CBD5E1;
+	}
+
+	:global(.costing-cell) {
+		padding: 1rem;
+		vertical-align: middle;
+	}
+
+	:global(.costing-cell-num) {
+		text-align: right;
+		font-family: var(--font-mono, 'JetBrains Mono', monospace);
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+
+	:global(.costing-cell-center) {
+		text-align: center;
+		vertical-align: middle;
+	}
+
+	:global(.btn-row-expand) {
+		width: 36px;
+		height: 36px;
+		border-radius: 0.375rem;
+		background-color: transparent;
+		border: 1px solid #CBD5E1;
+		color: #64748B;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	:global(.btn-row-expand:hover) {
+		background-color: #FFFFFF;
+		color: #0F172A;
+		border-color: #94A3B8;
+	}
+
+	:global(.btn-row-expand.rotated svg) {
+		transform: rotate(90deg);
+	}
+
+	:global(.chapter-name-wrap) {
+		display: flex;
+		flex-direction: column;
+	}
+
+	:global(.chapter-name-text) {
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	:global(.chapter-expenses-count) {
+		font-size: 0.75rem;
+		color: #64748B;
+		margin-top: 0.15rem;
+	}
+
+	/* Semáforo por fila */
+	:global(.status-pill) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.6rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	:global(.status-pill-normal) {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	:global(.status-pill-warning) {
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FDE68A;
+	}
+
+	:global(.status-pill-danger) {
+		background-color: #FEE2E2;
+		color: #B91C1C;
+		border: 1px solid #FECACA;
+		font-weight: 800;
+	}
+
+	:global(.variance-negative) {
+		color: #DC2626 !important;
+		font-weight: 800 !important;
+		background-color: #FEF2F2;
+		padding: 0.2rem 0.4rem;
+		border-radius: 0.25rem;
+		display: inline-block;
+	}
+
+	:global(.variance-positive) {
+		color: #059669;
+		font-weight: 700;
+	}
+
+	:global(.btn-add-expense-inline) {
+		height: 38px;
+		padding: 0 0.875rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.375rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #1E293B;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		transition: all 0.15s ease;
+		white-space: nowrap;
+	}
+
+	:global(.btn-add-expense-inline:hover) {
+		border-color: #F97316;
+		color: #EA580C;
+		background-color: #FFF7ED;
+	}
+
+	/* Fila de Drill-Down Expandida */
+	:global(.drilldown-row) {
+		background-color: #F8FAFC;
+		border-bottom: 2px solid #E2E8F0;
+	}
+
+	:global(.drilldown-container) {
+		padding: 1.25rem 1.5rem 1.5rem;
+	}
+
+	:global(.drilldown-header) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid #E2E8F0;
+	}
+
+	:global(.drilldown-title) {
+		font-size: 0.875rem;
+		font-weight: 800;
+		color: #334155;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.subtable-receipts) {
+		width: 100%;
+		border-collapse: collapse;
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	}
+
+	:global(.subtable-receipts th) {
+		background-color: #F1F5F9;
+		padding: 0.625rem 0.875rem;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #475569;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		border-bottom: 1px solid #CBD5E1;
+	}
+
+	:global(.subtable-receipts td) {
+		padding: 0.75rem 0.875rem;
+		border-bottom: 1px solid #F1F5F9;
+		font-size: 0.8125rem;
+		vertical-align: middle;
+	}
+
+	:global(.subtable-receipts tr:last-child td) {
+		border-bottom: none;
+	}
+
+	:global(.category-badge) {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		text-transform: capitalize;
+	}
+
+	:global(.cat-material) { background-color: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+	:global(.cat-labor) { background-color: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+	:global(.cat-equipment) { background-color: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
+	:global(.cat-subcontract) { background-color: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; }
+
+	:global(.receipt-thumbnail-btn) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.3rem 0.6rem;
+		background-color: #F8FAFC;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.375rem;
+		cursor: pointer;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #0F172A;
+		transition: all 0.15s ease;
+	}
+
+	:global(.receipt-thumbnail-btn:hover) {
+		background-color: #FFF7ED;
+		border-color: #F97316;
+		color: #EA580C;
+	}
+
+	:global(.receipt-thumb-mini) {
+		width: 24px;
+		height: 24px;
+		border-radius: 0.25rem;
+		object-fit: cover;
+		border: 1px solid #CBD5E1;
+	}
+
+	:global(.no-expenses-alert) {
+		padding: 1.25rem;
+		text-align: center;
+		background-color: #FFFFFF;
+		border: 1px dashed #CBD5E1;
+		border-radius: 0.5rem;
+		color: #64748B;
+		font-size: 0.8125rem;
+	}
+
+	.matrix-empty {
+		padding: 3rem 1.5rem;
+		text-align: center;
+	}
+
+	.empty-icon {
+		margin-bottom: 0.75rem;
+		color: #94A3B8;
+	}
+
+	.empty-text {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: #475569;
+		margin-bottom: 1rem;
+	}
+
+	.btn-clear-filter {
+		height: 40px;
+		padding: 0 1rem;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border: none;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+</style>

@@ -1,0 +1,29 @@
+---
+// src/pages/expenses/quick.astro
+// HU-14: Registro Rápido de Gastos de Obra en 3 Toques (Mobile-First / PWA Offline).
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import QuickExpenseSheet from '../../components/expenses/QuickExpenseSheet.astro';
+import Toast from '../../components/Toast.astro';
+---
+
+<Layout title="Registro de Gastos de Campo (3 Toques) — ObraFlow">
+	<Header />
+
+	<main class="quick-expense-page-main">
+		<QuickExpenseSheet />
+	</main>
+
+	<Toast />
+</Layout>
+
+<style>
+	.quick-expense-page-main {
+		flex: 1;
+		width: 100%;
+		background-color: #F8FAFC;
+		overflow-y: auto;
+		min-height: calc(100vh - 65px);
+		padding: 1rem 0 3rem;
+	}
+</style>

@@ -1,0 +1,111 @@
+---
+// src/components/expenses/QuickExpenseFAB.astro
+// HU-14: Botón de Acción Flotante (FAB) de Cámara (56x56 px) en la Zona del Pulgar.
+---
+
+<a
+	id="quick-expense-fab"
+	href="/expenses/quick"
+	class="expense-fab-btn"
+	title="Captura Rápida de Gasto en 3 Toques (HU-14)"
+	aria-label="Registrar gasto de campo con foto"
+>
+	<div class="fab-icon-wrap" aria-hidden="true">
+		<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+			<circle cx="12" cy="13" r="4"></circle>
+		</svg>
+	</div>
+	<span class="fab-label-mobile">Gasto</span>
+</a>
+
+<style>
+	.expense-fab-btn {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 5.5rem; /* Al lado del FAB de lead en móvil o como botón de campo prioritario */
+		z-index: 85;
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+		border: 2px solid #F97316;
+		color: #F8FAFC;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.4);
+		text-decoration: none;
+		cursor: pointer;
+		transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+		user-select: none;
+	}
+
+	.expense-fab-btn:hover {
+		transform: scale(1.08) translateY(-2px);
+		box-shadow: 0 10px 24px rgba(249, 115, 22, 0.4);
+		color: #F97316;
+	}
+
+	.expense-fab-btn:focus-visible {
+		outline: 3px solid #F97316;
+		outline-offset: 3px;
+	}
+
+	.fab-icon-wrap {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.fab-label-mobile {
+		font-size: 0.5625rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		margin-top: -2px;
+		color: #F97316;
+	}
+
+	@media (max-width: 640px) {
+		.expense-fab-btn {
+			bottom: 1.25rem;
+			right: 5.25rem;
+		}
+	}
+</style>
+
+<script>
+	function updateFabLink() {
+		const fab = document.getElementById('quick-expense-fab') as HTMLAnchorElement | null;
+		if (!fab) return;
+
+		// 1. Verificar si hay un selector de proyecto en la página actual
+		const projectSelect = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
+		if (projectSelect && projectSelect.value) {
+			fab.href = `/expenses/quick?projectId=${encodeURIComponent(projectSelect.value)}`;
+			return;
+		}
+
+		// 2. O si hay un parámetro 'id' en la URL actual
+		const urlParams = new URLSearchParams(window.location.search);
+		const currentId = urlParams.get('id') || urlParams.get('projectId');
+		if (currentId) {
+			fab.href = `/expenses/quick?projectId=${encodeURIComponent(currentId)}`;
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', updateFabLink);
+	} else {
+		updateFabLink();
+	}
+
+	window.addEventListener('costing:project-changed', (e: any) => {
+		const fab = document.getElementById('quick-expense-fab') as HTMLAnchorElement | null;
+		if (fab && e.detail?.projectId) {
+			fab.href = `/expenses/quick?projectId=${encodeURIComponent(e.detail.projectId)}`;
+		}
+	});
+</script>

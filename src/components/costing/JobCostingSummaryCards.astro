@@ -1,0 +1,461 @@
+---
+// src/components/costing/JobCostingSummaryCards.astro
+// HU-13: Semáforo Financiero Global en Cabecera, Tarjeta de Margen en Vivo y KPIs Clave.
+---
+
+<section id="job-costing-summary-cards" class="costing-summary-grid" aria-label="Resumen financiero global y semáforo">
+	<!-- 1. Tarjeta Semáforo Global de Consumo -->
+	<div id="card-traffic-light" class="summary-card card-traffic-light status-normal">
+		<div class="card-header-compact">
+			<span class="card-eyebrow">Semáforo Global de Consumo</span>
+			<span id="traffic-light-pill" class="traffic-pill pill-normal">
+				<span class="traffic-dot"></span>
+				<span id="traffic-light-text">Saludable (&lt; 85%)</span>
+			</span>
+		</div>
+		<div class="traffic-metric-row">
+			<div class="traffic-percentage-wrap">
+				<span id="traffic-pct-value" class="traffic-percentage mono-value">0.0%</span>
+				<span class="traffic-sublabel">del presupuesto vigente ejecutado</span>
+			</div>
+			<div class="traffic-icon-wrap" id="traffic-icon-container" aria-hidden="true">
+				<svg id="traffic-icon-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+					<path d="m9 12 2 2 4-4"></path>
+				</svg>
+			</div>
+		</div>
+		<div class="traffic-progress-track">
+			<div id="traffic-progress-bar" class="traffic-progress-fill" style="width: 0%;"></div>
+		</div>
+		<div class="traffic-legend">
+			<span class="legend-step legend-green">🟢 &lt; 85%</span>
+			<span class="legend-step legend-amber">🟡 85% - 99.9%</span>
+			<span class="legend-step legend-red">🔴 ≥ 100% Sobrecosto</span>
+		</div>
+	</div>
+
+	<!-- 2. Tarjeta Margen Comercial en Vivo -->
+	<div id="card-live-margin" class="summary-card card-live-margin">
+		<div class="card-header-compact">
+			<span class="card-eyebrow">Rentabilidad & Margen en Vivo</span>
+			<span id="margin-delta-pill" class="margin-delta-pill delta-positive">
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>
+				<span id="margin-delta-text">+0.0% vs Base</span>
+			</span>
+		</div>
+		<div class="margin-comparison-grid">
+			<div class="margin-stat-col">
+				<span class="margin-col-label">Margen Proyectado Inicial</span>
+				<div class="margin-col-metric">
+					<span id="projected-margin-pct" class="mono-value stat-primary">0.0%</span>
+				</div>
+				<span id="projected-margin-amount" class="margin-amount-mono mono-value">$ 0 COP</span>
+			</div>
+			<div class="margin-divider-vertical" aria-hidden="true"></div>
+			<div class="margin-stat-col">
+				<span class="margin-col-label">Margen Real Actual</span>
+				<div class="margin-col-metric">
+					<span id="actual-margin-pct" class="mono-value stat-actual">0.0%</span>
+				</div>
+				<span id="actual-margin-amount" class="margin-amount-mono mono-value">$ 0 COP</span>
+			</div>
+		</div>
+		<div class="margin-explainer">
+			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+			<span>El margen real se recalcula automáticamente con cada factura registrada.</span>
+		</div>
+	</div>
+
+	<!-- 3. Tarjeta Presupuesto Vigente (Base + Adicionales) -->
+	<div id="card-current-budget" class="summary-card card-kpi">
+		<div class="card-header-compact">
+			<span class="card-eyebrow">Presupuesto Vigente</span>
+			<span class="badge-kpi-neutral">Base + Adicionales</span>
+		</div>
+		<div class="kpi-main-number">
+			<span id="kpi-current-budget-value" class="mono-value amount-lg">$ 0 COP</span>
+		</div>
+		<div class="kpi-breakdown-row">
+			<div class="kpi-subitem">
+				<span class="kpi-sublabel">Base Contratada:</span>
+				<span id="kpi-base-budget-value" class="mono-value">$ 0 COP</span>
+			</div>
+			<div class="kpi-subitem">
+				<span class="kpi-sublabel">Adicionales Aprobados:</span>
+				<span id="kpi-change-orders-value" class="mono-value text-accent">+$ 0 COP</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- 4. Tarjeta Gasto Real vs Saldo Restante -->
+	<div id="card-spent-vs-balance" class="summary-card card-kpi">
+		<div class="card-header-compact">
+			<span class="card-eyebrow">Ejecución & Saldo Disponible</span>
+			<span id="balance-status-badge" class="badge-kpi-success">Disponible</span>
+		</div>
+		<div class="kpi-main-number">
+			<span id="kpi-remaining-balance-value" class="mono-value amount-lg text-emerald">$ 0 COP</span>
+		</div>
+		<div class="kpi-breakdown-row">
+			<div class="kpi-subitem">
+				<span class="kpi-sublabel">Gasto Real Ejecutado:</span>
+				<span id="kpi-total-spent-value" class="mono-value font-bold">$ 0 COP</span>
+			</div>
+			<div class="kpi-subitem">
+				<span class="kpi-sublabel">Disponibilidad:</span>
+				<span id="kpi-available-pct-value" class="mono-value">0.0%</span>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.costing-summary-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 1.25rem;
+		margin-bottom: 1.75rem;
+	}
+
+	.summary-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 1.25rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.summary-card:hover {
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+	}
+
+	.card-header-compact {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.875rem;
+	}
+
+	.card-eyebrow {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #64748B;
+	}
+
+	.mono-value {
+		font-family: var(--font-mono, 'JetBrains Mono', monospace);
+		white-space: nowrap;
+	}
+
+	/* Semáforo Card */
+	.traffic-metric-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.traffic-percentage-wrap {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.traffic-percentage {
+		font-size: 2.125rem;
+		font-weight: 800;
+		line-height: 1.1;
+		color: #0F172A;
+		letter-spacing: -0.03em;
+	}
+
+	.traffic-sublabel {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin-top: 0.25rem;
+	}
+
+	.traffic-icon-wrap {
+		width: 52px;
+		height: 52px;
+		border-radius: 0.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		transition: all 0.2s ease;
+	}
+
+	.traffic-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
+
+	.traffic-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+	}
+
+	/* Estados del Semáforo */
+	/* 1. Normal (< 85%) */
+	.card-traffic-light.status-normal {
+		border-left: 4px solid #10B981;
+	}
+	.traffic-pill.pill-normal {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+	.traffic-pill.pill-normal .traffic-dot {
+		background-color: #10B981;
+		box-shadow: 0 0 6px #10B981;
+	}
+	.card-traffic-light.status-normal .traffic-icon-wrap {
+		background-color: #ECFDF5;
+		color: #059669;
+	}
+	.card-traffic-light.status-normal .traffic-progress-fill {
+		background: linear-gradient(90deg, #10B981, #059669);
+	}
+
+	/* 2. Warning (85% - 99.9%) */
+	.card-traffic-light.status-warning {
+		border-left: 4px solid #F59E0B;
+		background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
+	}
+	.traffic-pill.pill-warning {
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FDE68A;
+	}
+	.traffic-pill.pill-warning .traffic-dot {
+		background-color: #F59E0B;
+		box-shadow: 0 0 8px #F59E0B;
+	}
+	.card-traffic-light.status-warning .traffic-icon-wrap {
+		background-color: #FEF3C7;
+		color: #D97706;
+	}
+	.card-traffic-light.status-warning .traffic-progress-fill {
+		background: linear-gradient(90deg, #F59E0B, #D97706);
+	}
+
+	/* 3. Danger (>= 100%) */
+	.card-traffic-light.status-danger {
+		border-left: 4px solid #EF4444;
+		background: linear-gradient(180deg, #FFFFFF 0%, #FEF2F2 100%);
+	}
+	.traffic-pill.pill-danger {
+		background-color: #FEE2E2;
+		color: #B91C1C;
+		border: 1px solid #FECACA;
+		animation: pulse-danger 2s infinite ease-in-out;
+	}
+	.traffic-pill.pill-danger .traffic-dot {
+		background-color: #EF4444;
+		box-shadow: 0 0 10px #EF4444;
+	}
+	.card-traffic-light.status-danger .traffic-icon-wrap {
+		background-color: #FEE2E2;
+		color: #DC2626;
+	}
+	.card-traffic-light.status-danger .traffic-progress-fill {
+		background: linear-gradient(90deg, #EF4444, #B91C1C);
+	}
+
+	@keyframes pulse-danger {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.75; }
+	}
+
+	.traffic-progress-track {
+		width: 100%;
+		height: 8px;
+		background-color: #F1F5F9;
+		border-radius: 9999px;
+		overflow: hidden;
+		margin-bottom: 0.75rem;
+	}
+
+	.traffic-progress-fill {
+		height: 100%;
+		border-radius: 9999px;
+		transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+	}
+
+	.traffic-legend {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: #64748B;
+	}
+
+	/* Tarjeta de Margen en Vivo */
+	.margin-comparison-grid {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: center;
+		gap: 0.875rem;
+		margin: 0.75rem 0;
+	}
+
+	.margin-stat-col {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.margin-col-label {
+		font-size: 0.75rem;
+		color: #64748B;
+		margin-bottom: 0.35rem;
+	}
+
+	.margin-col-metric {
+		display: flex;
+		align-items: baseline;
+		gap: 0.35rem;
+	}
+
+	.stat-primary {
+		font-size: 1.75rem;
+		font-weight: 800;
+		color: #334155;
+	}
+
+	.stat-actual {
+		font-size: 1.75rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.margin-amount-mono {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin-top: 0.2rem;
+	}
+
+	.margin-divider-vertical {
+		width: 1px;
+		height: 48px;
+		background-color: #E2E8F0;
+	}
+
+	.margin-delta-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
+
+	.margin-delta-pill.delta-positive {
+		background-color: #ECFDF5;
+		color: #059669;
+		border: 1px solid #A7F3D0;
+	}
+
+	.margin-delta-pill.delta-negative {
+		background-color: #FEF2F2;
+		color: #DC2626;
+		border: 1px solid #FECACA;
+	}
+
+	.margin-explainer {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.75rem;
+		color: #64748B;
+		padding-top: 0.6rem;
+		border-top: 1px dashed #E2E8F0;
+	}
+
+	/* KPI Cards */
+	.amount-lg {
+		font-size: 1.625rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.02em;
+	}
+
+	.kpi-main-number {
+		margin: 0.75rem 0 1rem;
+	}
+
+	.badge-kpi-neutral {
+		padding: 0.2rem 0.5rem;
+		background-color: #F1F5F9;
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #475569;
+	}
+
+	.badge-kpi-success {
+		padding: 0.2rem 0.5rem;
+		background-color: #ECFDF5;
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	.badge-kpi-danger {
+		padding: 0.2rem 0.5rem;
+		background-color: #FEF2F2;
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #DC2626;
+		border: 1px solid #FECACA;
+	}
+
+	.kpi-breakdown-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		font-size: 0.8125rem;
+		padding-top: 0.75rem;
+		border-top: 1px solid #F1F5F9;
+	}
+
+	.kpi-subitem {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.kpi-sublabel {
+		color: #64748B;
+	}
+
+	.text-accent {
+		color: #F97316;
+		font-weight: 700;
+	}
+
+	.text-emerald {
+		color: #059669;
+	}
+
+	.text-danger {
+		color: #DC2626 !important;
+	}
+</style>

@@ -1,0 +1,462 @@
+---
+// src/components/schedule/CalendarView.astro
+// HU-16: Vista de Calendario Mensual con Indicadores de Actividad y Agenda Diaria.
+---
+
+<div id="schedule-calendar-view" class="calendar-view-container hidden" aria-label="Vista mensual de calendario">
+	<!-- Control de Navegación del Mes -->
+	<div class="calendar-header-bar">
+		<div class="month-title-wrap">
+			<button
+				id="cal-prev-month-btn"
+				type="button"
+				class="btn-month-nav"
+				aria-label="Mes anterior"
+				title="Mes anterior"
+			>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<polyline points="15 18 9 12 15 6"></polyline>
+				</svg>
+			</button>
+
+			<h3 id="cal-current-month-label" class="calendar-month-heading">Noviembre 2026</h3>
+
+			<button
+				id="cal-next-month-btn"
+				type="button"
+				class="btn-month-nav"
+				aria-label="Mes siguiente"
+				title="Mes siguiente"
+			>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<polyline points="9 18 15 12 9 6"></polyline>
+				</svg>
+			</button>
+		</div>
+
+		<button
+			id="cal-today-btn"
+			type="button"
+			class="btn-today-shortcut"
+			title="Ir al día de hoy"
+		>
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+				<circle cx="12" cy="12" r="10"></circle>
+				<polyline points="12 6 12 12 16 14"></polyline>
+			</svg>
+			<span>Hoy</span>
+		</button>
+	</div>
+
+	<!-- Grilla del Calendario -->
+	<div class="calendar-board-card">
+		<!-- Encabezados de días de la semana (Lun - Dom) -->
+		<div class="weekdays-grid">
+			<div class="weekday-col">Lun</div>
+			<div class="weekday-col">Mar</div>
+			<div class="weekday-col">Mié</div>
+			<div class="weekday-col">Jue</div>
+			<div class="weekday-col">Vie</div>
+			<div class="weekday-col">Sáb</div>
+			<div class="weekday-col weekend">Dom</div>
+		</div>
+
+		<!-- Días del mes (35 o 42 celdas generadas dinámicamente) -->
+		<div id="calendar-days-grid" class="days-matrix-grid"></div>
+	</div>
+
+	<!-- Agenda del Día Seleccionado -->
+	<section id="calendar-day-agenda-section" class="day-agenda-card" aria-label="Agenda del día seleccionado">
+		<div class="agenda-header">
+			<div class="agenda-title-wrap">
+				<div class="agenda-calendar-icon">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+						<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+						<line x1="16" y1="2" x2="16" y2="6"></line>
+						<line x1="8" y1="2" x2="8" y2="6"></line>
+						<line x1="3" y1="10" x2="21" y2="10"></line>
+					</svg>
+				</div>
+				<div>
+					<h4 id="agenda-selected-date-title" class="agenda-date-heading">Actividades del Día</h4>
+					<p id="agenda-tasks-count-subtitle" class="agenda-subtitle">Selecciona una fecha en el calendario para ver las tareas programadas</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Lista de tareas del día seleccionado -->
+		<div id="agenda-tasks-list" class="agenda-tasks-container"></div>
+
+		<!-- Estado vacío cuando no hay tareas en la fecha -->
+		<div id="agenda-empty-state" class="agenda-empty-notice hidden">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2">
+				<circle cx="12" cy="12" r="10"></circle>
+				<line x1="12" y1="8" x2="12" y2="12"></line>
+				<line x1="12" y1="16" x2="12.01" y2="16"></line>
+			</svg>
+			<span>No hay tareas programadas para esta fecha en la obra.</span>
+		</div>
+	</section>
+</div>
+
+<style>
+	.calendar-view-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		width: 100%;
+	}
+
+	.calendar-header-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		background-color: #FFFFFF;
+		padding: 0.875rem 1.25rem;
+		border-radius: 0.875rem;
+		border: 1px solid #E2E8F0;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	}
+
+	.month-title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.btn-month-nav {
+		width: 48px;
+		height: 48px;
+		border-radius: 0.5rem;
+		border: 1px solid #E2E8F0;
+		background-color: #F8FAFC;
+		color: #0F172A;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-month-nav:hover {
+		background-color: #F1F5F9;
+		border-color: #CBD5E1;
+		color: #F97316;
+	}
+
+	.calendar-month-heading {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+		min-width: 170px;
+		text-align: center;
+		text-transform: capitalize;
+	}
+
+	.btn-today-shortcut {
+		min-height: 48px;
+		padding: 0 1.25rem;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #0F172A;
+		font-size: 0.875rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-today-shortcut:hover {
+		background-color: #F8FAFC;
+		border-color: #F97316;
+		color: #F97316;
+	}
+
+	.calendar-board-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		overflow: hidden;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	}
+
+	.weekdays-grid {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		background-color: #F8FAFC;
+		border-bottom: 1px solid #E2E8F0;
+	}
+
+	.weekday-col {
+		padding: 0.75rem 0.5rem;
+		text-align: center;
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #64748B;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.weekday-col.weekend {
+		color: #94A3B8;
+	}
+
+	.days-matrix-grid {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		background-color: #E2E8F0;
+		gap: 1px;
+	}
+
+	:global(.cal-day-cell) {
+		background-color: #FFFFFF;
+		min-height: 76px;
+		padding: 0.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		position: relative;
+		user-select: none;
+	}
+
+	:global(.cal-day-cell:hover) {
+		background-color: #F8FAFC;
+	}
+
+	:global(.cal-day-cell.other-month) {
+		background-color: #F8FAFC;
+		opacity: 0.45;
+	}
+
+	:global(.cal-day-cell.is-today) {
+		background-color: #FFFBEB;
+	}
+
+	:global(.cal-day-cell.is-today .day-number) {
+		color: #D97706;
+		font-weight: 900;
+	}
+
+	:global(.cal-day-cell.is-selected) {
+		background-color: #EFF6FF;
+		box-shadow: inset 0 0 0 2px #2563EB;
+	}
+
+	:global(.day-cell-top) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	:global(.day-number) {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #1E293B;
+		font-family: 'JetBrains Mono', monospace;
+	}
+
+	:global(.day-badge-count) {
+		font-size: 0.625rem;
+		font-weight: 800;
+		padding: 0.1rem 0.35rem;
+		border-radius: 9999px;
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	:global(.day-dots-wrap) {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		flex-wrap: wrap;
+		margin-top: 4px;
+	}
+
+	:global(.task-dot) {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+
+	:global(.task-dot.completed) {
+		background-color: #10B981;
+	}
+
+	:global(.task-dot.in_progress) {
+		background-color: #F97316;
+	}
+
+	:global(.task-dot.overdue) {
+		background-color: #EF4444;
+	}
+
+	:global(.task-dot.pending) {
+		background-color: #94A3B8;
+	}
+
+	/* Agenda del Día Seleccionado */
+	.day-agenda-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1.25rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.agenda-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding-bottom: 0.875rem;
+		border-bottom: 1px solid #F1F5F9;
+	}
+
+	.agenda-title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.agenda-calendar-icon {
+		width: 36px;
+		height: 36px;
+		border-radius: 0.5rem;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.agenda-date-heading {
+		font-size: 1rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.agenda-subtitle {
+		font-size: 0.75rem;
+		color: #64748B;
+		margin: 0.15rem 0 0 0;
+	}
+
+	.agenda-tasks-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	:global(.agenda-task-item) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.875rem 1rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		gap: 1rem;
+		transition: all 0.15s ease;
+	}
+
+	:global(.agenda-task-item.completed) {
+		background-color: #FAFFFC;
+		border-color: #A7F3D0;
+	}
+
+	:global(.agenda-task-item.overdue:not(.completed)) {
+		background-color: #FFFDFD;
+		border-color: #FECACA;
+	}
+
+	:global(.agenda-task-left) {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	:global(.agenda-task-info) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	:global(.agenda-task-name) {
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	:global(.agenda-task-item.completed .agenda-task-name) {
+		text-decoration: line-through;
+		color: #94A3B8;
+	}
+
+	:global(.agenda-task-meta) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		font-size: 0.75rem;
+		color: #64748B;
+	}
+
+	:global(.agenda-chapter-badge) {
+		font-weight: 700;
+		color: #0F172A;
+		background-color: #E2E8F0;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+	}
+
+	.agenda-empty-notice {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 1.5rem;
+		background-color: #F8FAFC;
+		border: 1px dashed #CBD5E1;
+		border-radius: 0.5rem;
+		color: #64748B;
+		font-size: 0.875rem;
+		justify-content: center;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 640px) {
+		:global(.cal-day-cell) {
+			min-height: 58px;
+			padding: 0.35rem 0.25rem;
+		}
+
+		:global(.day-number) {
+			font-size: 0.75rem;
+		}
+
+		:global(.task-dot) {
+			width: 6px;
+			height: 6px;
+		}
+	}
+</style>

@@ -1,6 +1,7 @@
 ---
 // src/components/Header.astro
-// Barra superior ejecutiva simplificada y sin sobrecarga (HU-05 & Steer: Sidebar Módulos)
+// Barra superior ejecutiva con selector de roles y accesos directos (HU-14)
+import HeaderRoleSwitcher from './HeaderRoleSwitcher.astro';
 ---
 
 <header class="app-header">
@@ -74,14 +75,23 @@
 				<kbd class="kbd-badge">Alt+N</kbd>
 			</button>
 
-			<!-- User Avatar -->
-			<div class="user-profile">
-				<div class="avatar">CM</div>
-				<div class="user-details desktop-only">
-					<span class="user-name">Carlos Mendoza</span>
-					<span class="user-role">Contratista / Dueño</span>
-				</div>
-			</div>
+			<!-- Botón Registro Rápido de Gastos de Campo (HU-14) -->
+			<a
+				href="/expenses/quick"
+				id="header-quick-expense-btn"
+				class="btn-field-camera"
+				title="Registro Rápido de Gastos en 3 Toques (HU-14)"
+				aria-label="Registrar gasto de campo en 3 toques"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+					<circle cx="12" cy="13" r="4"></circle>
+				</svg>
+				<span class="desktop-only">Gastos Campo</span>
+			</a>
+
+			<!-- Selector de Roles de Usuario con Dropdown (HU-14) -->
+			<HeaderRoleSwitcher />
 		</div>
 	</div>
 </header>
@@ -90,7 +100,7 @@
 	.app-header {
 		position: sticky;
 		top: 0;
-		z-index: 30;
+		z-index: 50;
 		background-color: #0F172A;
 		border-bottom: 1px solid #1E293B;
 		color: #FFFFFF;
@@ -289,6 +299,35 @@
 		outline-offset: 2px;
 	}
 
+	.btn-field-camera {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		background-color: #1E293B;
+		border: 1px solid #334155;
+		color: #F8FAFC;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.75rem;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-field-camera:hover {
+		background-color: #334155;
+		color: #F97316;
+		border-color: #F97316;
+		transform: translateY(-1px);
+	}
+
+	.btn-field-camera:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
 	.kbd-badge {
 		font-family: var(--font-mono);
 		font-size: 0.625rem;
@@ -361,7 +400,17 @@
 	const path = window.location.pathname;
 	const crumbPage = document.getElementById('header-breadcrumb-page');
 	if (crumbPage) {
-		if (path.startsWith('/catalog')) {
+		if (path.startsWith('/schedule') || path.includes('/schedule')) {
+			crumbPage.textContent = 'Cronograma de Obra (HU-16)';
+		} else if (path.startsWith('/daily-logs') || path.includes('/daily-logs')) {
+			crumbPage.textContent = 'Bitácora Diaria de Obra (HU-17)';
+		} else if (path.startsWith('/costing') || path.includes('/costing')) {
+			crumbPage.textContent = 'Control de Costos (Job Costing)';
+		} else if (path.startsWith('/expenses')) {
+			crumbPage.textContent = 'Registro de Gastos (HU-14)';
+		} else if (path.startsWith('/change-orders')) {
+			crumbPage.textContent = 'Órdenes de Cambio (HU-15)';
+		} else if (path.startsWith('/catalog')) {
 			crumbPage.textContent = 'Catálogo Maestro de Insumos';
 		} else if (path.startsWith('/budgets/editor')) {
 			crumbPage.textContent = 'Constructor de Presupuestos';

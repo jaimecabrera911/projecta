@@ -5,7 +5,20 @@ import { calcLine, calcTotals, type BudgetTotals } from './budget-math';
 import { loadCatalog } from './catalog';
 
 export type BudgetCategory = 'material' | 'labor' | 'subcontract' | 'equipment';
-export type BudgetStatus = 'draft' | 'sent' | 'approved';
+export type BudgetStatus = 'draft' | 'sent' | 'approved' | 'frozen';
+
+export interface BudgetSignature {
+	signer_name: string;
+	signer_id_number: string;
+	signature_png_base64: string;
+	signed_at: string;
+	signer_user_agent?: string;
+	screen_resolution?: string;
+	referrer?: string;
+	contract_hash_sha256?: string;
+	terms_accepted: boolean;
+	proposal_token?: string;
+}
 
 // HU-07: parámetros del motor tributario dual (IVA general / AIU).
 export interface TaxParameters {
@@ -59,6 +72,7 @@ export interface Budget {
 	chapters: BudgetChapter[];
 	created_at: string;
 	updated_at?: string;
+	signature?: BudgetSignature;
 }
 
 export interface NewBudgetInput {
@@ -164,13 +178,22 @@ function buildSeedBudget(): Budget {
 function migrateBudget(budget: Budget): Budget {
 	const safe = (value: unknown, fallback: number) =>
 		typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+	const status: BudgetStatus =
+		budget.status === 'sent' || budget.status === 'approved' || budget.status === 'frozen' ? budget.status : 'draft';
+	const sig = budget.signature as BudgetSignature | undefined;
+	const signature =
+		sig && typeof sig.signer_name === 'string' && typeof sig.signature_png_base64 === 'string'
+			? { ...sig }
+			: undefined;
 	return {
 		...budget,
+		status,
 		tax_scheme: budget.tax_scheme === 'aiu' ? 'aiu' : 'iva',
 		admin_percentage: safe(budget.admin_percentage, DEFAULT_TAX_PARAMETERS.admin_percentage),
 		contingency_percentage: safe(budget.contingency_percentage, DEFAULT_TAX_PARAMETERS.contingency_percentage),
 		utility_percentage: safe(budget.utility_percentage, DEFAULT_TAX_PARAMETERS.utility_percentage),
-		vat_percentage: safe(budget.vat_percentage, DEFAULT_TAX_PARAMETERS.vat_percentage)
+		vat_percentage: safe(budget.vat_percentage, DEFAULT_TAX_PARAMETERS.vat_percentage),
+		signature
 	};
 }
 
@@ -215,6 +238,10 @@ export function createBudget(input: NewBudgetInput): Budget {
 		created_at: now,
 		updated_at: now
 	};
+}
+
+export function isBudgetFrozen(budget: Pick<Budget, 'status'> | null | undefined): boolean {
+	return budget?.status === 'frozen';
 }
 
 export function persistBudget(budget: Budget) {

@@ -1,0 +1,762 @@
+---
+// src/components/costing/CreateChangeOrderModal.astro
+// HU-15: Modal Ergonómico para Cotizar y Crear Órdenes de Cambio (Adicionales de Obra).
+---
+
+<div
+	id="create-change-order-modal"
+	class="co-modal-backdrop hidden"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="co-modal-title"
+>
+	<div class="co-modal-sheet">
+		<!-- Encabezado del Modal -->
+		<div class="co-modal-header">
+			<div class="co-title-cluster">
+				<div class="co-icon-bubble" aria-hidden="true">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+						<polyline points="14 2 14 8 20 8"></polyline>
+						<line x1="12" y1="18" x2="12" y2="12"></line>
+						<line x1="9" y1="15" x2="15" y2="15"></line>
+					</svg>
+				</div>
+				<div>
+					<span class="co-kicker">Blindaje Financiero · HU-15</span>
+					<h2 id="co-modal-title" class="co-modal-title">Nueva Orden de Cambio (Adicional)</h2>
+				</div>
+			</div>
+
+			<button
+				id="btn-close-co-modal"
+				type="button"
+				class="btn-co-close"
+				aria-label="Cerrar modal de orden de cambio"
+				title="Cerrar modal"
+			>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
+		<!-- Formulario de 3 Campos Clave (Operate Mode) -->
+		<form id="form-create-change-order" class="co-modal-form" novalidate>
+			<input type="hidden" id="co-project-id" name="project_id" value="" />
+
+			<!-- Campo 1: Título y Justificación -->
+			<div class="co-form-group">
+				<label for="co-title-input" class="co-label">
+					<span>Título del Trabajo Adicional *</span>
+				</label>
+				<input
+					id="co-title-input"
+					name="title"
+					type="text"
+					class="co-input"
+					placeholder="Ej: Instalación de 6 tomas dobles pop-up en isla de cocina"
+					required
+				/>
+			</div>
+
+			<div class="co-form-group">
+				<label for="co-justification-input" class="co-label">
+					<span>Justificación / Detalle de la Solicitud *</span>
+				</label>
+				<textarea
+					id="co-justification-input"
+					name="justification"
+					rows="2"
+					class="co-textarea"
+					placeholder="Ej: Solicitud formal de la propietaria para torre de hornos y pequeños electrodomésticos en isla central."
+					required
+				></textarea>
+			</div>
+
+			<!-- Asignación de Capítulo para Imputación de Costos -->
+			<div class="co-form-group">
+				<label for="co-chapter-select" class="co-label">
+					<span>Capítulo de Imputación Presupuestal *</span>
+					<span class="co-label-hint">Incrementará el presupuesto vigente de este capítulo</span>
+				</label>
+				<select id="co-chapter-select" name="chapter_id" class="co-select" required>
+					<!-- Poblado dinámicamente con los capítulos de la obra -->
+				</select>
+			</div>
+
+			<!-- Campo 2 & 3: Costo Directo Interno vs Precio de Venta al Cliente -->
+			<div class="co-pricing-grid">
+				<div class="co-form-group">
+					<label for="co-cost-input" class="co-label">
+						<span>Costo Directo Interno ($ COP) *</span>
+						<span class="co-label-hint">Materiales + Mano de obra</span>
+					</label>
+					<div class="co-currency-input-wrap">
+						<span class="co-currency-symbol" aria-hidden="true">$</span>
+						<input
+							id="co-cost-input"
+							name="cost_amount"
+							type="number"
+							step="1000"
+							min="0"
+							placeholder="180000"
+							class="co-input co-input-currency mono-value"
+							required
+						/>
+					</div>
+					<span id="co-cost-preview" class="co-live-preview mono-value">$ 0 COP</span>
+				</div>
+
+				<div class="co-form-group">
+					<label for="co-sale-input" class="co-label">
+						<span>Precio de Venta al Cliente ($ COP) *</span>
+						<span id="co-margin-pill" class="margin-pill">Margen: 30.0%</span>
+					</label>
+					<div class="co-currency-input-wrap">
+						<span class="co-currency-symbol" aria-hidden="true">$</span>
+						<input
+							id="co-sale-input"
+							name="sale_price_amount"
+							type="number"
+							step="1000"
+							min="0"
+							placeholder="260000"
+							class="co-input co-input-currency mono-value"
+							required
+						/>
+					</div>
+					<span id="co-sale-preview" class="co-live-preview mono-value">$ 0 COP</span>
+				</div>
+			</div>
+
+			<!-- Selectores de Margen Rápido -->
+			<div class="co-quick-margins-row">
+				<span class="quick-margin-label">Calcular margen rápido:</span>
+				<div class="margin-chips-wrap">
+					<button type="button" class="btn-margin-chip" data-margin="25">25%</button>
+					<button type="button" class="btn-margin-chip active" data-margin="30">30%</button>
+					<button type="button" class="btn-margin-chip" data-margin="35">35%</button>
+					<button type="button" class="btn-margin-chip" data-margin="40">40%</button>
+				</div>
+			</div>
+
+			<!-- Prórroga de Cronograma (Opcional) -->
+			<div class="co-form-group">
+				<label for="co-days-input" class="co-label">
+					<span>Prórroga Estimada al Cronograma (Días Hábiles)</span>
+					<span class="co-label-hint">Días adicionales a sumar a la fecha de entrega</span>
+				</label>
+				<div class="co-days-input-wrap">
+					<input
+						id="co-days-input"
+						name="additional_days"
+						type="number"
+						min="0"
+						max="90"
+						value="2"
+						class="co-input co-days-input mono-value"
+					/>
+					<span class="days-suffix">días hábiles</span>
+				</div>
+			</div>
+
+			<!-- Resumen de Impacto Previo al Envío -->
+			<div class="co-summary-banner">
+				<div class="summary-left">
+					<span class="summary-kicker">Impacto de la Orden de Cambio:</span>
+					<div class="summary-values-row">
+						<span>Cobro al Cliente: <strong id="summary-sale-val" class="mono-value">$ 0 COP</strong></span>
+						<span>•</span>
+						<span>Costo Obra: <strong id="summary-cost-val" class="mono-value">$ 0 COP</strong></span>
+						<span>•</span>
+						<span>Utilidad: <strong id="summary-profit-val" class="mono-value text-emerald">$ 0 COP</strong></span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Botones de Acción Táctiles (Thumb Zone >= 48px) -->
+			<div class="co-modal-actions">
+				<button id="btn-cancel-co" type="button" class="btn-co-secondary">
+					<span>Cancelar</span>
+				</button>
+
+				<button id="btn-submit-co" type="submit" class="btn-co-primary">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="22" y1="2" x2="11" y2="13"></line>
+						<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+					</svg>
+					<span>Crear y Enviar a Firma</span>
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<style>
+	.co-modal-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		background-color: rgba(15, 23, 42, 0.7);
+		backdrop-filter: blur(4px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		box-sizing: border-box;
+		animation: fadeIn 0.15s ease-out;
+	}
+
+	.co-modal-sheet {
+		background-color: #FFFFFF;
+		border-radius: 1rem;
+		border: 1px solid #E2E8F0;
+		width: 100%;
+		max-width: 620px;
+		max-height: 92vh;
+		overflow-y: auto;
+		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+		display: flex;
+		flex-direction: column;
+	}
+
+	.co-modal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1.25rem 1.5rem;
+		border-bottom: 1px solid #E2E8F0;
+		position: sticky;
+		top: 0;
+		background-color: #FFFFFF;
+		z-index: 10;
+	}
+
+	.co-title-cluster {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.co-icon-bubble {
+		width: 42px;
+		height: 42px;
+		border-radius: 0.625rem;
+		background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+		border: 1px solid #FED7AA;
+		color: #EA580C;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.co-kicker {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		color: #EA580C;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.co-modal-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0.1rem 0 0;
+		letter-spacing: -0.01em;
+	}
+
+	.btn-co-close {
+		width: 44px;
+		height: 44px;
+		border-radius: 0.5rem;
+		background: transparent;
+		border: 1px solid transparent;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-co-close:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+		border-color: #CBD5E1;
+	}
+
+	.co-modal-form {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		box-sizing: border-box;
+	}
+
+	.co-form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.co-label {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #1E293B;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.co-label-hint {
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: #64748B;
+	}
+
+	.co-input,
+	.co-textarea,
+	.co-select {
+		width: 100%;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.5rem;
+		padding: 0.65rem 0.875rem;
+		font-size: 0.875rem;
+		color: #0F172A;
+		background-color: #FFFFFF;
+		font-family: inherit;
+		box-sizing: border-box;
+		outline: none;
+		transition: all 0.15s ease;
+	}
+
+	.co-input:focus,
+	.co-textarea:focus,
+	.co-select:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.co-textarea {
+		resize: vertical;
+		min-height: 65px;
+	}
+
+	.co-pricing-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.co-currency-input-wrap {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.co-currency-symbol {
+		position: absolute;
+		left: 0.875rem;
+		font-size: 1rem;
+		font-weight: 800;
+		color: #64748B;
+		pointer-events: none;
+	}
+
+	.co-input-currency {
+		padding-left: 2rem;
+		font-size: 1.0625rem;
+		font-weight: 800;
+		height: 48px;
+	}
+
+	.co-live-preview {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #059669;
+		margin-top: 0.2rem;
+	}
+
+	.margin-pill {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		color: #EA580C;
+		background-color: #FFF7ED;
+		border: 1px solid #FFEDD5;
+		padding: 0.1rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.co-quick-margins-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+	}
+
+	.quick-margin-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #475569;
+	}
+
+	.margin-chips-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.btn-margin-chip {
+		height: 32px;
+		padding: 0 0.65rem;
+		border-radius: 0.375rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #334155;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-margin-chip:hover {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+	}
+
+	.btn-margin-chip.active {
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border-color: #0F172A;
+	}
+
+	.co-days-input-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.co-days-input {
+		width: 100px;
+		height: 44px;
+		text-align: center;
+		font-weight: 800;
+		font-size: 1rem;
+	}
+
+	.days-suffix {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #64748B;
+	}
+
+	.co-summary-banner {
+		background-color: #F8FAFC;
+		border: 1.5px solid #E2E8F0;
+		border-radius: 0.625rem;
+		padding: 0.875rem 1rem;
+	}
+
+	.summary-kicker {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		color: #64748B;
+		display: block;
+		margin-bottom: 0.25rem;
+	}
+
+	.summary-values-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+		color: #1E293B;
+		flex-wrap: wrap;
+	}
+
+	.text-emerald {
+		color: #059669;
+	}
+
+	.mono-value {
+		font-family: var(--font-mono, 'JetBrains Mono', monospace);
+		white-space: nowrap;
+	}
+
+	.co-modal-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		margin-top: 0.5rem;
+		padding-top: 1rem;
+		border-top: 1px solid #E2E8F0;
+	}
+
+	.btn-co-secondary {
+		min-height: 48px;
+		padding: 0 1.25rem;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #334155;
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-co-secondary:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+	}
+
+	.btn-co-primary {
+		min-height: 48px;
+		padding: 0 1.5rem;
+		border-radius: 0.5rem;
+		border: none;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		font-size: 0.875rem;
+		font-weight: 800;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+		transition: all 0.15s ease;
+	}
+
+	.btn-co-primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 16px rgba(249, 115, 22, 0.45);
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; }
+		to { opacity: 1; }
+	}
+
+	@media (max-width: 540px) {
+		.co-pricing-grid {
+			grid-template-columns: 1fr;
+		}
+		.co-modal-actions {
+			flex-direction: column-reverse;
+		}
+		.btn-co-secondary,
+		.btn-co-primary {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+</style>
+
+<script>
+	import { createChangeOrder } from '../../lib/change-order-store';
+	import { loadAllProjects, type ProjectCosting } from '../../lib/costing-store';
+
+	const formatCOP = (val: number): string => {
+		return new Intl.NumberFormat('es-CO', {
+			style: 'currency',
+			currency: 'COP',
+			maximumFractionDigits: 0
+		}).format(val || 0);
+	};
+
+	let activeMarginPct = 30;
+
+	function initCreateChangeOrderModal() {
+		const modal = document.getElementById('create-change-order-modal');
+		if (!modal) return;
+
+		const form = document.getElementById('form-create-change-order') as HTMLFormElement | null;
+		const closeBtn = document.getElementById('btn-close-co-modal');
+		const cancelBtn = document.getElementById('btn-cancel-co');
+		const costInput = document.getElementById('co-cost-input') as HTMLInputElement | null;
+		const saleInput = document.getElementById('co-sale-input') as HTMLInputElement | null;
+		const costPreview = document.getElementById('co-cost-preview');
+		const salePreview = document.getElementById('co-sale-preview');
+		const marginPill = document.getElementById('co-margin-pill');
+		const marginChips = document.querySelectorAll('.btn-margin-chip');
+		const summarySale = document.getElementById('summary-sale-val');
+		const summaryCost = document.getElementById('summary-cost-val');
+		const summaryProfit = document.getElementById('summary-profit-val');
+
+		function updateCalculations(source: 'cost' | 'sale' | 'chip') {
+			const cost = Math.max(0, Number(costInput?.value) || 0);
+			let sale = Math.max(0, Number(saleInput?.value) || 0);
+
+			if (source === 'cost' || source === 'chip') {
+				if (cost > 0 && activeMarginPct < 100) {
+					sale = Math.round(cost / (1 - activeMarginPct / 100));
+					if (saleInput) saleInput.value = String(sale);
+				}
+			} else if (source === 'sale') {
+				if (sale > 0 && cost > 0) {
+					const margin = Math.round(((sale - cost) / sale) * 1000) / 10;
+					activeMarginPct = margin;
+					marginChips.forEach((btn) => btn.classList.remove('active'));
+				}
+			}
+
+			if (costPreview) costPreview.textContent = formatCOP(cost);
+			if (salePreview) salePreview.textContent = formatCOP(sale);
+			if (marginPill) marginPill.textContent = `Margen: ${activeMarginPct.toFixed(1)}%`;
+
+			if (summaryCost) summaryCost.textContent = formatCOP(cost);
+			if (summarySale) summarySale.textContent = formatCOP(sale);
+			if (summaryProfit) summaryProfit.textContent = formatCOP(Math.max(0, sale - cost));
+		}
+
+		costInput?.addEventListener('input', () => updateCalculations('cost'));
+		saleInput?.addEventListener('input', () => updateCalculations('sale'));
+
+		marginChips.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				marginChips.forEach((b) => b.classList.remove('active'));
+				btn.classList.add('active');
+				activeMarginPct = Number(btn.getAttribute('data-margin')) || 30;
+				updateCalculations('chip');
+			});
+		});
+
+		function closeModal() {
+			modal?.classList.add('hidden');
+			form?.reset();
+			if (costPreview) costPreview.textContent = '$ 0 COP';
+			if (salePreview) salePreview.textContent = '$ 0 COP';
+			if (summaryCost) summaryCost.textContent = '$ 0 COP';
+			if (summarySale) summarySale.textContent = '$ 0 COP';
+			if (summaryProfit) summaryProfit.textContent = '$ 0 COP';
+		}
+
+		closeBtn?.addEventListener('click', closeModal);
+		cancelBtn?.addEventListener('click', closeModal);
+
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) closeModal();
+		});
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+				closeModal();
+			}
+		});
+
+		// Envío y Guardado de la Orden de Cambio
+		form?.addEventListener('submit', (e) => {
+			e.preventDefault();
+
+			const projectIdInput = document.getElementById('co-project-id') as HTMLInputElement | null;
+			const chapterSelect = document.getElementById('co-chapter-select') as HTMLSelectElement | null;
+			const titleInput = document.getElementById('co-title-input') as HTMLInputElement | null;
+			const justInput = document.getElementById('co-justification-input') as HTMLTextAreaElement | null;
+			const daysInput = document.getElementById('co-days-input') as HTMLInputElement | null;
+
+			const projectId = projectIdInput?.value || '';
+			const chapterId = chapterSelect?.value || '';
+			const title = titleInput?.value.trim() || '';
+			const justification = justInput?.value.trim() || '';
+			const cost = Number(costInput?.value) || 0;
+			const sale = Number(saleInput?.value) || 0;
+			const days = Number(daysInput?.value) || 0;
+
+			if (!title) {
+				dispatchToast('Digita el título del trabajo adicional.', 'error');
+				titleInput?.focus();
+				return;
+			}
+
+			if (!chapterId) {
+				dispatchToast('Selecciona el capítulo de imputación.', 'error');
+				chapterSelect?.focus();
+				return;
+			}
+
+			if (sale <= 0) {
+				dispatchToast('El precio de venta debe ser mayor a cero.', 'error');
+				saleInput?.focus();
+				return;
+			}
+
+			const created = createChangeOrder({
+				project_id: projectId,
+				chapter_id: chapterId,
+				title,
+				justification,
+				cost_amount: cost,
+				sale_price_amount: sale,
+				additional_days: days,
+				created_by: 'Contratista General'
+			});
+
+			closeModal();
+
+			dispatchToast(`✓ Orden ${created.code} creada con éxito.`);
+
+			// Disparar apertura del modal de compartir WhatsApp / Enlace
+			window.dispatchEvent(
+				new CustomEvent('obraflow:change-order-created', {
+					detail: { order: created }
+				})
+			);
+		});
+
+		// Listener para abrir el modal desde cualquier botón de la interfaz
+		window.addEventListener('open-create-change-order-modal', (e: any) => {
+			const targetProjectId = e.detail?.projectId;
+			const allProjects = loadAllProjects();
+			const project = allProjects.find((p) => p.project_id === targetProjectId) || allProjects[0];
+
+			if (project) {
+				const projIdInput = document.getElementById('co-project-id') as HTMLInputElement | null;
+				if (projIdInput) projIdInput.value = project.project_id;
+
+				const chapterSelect = document.getElementById('co-chapter-select') as HTMLSelectElement | null;
+				if (chapterSelect) {
+					chapterSelect.innerHTML = project.chapters
+						.map((ch) => `<option value="${ch.chapter_id}">${ch.name}</option>`)
+						.join('');
+				}
+
+				// Valores por defecto
+				if (costInput) costInput.value = '180000';
+				if (saleInput) saleInput.value = '260000';
+				updateCalculations('sale');
+
+				modal.classList.remove('hidden');
+			}
+		});
+	}
+
+	function dispatchToast(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+		window.dispatchEvent(
+			new CustomEvent('obraflow:toast', {
+				detail: { message, type }
+			})
+		);
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initCreateChangeOrderModal);
+	} else {
+		initCreateChangeOrderModal();
+	}
+</script>

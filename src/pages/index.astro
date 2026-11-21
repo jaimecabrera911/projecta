@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import KanbanBoard from '../components/KanbanBoard.astro';
 import QuickLeadFAB from '../components/QuickLeadFAB.astro';
+import QuickExpenseFAB from '../components/expenses/QuickExpenseFAB.astro';
 import LeadCaptureModal from '../components/LeadCaptureModal.astro';
 import ShareFormModal from '../components/ShareFormModal.astro';
 import Toast from '../components/Toast.astro';
@@ -19,6 +20,9 @@ import Toast from '../components/Toast.astro';
 
 	<!-- HU-01: Quick Lead Floating Action Button (FAB) -->
 	<QuickLeadFAB />
+
+	<!-- HU-14: Quick Expense Floating Action Button (FAB) -->
+	<QuickExpenseFAB />
 
 	<!-- HU-01: Lead Capture Modal / Mobile Bottom-Sheet -->
 	<LeadCaptureModal />

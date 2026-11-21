@@ -1,0 +1,1084 @@
+---
+// src/pages/change-orders/view.astro
+// HU-15: Portal Móvil del Cliente para Aprobación y Firma Digital de Órdenes de Cambio.
+import Layout from '../../layouts/Layout.astro';
+import Toast from '../../components/Toast.astro';
+---
+
+<Layout title="Aprobación de Trabajo Adicional — ObraFlow" hasSidebar={false}>
+	<main class="co-public-shell">
+		<!-- Barra Superior de Marca y Contratista -->
+		<header class="co-public-header">
+			<div class="header-inner">
+				<div class="brand-group">
+					<div class="brand-emblem" aria-hidden="true">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M2 20h20"></path>
+							<path d="m5 20 5-15h4l5 15"></path>
+							<path d="M9 13h6"></path>
+						</svg>
+					</div>
+					<div class="brand-text">
+						<span class="brand-title">Obra<span class="brand-accent">Flow</span></span>
+						<span class="contractor-name" id="contractor-legal-name">Construcciones Andina S.A.S.</span>
+					</div>
+				</div>
+
+				<div class="header-right">
+					<span id="co-header-status-pill" class="header-status-pill">Cargando...</span>
+				</div>
+			</div>
+		</header>
+
+		<!-- Contenedor Principal de la Orden de Cambio -->
+		<div class="co-public-content">
+			<!-- Estado: Error / No Encontrada -->
+			<div id="co-view-error" class="error-card hidden">
+				<div class="error-icon" aria-hidden="true">
+					<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="12" cy="12" r="10"></circle>
+						<line x1="12" y1="8" x2="12" y2="12"></line>
+						<line x1="12" y1="16" x2="12.01" y2="16"></line>
+					</svg>
+				</div>
+				<h1 class="error-title">Orden de Cambio no encontrada</h1>
+				<p class="error-desc">El enlace no es válido o ha expirado. Por favor solicita al residente de obra un nuevo enlace de WhatsApp.</p>
+				<a href="/" class="btn-error-back">Ir a ObraFlow</a>
+			</div>
+
+			<!-- Vista de la Orden de Cambio -->
+			<article id="co-view-article" class="co-card-sheet hidden">
+				<!-- Tarjeta de Contexto de Obra -->
+				<div class="project-context-strip">
+					<div class="context-item">
+						<span class="context-label">Obra en Ejecución:</span>
+						<strong id="co-project-title" class="context-val">Cargando obra...</strong>
+					</div>
+					<div class="context-item">
+						<span class="context-label">Cliente Titular:</span>
+						<strong id="co-client-name" class="context-val">Cargando cliente...</strong>
+					</div>
+					<div class="context-item">
+						<span class="context-label">Código Oficial:</span>
+						<span id="co-code-badge" class="code-badge">OC-000</span>
+					</div>
+				</div>
+
+				<!-- Título y Justificación Técnica -->
+				<div class="order-main-body">
+					<span class="order-kicker">Solicitud de Trabajo Adicional</span>
+					<h1 id="co-title-text" class="order-title">Cargando adicional...</h1>
+					<p id="co-justification-text" class="order-desc">...</p>
+				</div>
+
+				<!-- Desglose Financiero Destacado (Currency Integrity Rule) -->
+				<div class="order-pricing-box">
+					<div class="pricing-headline">
+						<span class="pricing-label">Valor Adicional a Pagar</span>
+						<span class="pricing-guarantee">Blindaje Contractual</span>
+					</div>
+
+					<div class="pricing-amount-row">
+						<span id="co-sale-amount" class="pricing-big-val mono-value">$ 0 COP</span>
+					</div>
+
+					<div class="pricing-terms-grid">
+						<div class="term-col">
+							<span class="term-lbl">Prórroga de Entrega:</span>
+							<strong id="co-days-val" class="term-val text-amber">+ 0 días hábiles</strong>
+						</div>
+						<div class="term-col">
+							<span class="term-lbl">Nuevo Total Contratado:</span>
+							<strong id="co-new-contract-total" class="term-val mono-value">$ 0 COP</strong>
+						</div>
+					</div>
+				</div>
+
+				<!-- SECCIÓN 1: Formulario de Firma (Si está pendiente) -->
+				<div id="co-sign-section" class="co-sign-container">
+					<div class="sign-header-group">
+						<h2 class="sign-title">Firma Electrónica del Cliente</h2>
+						<p class="sign-subtitle">Dibuja tu firma con el dedo o puntero táctil para autorizar formalmente el trabajo adicional.</p>
+					</div>
+
+					<!-- Lienzo Canvas de Firma -->
+					<div class="canvas-wrapper">
+						<div class="canvas-top-tools">
+							<span class="canvas-hint">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+								<span>Espacio para firmar:</span>
+							</span>
+							<button id="btn-clear-canvas" type="button" class="btn-clear-sig" title="Borrar y firmar de nuevo">
+								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+								<span>Limpiar</span>
+							</button>
+						</div>
+
+						<canvas id="co-signature-canvas" class="signature-canvas" width="600" height="180"></canvas>
+					</div>
+
+					<!-- Datos del Firmante -->
+					<form id="form-submit-client-signature" class="signature-form" novalidate>
+						<div class="form-grid-two">
+							<div class="sign-form-group">
+								<label for="sig-signer-name" class="sign-label">Nombre y Apellidos del Titular *</label>
+								<input
+									id="sig-signer-name"
+									type="text"
+									class="sign-input"
+									placeholder="Ej: Marcela Gómez Restrepo"
+									required
+								/>
+							</div>
+
+							<div class="sign-form-group">
+								<label for="sig-signer-id" class="sign-label">Cédula / Documento de Identidad *</label>
+								<input
+									id="sig-signer-id"
+									type="text"
+									class="sign-input mono-value"
+									placeholder="Ej: CC 43.120.985"
+									required
+								/>
+							</div>
+						</div>
+
+						<label class="consent-checkbox-wrap">
+							<input id="sig-consent-check" type="checkbox" class="consent-checkbox" required />
+							<span class="consent-text">
+								Acepto y autorizo la ejecución de este trabajo adicional según el valor cotizado y la prórroga de entrega especificada.
+							</span>
+						</label>
+
+						<button id="btn-submit-approval" type="submit" class="btn-approve-signature">
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+								<polyline points="20 6 9 17 4 12"></polyline>
+							</svg>
+							<span>Aprobar y Firmar Trabajo Adicional</span>
+						</button>
+					</form>
+				</div>
+
+				<!-- SECCIÓN 2: Certificado de Aprobación (Si ya está firmada) -->
+				<div id="co-approved-certificate" class="co-cert-container hidden">
+					<div class="cert-shield-badge">
+						<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+							<polyline points="9 12 11 14 15 10"></polyline>
+						</svg>
+					</div>
+
+					<h2 class="cert-title">Orden de Cambio Aprobada y Autorizada</h2>
+					<p class="cert-subtitle">Este trabajo adicional fue formalizado digitalmente. El equipo de obra cuenta con autorización expresa para su ejecución.</p>
+
+					<div class="cert-card-stamp">
+						<div class="cert-signature-preview">
+							<span class="preview-tag">Firma Digital Registrada</span>
+							<img id="cert-signature-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E" alt="Firma digital del cliente" class="cert-img" />
+						</div>
+
+						<div class="cert-metadata-grid">
+							<div class="cert-meta-item">
+								<span class="meta-label">Firmado por:</span>
+								<strong id="cert-name-val" class="meta-data">-</strong>
+							</div>
+							<div class="cert-meta-item">
+								<span class="meta-label">Cédula:</span>
+								<strong id="cert-id-val" class="meta-data mono-value">-</strong>
+							</div>
+							<div class="cert-meta-item">
+								<span class="meta-label">Fecha y Hora de Firma:</span>
+								<strong id="cert-time-val" class="meta-data mono-value">-</strong>
+							</div>
+							<div class="cert-meta-item">
+								<span class="meta-label">Valor Aprobado:</span>
+								<strong id="cert-val-amount" class="meta-data text-emerald mono-value">-</strong>
+							</div>
+						</div>
+					</div>
+
+					<div class="cert-actions-row">
+						<button id="btn-print-co" type="button" class="btn-cert-print">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+							<span>Descargar / Imprimir Comprobante</span>
+						</button>
+					</div>
+				</div>
+			</article>
+		</div>
+	</main>
+
+	<Toast />
+</Layout>
+
+<style>
+	.co-public-shell {
+		width: 100%;
+		min-height: 100vh;
+		background-color: #F8FAFC;
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+	}
+
+	.co-public-header {
+		background-color: #0F172A;
+		border-bottom: 1px solid #1E293B;
+		padding: 0.875rem 1.25rem;
+		position: sticky;
+		top: 0;
+		z-index: 20;
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+	}
+
+	.header-inner {
+		max-width: 760px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.brand-group {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+	}
+
+	.brand-emblem {
+		width: 34px;
+		height: 34px;
+		border-radius: 0.5rem;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.brand-text {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.brand-title {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #FFFFFF;
+		letter-spacing: -0.02em;
+	}
+
+	.brand-accent {
+		color: #FB923C;
+	}
+
+	.contractor-name {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: #94A3B8;
+	}
+
+	.header-status-pill {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		padding: 0.25rem 0.6rem;
+		border-radius: 9999px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.header-status-pill.pending {
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FDE68A;
+	}
+
+	.header-status-pill.approved {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	.co-public-content {
+		flex: 1;
+		width: 100%;
+		max-width: 760px;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 3.5rem;
+		box-sizing: border-box;
+	}
+
+	.co-card-sheet {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 1rem;
+		box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.project-context-strip {
+		background-color: #F8FAFC;
+		border-bottom: 1px solid #E2E8F0;
+		padding: 1rem 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.context-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+
+	.context-label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.context-val {
+		font-size: 0.875rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.code-badge {
+		font-family: var(--font-mono, monospace);
+		font-size: 0.8125rem;
+		font-weight: 800;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.375rem;
+	}
+
+	.order-main-body {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.order-kicker {
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #EA580C;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.order-title {
+		font-size: 1.375rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+		line-height: 1.3;
+		letter-spacing: -0.02em;
+	}
+
+	.order-desc {
+		font-size: 0.9375rem;
+		color: #475569;
+		margin: 0.25rem 0 0;
+		line-height: 1.5;
+	}
+
+	/* Tarjeta de Precio */
+	.order-pricing-box {
+		margin: 0 1.5rem 1.5rem;
+		background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+		border-radius: 0.875rem;
+		padding: 1.5rem;
+		color: #FFFFFF;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+	}
+
+	.pricing-headline {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.pricing-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #94A3B8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.pricing-guarantee {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		color: #34D399;
+		background-color: rgba(16, 185, 129, 0.15);
+		border: 1px solid rgba(16, 185, 129, 0.3);
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.pricing-amount-row {
+		display: flex;
+		align-items: baseline;
+	}
+
+	.pricing-big-val {
+		font-size: 2.25rem;
+		font-weight: 800;
+		color: #34D399;
+		letter-spacing: -0.02em;
+		line-height: 1;
+	}
+
+	.pricing-terms-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.term-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
+	.term-lbl {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		font-weight: 600;
+	}
+
+	.term-val {
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: #FFFFFF;
+	}
+
+	.text-amber { color: #FBBF24; }
+	.text-emerald { color: #059669; }
+
+	.mono-value {
+		font-family: var(--font-mono, 'JetBrains Mono', monospace);
+		white-space: nowrap;
+	}
+
+	/* Sección de Firma */
+	.co-sign-container {
+		padding: 1.5rem;
+		border-top: 1px solid #E2E8F0;
+		background-color: #FFFFFF;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.sign-header-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.sign-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.sign-subtitle {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin: 0;
+		line-height: 1.4;
+	}
+
+	.canvas-wrapper {
+		border: 2px dashed #CBD5E1;
+		border-radius: 0.75rem;
+		background-color: #F8FAFC;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.canvas-top-tools {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5rem 0.875rem;
+		border-bottom: 1px solid #E2E8F0;
+		background-color: #F1F5F9;
+	}
+
+	.canvas-hint {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #475569;
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.btn-clear-sig {
+		height: 30px;
+		padding: 0 0.6rem;
+		border-radius: 0.375rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #334155;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		cursor: pointer;
+	}
+
+	.signature-canvas {
+		width: 100%;
+		height: 180px;
+		background-color: #FFFFFF;
+		cursor: crosshair;
+		touch-action: none;
+	}
+
+	.signature-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.form-grid-two {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.sign-form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.sign-label {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #1E293B;
+	}
+
+	.sign-input {
+		height: 48px;
+		padding: 0 0.875rem;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		color: #0F172A;
+		outline: none;
+		box-sizing: border-box;
+		transition: all 0.15s ease;
+	}
+
+	.sign-input:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.consent-checkbox-wrap {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.625rem;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		color: #475569;
+		line-height: 1.4;
+		user-select: none;
+	}
+
+	.consent-checkbox {
+		margin-top: 0.15rem;
+		width: 18px;
+		height: 18px;
+		cursor: pointer;
+		accent-color: #F97316;
+	}
+
+	.btn-approve-signature {
+		width: 100%;
+		height: 56px;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		border: none;
+		border-radius: 0.75rem;
+		color: #FFFFFF;
+		font-size: 1rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		cursor: pointer;
+		box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+		transition: all 0.15s ease;
+	}
+
+	.btn-approve-signature:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
+	}
+
+	/* Sección de Certificado Firmado */
+	.co-cert-container {
+		padding: 2.5rem 1.5rem;
+		background-color: #FFFFFF;
+		border-top: 1px solid #E2E8F0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 1rem;
+	}
+
+	.cert-shield-badge {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+	}
+
+	.cert-title {
+		font-size: 1.375rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.cert-subtitle {
+		font-size: 0.875rem;
+		color: #475569;
+		max-width: 520px;
+		margin: 0;
+		line-height: 1.45;
+	}
+
+	.cert-card-stamp {
+		width: 100%;
+		max-width: 520px;
+		border: 1.5px solid #A7F3D0;
+		border-radius: 0.75rem;
+		background-color: #F0FDF4;
+		overflow: hidden;
+		margin-top: 0.5rem;
+		text-align: left;
+	}
+
+	.cert-signature-preview {
+		padding: 1rem;
+		background-color: #FFFFFF;
+		border-bottom: 1px solid #A7F3D0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.preview-tag {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		color: #047857;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.cert-img {
+		max-width: 100%;
+		max-height: 80px;
+		object-fit: contain;
+	}
+
+	.cert-metadata-grid {
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.cert-meta-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.8125rem;
+	}
+
+	.meta-label {
+		color: #475569;
+		font-weight: 600;
+	}
+
+	.meta-data {
+		color: #0F172A;
+		font-weight: 800;
+	}
+
+	.btn-cert-print {
+		min-height: 48px;
+		padding: 0 1.5rem;
+		border-radius: 0.5rem;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border: none;
+		font-size: 0.875rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-cert-print:hover {
+		background-color: #1E293B;
+	}
+
+	/* Error */
+	.error-card {
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.75rem;
+		padding: 3rem 1.5rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.error-icon {
+		color: #EF4444;
+	}
+
+	.error-title {
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.error-desc {
+		font-size: 0.875rem;
+		color: #64748B;
+		max-width: 440px;
+		margin: 0;
+	}
+
+	.btn-error-back {
+		margin-top: 0.75rem;
+		padding: 0.6rem 1.25rem;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border-radius: 0.5rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 600px) {
+		.form-grid-two {
+			grid-template-columns: 1fr;
+		}
+		.pricing-big-val {
+			font-size: 1.75rem;
+		}
+		.pricing-terms-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<script>
+	import {
+		getChangeOrderByToken,
+		approveAndSignChangeOrder,
+		type ChangeOrder
+	} from '../../lib/change-order-store';
+	import { getProjectById, type ProjectCosting } from '../../lib/costing-store';
+
+	const formatCOP = (val: number): string => {
+		return new Intl.NumberFormat('es-CO', {
+			style: 'currency',
+			currency: 'COP',
+			maximumFractionDigits: 0
+		}).format(val || 0);
+	};
+
+	let currentOrder: ChangeOrder | null = null;
+	let currentProject: ProjectCosting | null = null;
+	let isDrawing = false;
+	let hasSigned = false;
+
+	function initChangeOrderPublicView() {
+		const urlParams = new URLSearchParams(window.location.search);
+		const token = urlParams.get('token') || urlParams.get('id');
+
+		const errorView = document.getElementById('co-view-error');
+		const articleView = document.getElementById('co-view-article');
+
+		if (!token) {
+			errorView?.classList.remove('hidden');
+			return;
+		}
+
+		currentOrder = getChangeOrderByToken(token);
+		if (!currentOrder) {
+			errorView?.classList.remove('hidden');
+			return;
+		}
+
+		currentProject = getProjectById(currentOrder.project_id);
+
+		articleView?.classList.remove('hidden');
+		renderOrderDetails(currentOrder, currentProject);
+		setupCanvasSignature();
+		setupSignatureForm();
+	}
+
+	function renderOrderDetails(order: ChangeOrder, project: ProjectCosting | null) {
+		const headerStatus = document.getElementById('co-header-status-pill');
+		const projTitle = document.getElementById('co-project-title');
+		const clientName = document.getElementById('co-client-name');
+		const codeBadge = document.getElementById('co-code-badge');
+		const titleText = document.getElementById('co-title-text');
+		const justText = document.getElementById('co-justification-text');
+		const saleAmount = document.getElementById('co-sale-amount');
+		const daysVal = document.getElementById('co-days-val');
+		const newContractTotal = document.getElementById('co-new-contract-total');
+
+		const signSection = document.getElementById('co-sign-section');
+		const certSection = document.getElementById('co-approved-certificate');
+
+		if (headerStatus) {
+			if (order.status === 'approved') {
+				headerStatus.textContent = '✓ Aprobada y Autorizada';
+				headerStatus.className = 'header-status-pill approved';
+			} else {
+				headerStatus.textContent = '⏳ Pendiente de Firma';
+				headerStatus.className = 'header-status-pill pending';
+			}
+		}
+
+		if (projTitle) projTitle.textContent = project ? project.title : 'Obra Residencial';
+		if (clientName) clientName.textContent = project ? project.client_name : 'Cliente Titular';
+		if (codeBadge) codeBadge.textContent = order.code;
+		if (titleText) titleText.textContent = order.title;
+		if (justText) justText.textContent = order.justification;
+		if (saleAmount) saleAmount.textContent = formatCOP(order.sale_price_amount);
+		if (daysVal) {
+			daysVal.textContent = order.additional_days > 0 ? `+ ${order.additional_days} días hábiles` : 'Sin prórroga';
+		}
+
+		if (newContractTotal && project) {
+			const updatedContract = (project.target_sale_price || 0) + (order.status === 'approved' ? 0 : order.sale_price_amount);
+			newContractTotal.textContent = formatCOP(updatedContract);
+		}
+
+		if (order.status === 'approved') {
+			signSection?.classList.add('hidden');
+			certSection?.classList.remove('hidden');
+
+			const certImg = document.getElementById('cert-signature-img') as HTMLImageElement | null;
+			const certName = document.getElementById('cert-name-val');
+			const certId = document.getElementById('cert-id-val');
+			const certTime = document.getElementById('cert-time-val');
+			const certAmt = document.getElementById('cert-val-amount');
+
+			if (certImg) certImg.src = order.signature_data_url || '';
+			if (certName) certName.textContent = order.signed_by_name || 'Cliente';
+			if (certId) certId.textContent = order.signed_by_id_number || 'CC No registrada';
+			if (certTime) {
+				certTime.textContent = order.signed_at
+					? new Date(order.signed_at).toLocaleString('es-CO')
+					: 'Fecha registrada';
+			}
+			if (certAmt) certAmt.textContent = formatCOP(order.sale_price_amount);
+		} else {
+			signSection?.classList.remove('hidden');
+			certSection?.classList.add('hidden');
+		}
+	}
+
+	function setupCanvasSignature() {
+		const canvas = document.getElementById('co-signature-canvas') as HTMLCanvasElement | null;
+		if (!canvas) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		// Configurar canvas para alta resolución (Retina displays)
+		const dpr = window.devicePixelRatio || 1;
+		const rect = canvas.getBoundingClientRect();
+		canvas.width = rect.width * dpr;
+		canvas.height = rect.height * dpr;
+		ctx.scale(dpr, dpr);
+
+		ctx.lineWidth = 2.5;
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
+		ctx.strokeStyle = '#0F172A';
+
+		function getPos(e: MouseEvent | TouchEvent) {
+			const b = canvas!.getBoundingClientRect();
+			if ('touches' in e && e.touches.length > 0) {
+				return {
+					x: e.touches[0].clientX - b.left,
+					y: e.touches[0].clientY - b.top
+				};
+			} else if ('clientX' in e) {
+				return {
+					x: (e as MouseEvent).clientX - b.left,
+					y: (e as MouseEvent).clientY - b.top
+				};
+			}
+			return { x: 0, y: 0 };
+		}
+
+		function startDraw(e: MouseEvent | TouchEvent) {
+			isDrawing = true;
+			hasSigned = true;
+			const pos = getPos(e);
+			ctx?.beginPath();
+			ctx?.moveTo(pos.x, pos.y);
+			if (e.cancelable) e.preventDefault();
+		}
+
+		function draw(e: MouseEvent | TouchEvent) {
+			if (!isDrawing || !ctx) return;
+			const pos = getPos(e);
+			ctx.lineTo(pos.x, pos.y);
+			ctx.stroke();
+			if (e.cancelable) e.preventDefault();
+		}
+
+		function stopDraw() {
+			isDrawing = false;
+		}
+
+		canvas.addEventListener('mousedown', startDraw);
+		canvas.addEventListener('mousemove', draw);
+		window.addEventListener('mouseup', stopDraw);
+
+		canvas.addEventListener('touchstart', startDraw, { passive: false });
+		canvas.addEventListener('touchmove', draw, { passive: false });
+		canvas.addEventListener('touchend', stopDraw);
+
+		// Botón Limpiar Firma
+		document.getElementById('btn-clear-canvas')?.addEventListener('click', () => {
+			if (ctx) {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				hasSigned = false;
+			}
+		});
+	}
+
+	function setupSignatureForm() {
+		const form = document.getElementById('form-submit-client-signature') as HTMLFormElement | null;
+		const nameInput = document.getElementById('sig-signer-name') as HTMLInputElement | null;
+		const idInput = document.getElementById('sig-signer-id') as HTMLInputElement | null;
+		const consentCheck = document.getElementById('sig-consent-check') as HTMLInputElement | null;
+		const canvas = document.getElementById('co-signature-canvas') as HTMLCanvasElement | null;
+
+		// Pre-cargar nombre si el proyecto lo tiene
+		if (nameInput && currentProject?.client_name) {
+			nameInput.value = currentProject.client_name;
+		}
+
+		form?.addEventListener('submit', (e) => {
+			e.preventDefault();
+
+			if (!currentOrder) return;
+
+			if (!hasSigned) {
+				dispatchToast('Por favor dibuja tu firma en el recuadro.', 'error');
+				return;
+			}
+
+			const name = nameInput?.value.trim() || '';
+			const idNumber = idInput?.value.trim() || '';
+
+			if (!name) {
+				dispatchToast('Digita tu nombre completo.', 'error');
+				nameInput?.focus();
+				return;
+			}
+
+			if (!idNumber) {
+				dispatchToast('Digita tu número de documento o cédula.', 'error');
+				idInput?.focus();
+				return;
+			}
+
+			if (!consentCheck?.checked) {
+				dispatchToast('Debes marcar la casilla de autorización para continuar.', 'error');
+				consentCheck?.focus();
+				return;
+			}
+
+			const signatureDataUrl = canvas?.toDataURL('image/png') || '';
+
+			try {
+				const result = approveAndSignChangeOrder(currentOrder.magic_token, {
+					signature_png_base64: signatureDataUrl,
+					signed_by_name: name,
+					signed_by_id_number: idNumber
+				});
+
+				currentOrder = result.order;
+				currentProject = getProjectById(currentOrder.project_id);
+
+				dispatchToast('✓ Orden de cambio aprobada y autorizada con éxito.');
+				renderOrderDetails(currentOrder, currentProject);
+			} catch (err: any) {
+				console.error(err);
+				dispatchToast(err.message || 'Error procesando firma.', 'error');
+			}
+		});
+
+		// Botón de imprimir comprobante
+		document.getElementById('btn-print-co')?.addEventListener('click', () => {
+			window.print();
+		});
+	}
+
+	function dispatchToast(message: string, type: 'success' | 'warning' | 'error' = 'success') {
+		window.dispatchEvent(
+			new CustomEvent('obraflow:toast', {
+				detail: { message, type }
+			})
+		);
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initChangeOrderPublicView);
+	} else {
+		initChangeOrderPublicView();
+	}
+</script>

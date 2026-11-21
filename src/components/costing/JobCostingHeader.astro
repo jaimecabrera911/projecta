@@ -1,0 +1,399 @@
+---
+// src/components/costing/JobCostingHeader.astro
+// HU-13: Cabecera ejecutiva con selector de proyectos y acciones rápidas de obra.
+---
+
+<header id="job-costing-header" class="costing-header">
+	<div class="costing-header-main">
+		<!-- Navegación de migas de pan y contexto -->
+		<div class="costing-breadcrumbs">
+			<a href="/" class="crumb-link" id="crumb-link-crm" title="Volver al Embudo CRM">CRM</a>
+			<span class="crumb-sep" aria-hidden="true">/</span>
+			<span class="crumb-current" id="crumb-current-section">Control de Costos (Job Costing)</span>
+		</div>
+
+		<!-- Título del proyecto y selector dinámico -->
+		<div class="costing-title-row">
+			<div class="costing-title-group">
+				<div class="project-avatar" id="project-avatar-icon" aria-hidden="true">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M2 20h20"></path>
+						<path d="m5 20 5-15h4l5 15"></path>
+						<path d="M9 13h6"></path>
+					</svg>
+				</div>
+				<div>
+					<div class="project-heading-wrap">
+						<h1 id="costing-project-title" class="costing-project-title">Cargando proyecto...</h1>
+						<span id="costing-project-badge" class="badge-status-active">Obra en Ejecución</span>
+					</div>
+					<div class="project-meta-details">
+						<span class="meta-item" id="costing-client-name">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+							<span>Cliente: ...</span>
+						</span>
+						<span class="meta-item" id="costing-project-address">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+							<span>Ubicación: ...</span>
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Selector de obra y botones de acción rápida -->
+			<div class="costing-actions-group">
+				<!-- Selector de Proyecto -->
+				<div class="project-picker-wrap">
+					<label for="costing-project-selector" class="sr-only">Seleccionar Obra</label>
+					<select id="costing-project-selector" class="project-selector" aria-label="Cambiar obra activa">
+						<!-- Poblado dinámicamente -->
+					</select>
+				</div>
+
+				<!-- Botón Resetear Datos Demo (para testing y auditoría) -->
+				<button
+					id="btn-costing-reset-demo"
+					type="button"
+					class="btn-costing-ghost"
+					title="Restablecer datos de demo a valores de fábrica"
+					aria-label="Restablecer datos demo"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+						<path d="M3 3v5h5"></path>
+					</svg>
+					<span class="btn-text-desktop">Reset Demo</span>
+				</button>
+
+				<!-- Botón Imprimir / Exportar Reporte de Auditoría -->
+				<button
+					id="btn-costing-export-report"
+					type="button"
+					class="btn-costing-ghost"
+					title="Imprimir o exportar matriz financiera a PDF"
+					aria-label="Exportar informe de costos"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="6 9 6 2 18 2 18 9"></polyline>
+						<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+						<rect x="6" y="14" width="12" height="8"></rect>
+					</svg>
+					<span class="btn-text-desktop">Exportar PDF</span>
+				</button>
+
+				<!-- Botón Primario: Registrar Gasto de Campo -->
+				<button
+					id="btn-costing-add-expense"
+					type="button"
+					class="btn-costing-primary"
+					title="Registrar factura o recibo de compra en obra"
+					aria-label="Registrar nuevo gasto de obra"
+				>
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<line x1="12" y1="5" x2="12" y2="19"></line>
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+					</svg>
+					<span>Registrar Gasto</span>
+				</button>
+
+				<!-- Botón Secundario: + Orden de Cambio (HU-15) -->
+				<button
+					id="btn-costing-add-change-order"
+					type="button"
+					class="btn-costing-co"
+					title="Cotizar trabajo adicional y enviar enlace de firma (HU-15)"
+					aria-label="Nueva orden de cambio"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+						<polyline points="14 2 14 8 20 8"></polyline>
+						<line x1="12" y1="18" x2="12" y2="12"></line>
+						<line x1="9" y1="15" x2="15" y2="15"></line>
+					</svg>
+					<span class="btn-text-desktop">+ Orden de Cambio</span>
+				</button>
+			</div>
+		</div>
+	</div>
+</header>
+
+<style>
+	.costing-header {
+		position: static;
+		top: auto;
+		z-index: auto;
+		background-color: #FFFFFF;
+		border-bottom: 1px solid #E2E8F0;
+		padding: 1.25rem 1.5rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		margin-bottom: 1.5rem;
+	}
+
+	.costing-breadcrumbs {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin-bottom: 0.75rem;
+	}
+
+	.crumb-link {
+		color: #64748B;
+		text-decoration: none;
+		font-weight: 600;
+		transition: color 0.15s ease;
+	}
+
+	.crumb-link:hover {
+		color: #F97316;
+	}
+
+	.crumb-sep {
+		color: #CBD5E1;
+	}
+
+	.crumb-current {
+		color: #0F172A;
+		font-weight: 700;
+	}
+
+	.costing-title-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.25rem;
+	}
+
+	.costing-title-group {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.project-avatar {
+		width: 48px;
+		height: 48px;
+		border-radius: 0.75rem;
+		background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+		color: #F97316;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+	}
+
+	.project-heading-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.costing-project-title {
+		font-size: 1.375rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.02em;
+		margin: 0;
+	}
+
+	.badge-status-active {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.project-meta-details {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+		margin-top: 0.35rem;
+		font-size: 0.8125rem;
+		color: #64748B;
+		flex-wrap: wrap;
+	}
+
+	.meta-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.costing-actions-group {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.project-picker-wrap {
+		position: relative;
+	}
+
+	.project-selector {
+		height: 48px;
+		padding: 0 2rem 0 1rem;
+		background-color: #F8FAFC;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.5rem;
+		font-family: inherit;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #1E293B;
+		cursor: pointer;
+		outline: none;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+		appearance: none;
+		background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+		background-repeat: no-repeat;
+		background-position: right 0.75rem center;
+		background-size: 14px;
+	}
+
+	.project-selector:focus-visible {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.btn-costing-ghost {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		height: 48px;
+		min-width: 48px;
+		padding: 0 1rem;
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		border-radius: 0.5rem;
+		color: #334155;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-costing-ghost:hover {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.btn-costing-ghost:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.btn-costing-primary {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		height: 48px;
+		padding: 0 1.25rem;
+		background-color: #F97316;
+		border: 1px solid #EA580C;
+		border-radius: 0.5rem;
+		color: #FFFFFF;
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+		transition: all 0.15s ease;
+	}
+
+	.btn-costing-primary:hover {
+		background-color: #EA580C;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+	}
+
+	.btn-costing-primary:focus-visible {
+		outline: 2px solid #0F172A;
+		outline-offset: 2px;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+
+	.btn-costing-co {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		height: 48px;
+		padding: 0 1rem;
+		background-color: #0F172A;
+		border: 1px solid #1E293B;
+		border-radius: 0.5rem;
+		color: #FFFFFF;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-costing-co:hover {
+		background-color: #1E293B;
+		color: #F97316;
+		border-color: #F97316;
+	}
+
+	.btn-costing-co:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	@media (max-width: 640px) {
+		.btn-text-desktop {
+			display: none;
+		}
+		.btn-costing-ghost,
+		.btn-costing-co {
+			padding: 0 0.75rem;
+		}
+		.costing-title-row {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.costing-actions-group {
+			width: 100%;
+			justify-content: flex-start;
+		}
+		.project-selector {
+			flex: 1;
+		}
+	}
+</style>
+
+<script>
+	// Disparar apertura del modal de orden de cambio
+	document.getElementById('btn-costing-add-change-order')?.addEventListener('click', () => {
+		const selector = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
+		window.dispatchEvent(
+			new CustomEvent('open-create-change-order-modal', {
+				detail: { projectId: selector?.value || '' }
+			})
+		);
+	});
+</script>

@@ -1,0 +1,862 @@
+---
+// src/components/daily-logs/DailyLogWorkspace.astro
+// HU-17: Espacio de Trabajo Coordinador de Bitácora Diaria de Obra.
+// Integra selector de proyecto, métricas de jornada, formulario táctil y muro social estilo feed.
+
+import DailyLogForm from './DailyLogForm.astro';
+import DailyLogFeed from './DailyLogFeed.astro';
+---
+
+<div id="daily-log-workspace-root" class="daily-workspace-shell">
+	<!-- 1. Barra Superior de Control de Obra -->
+	<header id="daily-log-top-bar" class="daily-top-bar">
+		<div class="top-bar-left">
+			<div class="project-selector-wrapper">
+				<label for="daily-log-project-select" class="project-select-label">Obra Activa:</label>
+				<div class="custom-select-container">
+					<select id="daily-log-project-select" class="daily-project-select" aria-label="Seleccionar proyecto de obra">
+						<option value="proj_penthouse_poblado" selected>Remodelación Penthouse El Poblado (Dr. Andrés Restrepo)</option>
+						<option value="proj_torre_medica">Adecuación Consultorios Torre Médica (Inversiones Salud)</option>
+					</select>
+					<div class="select-chevron" aria-hidden="true">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<polyline points="6 9 12 15 18 9"></polyline>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="top-bar-actions">
+			<button
+				id="daily-log-reset-btn"
+				type="button"
+				class="btn-reset-logs"
+				title="Restablecer bitácoras de demostración iniciales"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+				</svg>
+				<span class="desktop-only">Reset Demo</span>
+			</button>
+
+			<a
+				href="#daily-log-form-card"
+				id="btn-scroll-to-form"
+				class="btn-new-log-cta"
+				title="Ir al formulario para reportar la jornada de hoy"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="12" y1="5" x2="12" y2="19"></line>
+					<line x1="5" y1="12" x2="19" y2="12"></line>
+				</svg>
+				<span>+ Reportar Jornada</span>
+			</a>
+		</div>
+	</header>
+
+	<!-- 2. Tarjetas de Resumen & Métricas de Bitácora -->
+	<section id="daily-log-metrics-strip" class="metrics-strip-grid" aria-label="Resumen de bitácora de obra">
+		<div class="metric-summary-card">
+			<div class="metric-icon-wrap icon-calendar">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+					<line x1="16" y1="2" x2="16" y2="6"></line>
+					<line x1="8" y1="2" x2="8" y2="6"></line>
+					<line x1="3" y1="10" x2="21" y2="10"></line>
+				</svg>
+			</div>
+			<div class="metric-text-box">
+				<span class="metric-number" id="metric-logged-days-count">3</span>
+				<span class="metric-caption">Jornadas Registradas</span>
+			</div>
+		</div>
+
+		<div class="metric-summary-card">
+			<div class="metric-icon-wrap icon-weather">
+				<span style="font-size: 1.25rem;">☀️</span>
+			</div>
+			<div class="metric-text-box">
+				<span class="metric-number" id="metric-dominant-weather-text">Soleado</span>
+				<span class="metric-caption">Clima Predominante</span>
+			</div>
+		</div>
+
+		<div class="metric-summary-card">
+			<div class="metric-icon-wrap icon-workers">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+					<circle cx="9" cy="7" r="4"></circle>
+					<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+					<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+				</svg>
+			</div>
+			<div class="metric-text-box">
+				<span class="metric-number" id="metric-avg-workers-num">4.3</span>
+				<span class="metric-caption">Promedio Operarios / Día</span>
+			</div>
+		</div>
+
+		<div class="metric-summary-card">
+			<div class="metric-icon-wrap icon-photos">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+					<circle cx="12" cy="13" r="4"></circle>
+				</svg>
+			</div>
+			<div class="metric-text-box">
+				<span class="metric-number" id="metric-total-photos-count">4</span>
+				<span class="metric-caption">Fotos en Memoria Técnica</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- 3. Formulario de Publicación de Bitácora -->
+	<DailyLogForm />
+
+	<!-- 4. Encabezado del Muro Social Feed -->
+	<div class="feed-section-header">
+		<div class="feed-header-left">
+			<h3 class="feed-heading">Memoria Técnica de Obra (Feed Cronológico)</h3>
+			<span class="feed-badge-live">En Vivo</span>
+		</div>
+	</div>
+
+	<!-- 5. Muro Social Estilo Feed -->
+	<DailyLogFeed />
+</div>
+
+<style>
+	.daily-workspace-shell {
+		max-width: 1080px;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 3.5rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* Top Bar */
+	.daily-top-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.top-bar-left {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex: 1;
+		min-width: 280px;
+	}
+
+	.project-selector-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		width: 100%;
+		max-width: 520px;
+	}
+
+	.project-select-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #64748B;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.custom-select-container {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.daily-project-select {
+		width: 100%;
+		min-height: 48px;
+		padding: 0.625rem 2.5rem 0.625rem 1rem;
+		background-color: #FFFFFF;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.625rem;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: #0F172A;
+		appearance: none;
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.daily-project-select:focus {
+		outline: none;
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.select-chevron {
+		position: absolute;
+		right: 1rem;
+		pointer-events: none;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+	}
+
+	.top-bar-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.btn-reset-logs {
+		min-height: 48px;
+		padding: 0 1rem;
+		border-radius: 0.625rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #475569;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-reset-logs:hover {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.btn-new-log-cta {
+		min-height: 48px;
+		padding: 0 1.25rem;
+		border-radius: 0.625rem;
+		border: none;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		font-size: 0.875rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		text-decoration: none;
+		box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+		transition: all 0.15s ease;
+	}
+
+	.btn-new-log-cta:hover {
+		background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 10px rgba(249, 115, 22, 0.45);
+	}
+
+	/* 2. Métricas Strip */
+	.metrics-strip-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 1rem;
+	}
+
+	.metric-summary-card {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	}
+
+	.metric-icon-wrap {
+		width: 44px;
+		height: 44px;
+		border-radius: 0.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.icon-calendar { background-color: #EFF6FF; color: #2563EB; }
+	.icon-weather { background-color: #FEF3C7; }
+	.icon-workers { background-color: #ECFDF5; color: #059669; }
+	.icon-photos { background-color: #FFF7ED; color: #EA580C; }
+
+	.metric-text-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+
+	.metric-number {
+		font-size: 1.25rem;
+		font-weight: 900;
+		color: #0F172A;
+		font-family: 'JetBrains Mono', monospace;
+	}
+
+	.metric-caption {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* Encabezado del Feed */
+	.feed-section-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding-top: 0.5rem;
+	}
+
+	.feed-header-left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.feed-heading {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.feed-badge-live {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	@media (max-width: 768px) {
+		.metrics-strip-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.daily-top-bar {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.top-bar-actions {
+			justify-content: space-between;
+		}
+
+		.btn-new-log-cta {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+</style>
+
+<script>
+	// HU-17: Orquestador y Motor Reactivo de Bitácora Diaria de Obra
+	import {
+		loadAllDailyLogs,
+		getDailyLogsByProject,
+		createDailyLog,
+		deleteDailyLog,
+		resetDemoDailyLogs,
+		compressImageToWebP,
+		generateDailyPhotoSvg,
+		getTodayDateString,
+		type DailyLogEntry,
+		type DailyLogPhoto,
+		type WeatherType
+	} from '../../lib/daily-log-store.ts';
+	import { getActiveRoleConfig } from '../../lib/role-store.ts';
+
+	let activeProjectId = 'proj_penthouse_poblado';
+	let selectedWeather: WeatherType = 'sunny';
+	let officialsCount = 3;
+	let helpersCount = 2;
+	let stagedPhotos: DailyLogPhoto[] = [];
+
+	function initDailyLogWorkspace() {
+		setupFormControls();
+		updateWorkspace();
+	}
+
+	function setupFormControls() {
+		// 1. Selector de Proyecto
+		const projSelect = document.getElementById('daily-log-project-select') as HTMLSelectElement | null;
+		projSelect?.addEventListener('change', () => {
+			activeProjectId = projSelect.value;
+			updateWorkspace();
+		});
+
+		// 2. Botón Reset Demo
+		document.getElementById('daily-log-reset-btn')?.addEventListener('click', () => {
+			resetDemoDailyLogs();
+			updateWorkspace();
+			showToast('Bitácoras de demostración restablecidas correctamente.');
+		});
+
+		// 3. Fecha default: Hoy
+		const dateInput = document.getElementById('log-date-input') as HTMLInputElement | null;
+		if (dateInput) {
+			dateInput.value = getTodayDateString();
+		}
+
+		// 4. Selector de Clima en 1 Toque
+		const weatherBtns = document.querySelectorAll<HTMLButtonElement>('.btn-weather-choice');
+		const weatherHidden = document.getElementById('log-weather-val') as HTMLInputElement | null;
+
+		weatherBtns.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const w = btn.dataset.weather as WeatherType;
+				if (!w) return;
+				selectedWeather = w;
+				if (weatherHidden) weatherHidden.value = w;
+
+				weatherBtns.forEach((b) => {
+					b.classList.remove('active');
+					b.setAttribute('aria-pressed', 'false');
+				});
+				btn.classList.add('active');
+				btn.setAttribute('aria-pressed', 'true');
+			});
+		});
+
+		// 5. Steppers de Cuadrilla
+		const updateSteppersDisplay = () => {
+			const offDisp = document.getElementById('officials-count-display');
+			const hlpDisp = document.getElementById('helpers-count-display');
+			const totalSum = document.getElementById('total-workers-summary');
+			if (offDisp) offDisp.textContent = officialsCount.toString();
+			if (hlpDisp) hlpDisp.textContent = helpersCount.toString();
+			if (totalSum) totalSum.textContent = (officialsCount + helpersCount).toString();
+		};
+
+		document.getElementById('btn-decrement-officials')?.addEventListener('click', () => {
+			if (officialsCount > 0) officialsCount--;
+			updateSteppersDisplay();
+		});
+		document.getElementById('btn-increment-officials')?.addEventListener('click', () => {
+			officialsCount++;
+			updateSteppersDisplay();
+		});
+
+		document.getElementById('btn-decrement-helpers')?.addEventListener('click', () => {
+			if (helpersCount > 0) helpersCount--;
+			updateSteppersDisplay();
+		});
+		document.getElementById('btn-increment-helpers')?.addEventListener('click', () => {
+			helpersCount++;
+			updateSteppersDisplay();
+		});
+
+		// 6. Subida de Fotos y Compresión WebP
+		const photoInput = document.getElementById('log-photos-input') as HTMLInputElement | null;
+		document.getElementById('btn-add-photos')?.addEventListener('click', () => {
+			photoInput?.click();
+		});
+
+		photoInput?.addEventListener('change', async () => {
+			if (!photoInput.files || photoInput.files.length === 0) return;
+			const files = Array.from(photoInput.files).slice(0, 10 - stagedPhotos.length);
+
+			for (const file of files) {
+				try {
+					const webpUrl = await compressImageToWebP(file, 800 * 1024);
+					stagedPhotos.push({
+						id: `photo_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+						name: file.name,
+						url: webpUrl,
+						caption: file.name,
+						created_at: new Date().toISOString()
+					});
+				} catch (err) {
+					console.error('Error comprimiendo imagen:', err);
+				}
+			}
+
+			photoInput.value = '';
+			renderPhotosPreview();
+		});
+
+		// 7. Foto Rápida Demo con Sello de Agua
+		document.getElementById('btn-add-demo-photo')?.addEventListener('click', () => {
+			if (stagedPhotos.length >= 10) {
+				showToast('Límite de 10 fotos alcanzado para esta jornada.');
+				return;
+			}
+
+			const demoSvg = generateDailyPhotoSvg('Penthouse El Poblado', 'Inspección de avance de obra', selectedWeather);
+			stagedPhotos.push({
+				id: `photo_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+				name: `inspeccion_${Date.now()}.svg`,
+				url: demoSvg,
+				caption: 'Inspección técnica de obra verificada',
+				created_at: new Date().toISOString()
+			});
+
+			renderPhotosPreview();
+			showToast('📸 Foto de prueba con sello de agua agregada.');
+		});
+
+		// 8. Botón Auto-Llenar Demo
+		document.getElementById('btn-fill-demo-log')?.addEventListener('click', () => {
+			const notesArea = document.getElementById('log-notes-textarea') as HTMLTextAreaElement | null;
+			if (notesArea) {
+				notesArea.value = 'Se completó la instalación de tubería conduit y cajas de derivación en zona social. Avance de 22 m2 de mampostería en muros divisorios. Clima estable durante toda la jornada laboral. Todo el personal laboró con EPP normativo.';
+			}
+			officialsCount = 3;
+			helpersCount = 2;
+			updateSteppersDisplay();
+
+			if (stagedPhotos.length === 0) {
+				const svg1 = generateDailyPhotoSvg('Penthouse El Poblado', 'Instalación de tubería conduit', selectedWeather);
+				stagedPhotos.push({
+					id: `photo_demo_1`,
+					name: 'conduit_zona_social.svg',
+					url: svg1,
+					caption: 'Tubería conduit y cajas de derivación',
+					created_at: new Date().toISOString()
+				});
+				renderPhotosPreview();
+			}
+
+			showToast('Datos de prueba cargados en el formulario.');
+		});
+
+		// 9. Envío del Formulario
+		const form = document.getElementById('daily-log-form') as HTMLFormElement | null;
+		form?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const dateVal = (document.getElementById('log-date-input') as HTMLInputElement)?.value;
+			const notesVal = (document.getElementById('log-notes-textarea') as HTMLTextAreaElement)?.value.trim();
+			const notesErr = document.getElementById('log-notes-error');
+
+			if (!notesVal) {
+				notesErr?.classList.remove('hidden');
+				return;
+			}
+			notesErr?.classList.add('hidden');
+
+			const roleConfig = getActiveRoleConfig();
+
+			createDailyLog({
+				project_id: activeProjectId,
+				date: dateVal,
+				weather: selectedWeather,
+				officials_count: officialsCount,
+				helpers_count: helpersCount,
+				notes: notesVal,
+				photos: [...stagedPhotos],
+				author_name: roleConfig.name,
+				author_role: roleConfig.label
+			});
+
+			// Resetear formulario
+			(document.getElementById('log-notes-textarea') as HTMLTextAreaElement).value = '';
+			stagedPhotos = [];
+			renderPhotosPreview();
+			updateWorkspace();
+
+			showToast('✓ Bitácora del día publicada con éxito en el muro.');
+		});
+
+		// 10. Lightbox
+		document.getElementById('btn-close-feed-lightbox')?.addEventListener('click', () => {
+			document.getElementById('feed-photo-lightbox')?.classList.add('hidden');
+		});
+		document.getElementById('feed-photo-lightbox')?.addEventListener('click', (e) => {
+			if (e.target === document.getElementById('feed-photo-lightbox')) {
+				document.getElementById('feed-photo-lightbox')?.classList.add('hidden');
+			}
+		});
+
+		// 11. Evento de sincronización
+		window.addEventListener('obraflow:daily-logs-updated', () => {
+			updateWorkspace();
+		});
+	}
+
+	function renderPhotosPreview() {
+		const strip = document.getElementById('photos-preview-strip');
+		const pill = document.getElementById('photos-counter-pill');
+		if (!strip || !pill) return;
+
+		pill.textContent = `${stagedPhotos.length} / 10`;
+
+		if (stagedPhotos.length === 0) {
+			strip.innerHTML = '';
+			strip.classList.add('hidden');
+			return;
+		}
+
+		strip.classList.remove('hidden');
+		strip.innerHTML = stagedPhotos.map((p, idx) => `
+			<div class="log-photo-preview-card" id="preview-photo-${p.id}">
+				<img src="${p.url}" alt="${escapeHtml(p.caption || p.name)}" class="log-photo-preview-img" />
+				<button type="button" class="btn-remove-preview-photo" data-remove-idx="${idx}" title="Descartar foto">
+					✕
+				</button>
+			</div>
+		`).join('');
+
+		strip.querySelectorAll<HTMLButtonElement>('.btn-remove-preview-photo').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const idx = parseInt(btn.dataset.removeIdx || '-1', 10);
+				if (idx >= 0 && idx < stagedPhotos.length) {
+					stagedPhotos.splice(idx, 1);
+					renderPhotosPreview();
+				}
+			});
+		});
+	}
+
+	function updateWorkspace() {
+		renderMetrics();
+		renderFeed();
+		updateActiveAuthor();
+	}
+
+	function updateActiveAuthor() {
+		const authorBadge = document.getElementById('log-active-author-name');
+		const roleConfig = getActiveRoleConfig();
+		if (authorBadge) {
+			authorBadge.textContent = `${roleConfig.name} (${roleConfig.badgeText})`;
+		}
+	}
+
+	function renderMetrics() {
+		const logs = getDailyLogsByProject(activeProjectId);
+		const daysCountElem = document.getElementById('metric-logged-days-count');
+		const weatherElem = document.getElementById('metric-dominant-weather-text');
+		const avgElem = document.getElementById('metric-avg-workers-num');
+		const photosElem = document.getElementById('metric-total-photos-count');
+
+		if (daysCountElem) daysCountElem.textContent = logs.length.toString();
+
+		if (logs.length === 0) {
+			if (weatherElem) weatherElem.textContent = 'Sin datos';
+			if (avgElem) avgElem.textContent = '0';
+			if (photosElem) photosElem.textContent = '0';
+			return;
+		}
+
+		// Clima más frecuente
+		const weatherCounts: Record<WeatherType, number> = { sunny: 0, rainy: 0, cloudy: 0 };
+		let totalWorkersSum = 0;
+		let totalPhotosCount = 0;
+
+		logs.forEach((l) => {
+			weatherCounts[l.weather] = (weatherCounts[l.weather] || 0) + 1;
+			totalWorkersSum += l.total_workers;
+			totalPhotosCount += l.photos?.length || 0;
+		});
+
+		let dominant: WeatherType = 'sunny';
+		let maxCount = -1;
+		(Object.keys(weatherCounts) as WeatherType[]).forEach((w) => {
+			if (weatherCounts[w] > maxCount) {
+				maxCount = weatherCounts[w];
+				dominant = w;
+			}
+		});
+
+		const weatherLabels: Record<WeatherType, string> = {
+			sunny: '☀️ Soleado',
+			rainy: '🌧️ Lluvia',
+			cloudy: '☁️ Nublado'
+		};
+
+		if (weatherElem) weatherElem.textContent = weatherLabels[dominant] || 'Soleado';
+		if (avgElem) avgElem.textContent = (totalWorkersSum / logs.length).toFixed(1);
+		if (photosElem) photosElem.textContent = totalPhotosCount.toString();
+	}
+
+	function renderFeed() {
+		const stream = document.getElementById('daily-logs-stream');
+		const emptyNotice = document.getElementById('daily-logs-empty-state');
+		if (!stream) return;
+
+		const logs = getDailyLogsByProject(activeProjectId);
+
+		if (logs.length === 0) {
+			stream.innerHTML = '';
+			emptyNotice?.classList.remove('hidden');
+			return;
+		}
+
+		emptyNotice?.classList.add('hidden');
+
+		const weatherConfig: Record<WeatherType, { label: string; emoji: string; class: string }> = {
+			sunny: { label: 'Soleado', emoji: '☀️', class: 'sunny' },
+			rainy: { label: 'Lluvia', emoji: '🌧️', class: 'rainy' },
+			cloudy: { label: 'Nublado', emoji: '☁️', class: 'cloudy' }
+		};
+
+		let html = '';
+
+		logs.forEach((entry) => {
+			const w = weatherConfig[entry.weather] || weatherConfig.sunny;
+			const initials = entry.author_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+			const photos = entry.photos || [];
+
+			html += `
+				<article class="daily-log-card" id="log-card-${entry.id}">
+					<div class="log-card-header">
+						<div class="log-header-left">
+							<h4 class="log-date-heading">📅 ${formatDateFull(entry.date)}</h4>
+							<span class="weather-badge ${w.class}">
+								<span>${w.emoji}</span>
+								<span>${w.label}</span>
+							</span>
+							<span class="workers-badge" title="${entry.officials_count} oficiales y ${entry.helpers_count} ayudantes">
+								👷 ${entry.total_workers} en obra (${entry.officials_count} ofi. / ${entry.helpers_count} ayud.)
+							</span>
+						</div>
+
+						<button
+							type="button"
+							class="btn-delete-log"
+							data-delete-log-id="${entry.id}"
+							aria-label="Eliminar entrada de bitácora"
+							title="Eliminar reporte de bitácora"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<polyline points="3 6 5 6 21 6"></polyline>
+								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+							</svg>
+						</button>
+					</div>
+
+					<div class="log-card-body">
+						<div class="log-author-row">
+							<div class="author-avatar-circle">${initials}</div>
+							<div class="author-info-col">
+								<span class="author-name-text">${escapeHtml(entry.author_name)}</span>
+								<span class="author-role-sub">${escapeHtml(entry.author_role)} • ${formatTime(entry.created_at)}</span>
+							</div>
+						</div>
+
+						<p class="log-notes-paragraph">${escapeHtml(entry.notes)}</p>
+
+						${photos.length > 0 ? `
+							<div class="log-photos-gallery-grid">
+								${photos.map((p) => `
+									<div class="log-photo-item-card" data-lightbox-src="${encodeURI(p.url)}" data-lightbox-cap="${escapeHtml(p.caption || p.name)}">
+										<div class="log-photo-img-box">
+											<img src="${p.url}" alt="${escapeHtml(p.caption || p.name)}" class="log-photo-img" loading="lazy" />
+										</div>
+										<div class="log-photo-caption-bar">
+											${escapeHtml(p.caption || p.name)}
+										</div>
+									</div>
+								`).join('')}
+							</div>
+						` : ''}
+					</div>
+				</article>
+			`;
+		});
+
+		stream.innerHTML = html;
+
+		// Listeners para Lightbox
+		stream.querySelectorAll<HTMLElement>('.log-photo-item-card').forEach((card) => {
+			card.addEventListener('click', () => {
+				const src = card.dataset.lightboxSrc;
+				const cap = card.dataset.lightboxCap;
+				const lightbox = document.getElementById('feed-photo-lightbox');
+				const img = document.getElementById('feed-lightbox-img') as HTMLImageElement | null;
+				const captionText = document.getElementById('feed-lightbox-caption');
+
+				if (lightbox && img && src) {
+					img.src = src;
+					if (captionText) captionText.textContent = cap || '';
+					lightbox.classList.remove('hidden');
+				}
+			});
+		});
+
+		// Listeners para eliminar entrada
+		stream.querySelectorAll<HTMLButtonElement>('.btn-delete-log').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const logId = btn.dataset.deleteLogId;
+				if (!logId) return;
+				deleteDailyLog(logId);
+				updateWorkspace();
+				showToast('Entrada de bitácora eliminada.');
+			});
+		});
+	}
+
+	const MONTH_NAMES = [
+		'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+	];
+
+	const DAY_NAMES = [
+		'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+	];
+
+	function formatDateFull(dateStr: string): string {
+		if (!dateStr) return '';
+		const parts = dateStr.split('-');
+		if (parts.length < 3) return dateStr;
+		const year = parts[0];
+		const monthNum = parseInt(parts[1], 10) - 1;
+		const day = parseInt(parts[2], 10);
+		const dObj = new Date(parseInt(year, 10), monthNum, day);
+		const dayName = DAY_NAMES[dObj.getDay()] || '';
+		const monthName = MONTH_NAMES[monthNum] || '';
+		return `${dayName}, ${day} de ${monthName} de ${year}`;
+	}
+
+	function formatTime(isoStr: string): string {
+		if (!isoStr) return '';
+		try {
+			const d = new Date(isoStr);
+			return d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+		} catch (e) {
+			return '';
+		}
+	}
+
+	function escapeHtml(str: string): string {
+		return str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function showToast(message: string) {
+		window.dispatchEvent(
+			new CustomEvent('show-toast', {
+				detail: {
+					message,
+					type: 'success'
+				}
+			})
+		);
+	}
+
+	// Inicialización
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initDailyLogWorkspace);
+	} else {
+		initDailyLogWorkspace();
+	}
+</script>

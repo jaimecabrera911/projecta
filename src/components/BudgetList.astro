@@ -578,6 +578,12 @@ import Icon from './Icon';
 		border: 1px solid #A7F3D0;
 	}
 
+	.status-frozen {
+		background-color: #DBEAFE;
+		color: #1D4ED8;
+		border: 1px solid #93C5FD;
+	}
+
 	.budget-card-version {
 		font-family: var(--font-mono);
 		font-size: 0.6875rem;
@@ -1129,6 +1135,7 @@ import Icon from './Icon';
 	function statusMeta(status: Budget['status']): { label: string; className: string } {
 		if (status === 'sent') return { label: 'Enviado', className: 'status-sent' };
 		if (status === 'approved') return { label: 'Aprobado', className: 'status-approved' };
+		if (status === 'frozen') return { label: 'Congelado', className: 'status-frozen' };
 		return { label: 'Borrador', className: 'status-draft' };
 	}
 

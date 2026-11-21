@@ -395,6 +395,31 @@ const { id } = Astro.params;
 							</div>
 						</div>
 					</section>
+
+					<!-- HU-10: Timeline de actividad de propuesta comercial -->
+					<section id="proposal-activity-card" class="visit-section-card proposal-activity-card hidden" aria-label="Actividad de propuesta comercial">
+						<div class="section-card-header">
+							<div class="section-title-wrap">
+								<div class="section-icon-badge icon-blue">
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+										<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+										<circle cx="12" cy="12" r="3"></circle>
+									</svg>
+								</div>
+								<div>
+									<div class="title-with-pill">
+										<h2 class="section-title">Actividad de la Propuesta</h2>
+										<span id="proposal-views-pill" class="count-pill count-pill-blue">0 aperturas</span>
+									</div>
+									<p class="section-desc">Seguimiento de aperturas del enlace comercial (HU-10)</p>
+								</div>
+							</div>
+						</div>
+						<div class="section-card-body">
+							<ul id="proposal-activity-timeline" class="proposal-timeline" aria-live="polite"></ul>
+							<p id="proposal-activity-empty" class="proposal-timeline-empty">Aún no hay aperturas registradas para la propuesta de este lead.</p>
+						</div>
+					</section>
 				</div>
 			</div>
 		</main>
@@ -856,6 +881,70 @@ const { id } = Astro.params;
 	.section-icon-badge.icon-emerald {
 		background-color: #ECFDF5;
 		color: #059669;
+	}
+
+	.section-icon-badge.icon-blue {
+		background-color: #EFF6FF;
+		color: #2563EB;
+	}
+
+	.count-pill-blue {
+		background-color: #DBEAFE;
+		color: #1D4ED8;
+	}
+
+	.proposal-timeline {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin: 0;
+		padding: 0;
+	}
+
+	.proposal-timeline-item {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.625rem;
+		align-items: flex-start;
+		padding: 0.625rem 0;
+		border-bottom: 1px dashed #E2E8F0;
+	}
+
+	.proposal-timeline-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+	.proposal-timeline-dot {
+		width: 0.625rem;
+		height: 0.625rem;
+		margin-top: 0.375rem;
+		border-radius: 9999px;
+		background: #10B981;
+		box-shadow: 0 0 0 4px #ECFDF5;
+	}
+
+	.proposal-timeline-time {
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: #64748B;
+		margin-bottom: 0.125rem;
+	}
+
+	.proposal-timeline-text {
+		font-size: 0.8125rem;
+		color: #0F172A;
+		line-height: 1.45;
+	}
+
+	.proposal-timeline-meta {
+		font-size: 0.75rem;
+		color: #475569;
+	}
+
+	.proposal-timeline-empty {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin: 0;
 	}
 
 	.section-title {
@@ -2021,6 +2110,7 @@ const { id } = Astro.params;
 
 <script>
 	// Complete Client-Side State, Autosave, Voice Dictation and Canvas Photo Compression
+	import { formatDateTimeEs, getProposalViewsForLead } from '../../../lib/proposal-tracking';
 	interface BeforePhoto {
 		id: string;
 		name: string;
@@ -2353,6 +2443,38 @@ const { id } = Astro.params;
 		}
 
 		renderPhotosGrid();
+		renderProposalActivity();
+	}
+
+	function renderProposalActivity() {
+		const card = document.getElementById('proposal-activity-card');
+		const timeline = document.getElementById('proposal-activity-timeline');
+		const empty = document.getElementById('proposal-activity-empty');
+		const pill = document.getElementById('proposal-views-pill');
+		if (!card || !timeline || !empty || !pill || !currentLead) return;
+
+		const views = getProposalViewsForLead(currentLead.id);
+		pill.textContent = `${views.length} ${views.length === 1 ? 'apertura' : 'aperturas'}`;
+
+		if (views.length === 0) {
+			card.classList.remove('hidden');
+			timeline.innerHTML = '';
+			empty.classList.remove('hidden');
+			return;
+		}
+
+		card.classList.remove('hidden');
+		empty.classList.add('hidden');
+		timeline.innerHTML = views.map((view) => `
+			<li class="proposal-timeline-item">
+				<span class="proposal-timeline-dot" aria-hidden="true"></span>
+				<div>
+					<div class="proposal-timeline-time">${escapeHtml(formatDateTimeEs(view.viewed_at))}</div>
+					<div class="proposal-timeline-text">Propuesta abierta por el cliente</div>
+					<div class="proposal-timeline-meta">${escapeHtml(view.device_label || 'Dispositivo desconocido')}${view.screen_resolution ? ` • ${escapeHtml(view.screen_resolution)}` : ''}</div>
+				</div>
+			</li>
+		`).join('');
 	}
 
 	function updateNotesCounter() {
@@ -2914,6 +3036,13 @@ const { id } = Astro.params;
 		} else if (lightboxModal?.classList.contains('active')) {
 			if (e.key === 'ArrowLeft') prevLightbox();
 			if (e.key === 'ArrowRight') nextLightbox();
+		}
+	});
+
+	// Refresh timeline on cross-tab proposal tracking updates
+	window.addEventListener('storage', (e) => {
+		if (e.key === 'obraflow_proposal_views' || e.key === 'obraflow_leads') {
+			renderProposalActivity();
 		}
 	});
 

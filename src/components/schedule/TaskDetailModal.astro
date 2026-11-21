@@ -1,0 +1,1105 @@
+---
+// src/components/schedule/TaskDetailModal.astro
+// HU-16: Modal Táctil de Detalle, Edición de Tarea, Evidencias Fotográficas y Comentarios de Bitácora.
+---
+
+<!-- Backdrop -->
+<div id="task-detail-modal-backdrop" class="detail-backdrop hidden" aria-hidden="true"></div>
+
+<!-- Modal Principal -->
+<div
+	id="task-detail-modal"
+	class="detail-dialog hidden"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="task-detail-title-header"
+>
+	<div class="detail-card">
+		<!-- 1. Cabecera del Modal -->
+		<div class="detail-header">
+			<div class="header-left-group">
+				<div class="task-type-badge">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+						<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+						<line x1="16" y1="2" x2="16" y2="6"></line>
+						<line x1="8" y1="2" x2="8" y2="6"></line>
+						<line x1="3" y1="10" x2="21" y2="10"></line>
+						<polyline points="9 15 12 18 17 13"></polyline>
+					</svg>
+				</div>
+				<div class="header-title-box">
+					<div class="badges-row">
+						<span id="task-detail-chapter-badge" class="header-chip-chapter">Capítulo</span>
+						<span id="task-detail-status-badge" class="header-chip-status">Estado</span>
+					</div>
+					<h3 id="task-detail-title-header" class="detail-main-title">Detalle de Actividad</h3>
+				</div>
+			</div>
+
+			<button
+				id="btn-close-task-detail"
+				type="button"
+				class="btn-detail-close"
+				aria-label="Cerrar modal de detalle"
+				title="Cerrar (Escape)"
+			>
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
+		<!-- 2. Barra Segmentada de Pestañas -->
+		<div class="detail-tabs-bar" role="tablist" aria-label="Secciones del detalle de la tarea">
+			<button
+				id="tab-detail-edit"
+				type="button"
+				role="tab"
+				aria-selected="true"
+				class="detail-tab-btn active"
+				data-tab="edit"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M12 20h9"></path>
+					<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+				</svg>
+				<span>Editar Tarea</span>
+			</button>
+
+			<button
+				id="tab-detail-evidences"
+				type="button"
+				role="tab"
+				aria-selected="false"
+				class="detail-tab-btn"
+				data-tab="evidences"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+					<circle cx="12" cy="13" r="4"></circle>
+				</svg>
+				<span>Evidencias</span>
+				<span id="tab-evidences-badge" class="tab-mini-badge">0</span>
+			</button>
+
+			<button
+				id="tab-detail-comments"
+				type="button"
+				role="tab"
+				aria-selected="false"
+				class="detail-tab-btn"
+				data-tab="comments"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+				</svg>
+				<span>Bitácora</span>
+				<span id="tab-comments-badge" class="tab-mini-badge">0</span>
+			</button>
+		</div>
+
+		<!-- 3. Contenido de Pestañas -->
+		<div class="detail-tab-viewport">
+			<!-- PESTAÑA 1: FORMULARIO DE EDICIÓN -->
+			<div id="panel-tab-edit" class="tab-panel active" role="tabpanel" aria-labelledby="tab-detail-edit">
+				<form id="edit-task-form" class="edit-form" novalidate>
+					<input type="hidden" id="edit-task-id" name="taskId" value="" />
+
+					<div class="form-group">
+						<label for="edit-task-title" class="form-label">
+							Título de la Actividad <span class="required">*</span>
+						</label>
+						<input
+							type="text"
+							id="edit-task-title"
+							name="title"
+							class="form-input"
+							required
+							autocomplete="off"
+						/>
+					</div>
+
+					<div class="form-row-2col">
+						<div class="form-group">
+							<label for="edit-task-chapter" class="form-label">
+								Capítulo Presupuestal <span class="required">*</span>
+							</label>
+							<select id="edit-task-chapter" name="chapter_id" class="form-select" required></select>
+						</div>
+
+						<div class="form-group">
+							<label for="edit-task-assigned" class="form-label">
+								Cuadrilla / Responsable <span class="required">*</span>
+							</label>
+							<select id="edit-task-assigned" name="assigned_to" class="form-select" required>
+								<option value="Cuadrilla 1 - Albañilería">Cuadrilla 1 — Albañilería y Demolición</option>
+								<option value="Cuadrilla 2 - Pintura y Yesos">Cuadrilla 2 — Pintura, Yesos y Acabados</option>
+								<option value="Cuadrilla 3 - Plomería y Sanitarios">Cuadrilla 3 — Plomería e Instalaciones Hidráulicas</option>
+								<option value="Cuadrilla 4 - Electricidad">Cuadrilla 4 — Redes Eléctricas e Iluminación</option>
+								<option value="Oficial Maestro Restrepo">Oficial Maestro Restrepo</option>
+								<option value="Contratista Carpintería">Contratista Carpintería y Muebles</option>
+								<option value="Residente de Obra">Residente de Obra</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="form-row-2col">
+						<div class="form-group">
+							<label for="edit-task-start-date" class="form-label">Fecha de Inicio</label>
+							<input type="date" id="edit-task-start-date" name="start_date" class="form-input" required />
+						</div>
+						<div class="form-group">
+							<label for="edit-task-end-date" class="form-label">Fecha Estimada de Fin</label>
+							<input type="date" id="edit-task-end-date" name="end_date" class="form-input" required />
+						</div>
+					</div>
+
+					<!-- Slider de Avance Físico Manual (0 - 100%) -->
+					<div class="progress-slider-card">
+						<div class="progress-slider-header">
+							<label for="edit-task-progress-range" class="slider-title">
+								Avance Físico Real de la Actividad:
+							</label>
+							<div class="slider-val-badge">
+								<span id="edit-task-progress-num">50%</span>
+								<span id="edit-task-status-preview" class="chip-status-preview">En Curso</span>
+							</div>
+						</div>
+
+						<input
+							type="range"
+							id="edit-task-progress-range"
+							min="0"
+							max="100"
+							step="5"
+							value="50"
+							class="range-slider"
+						/>
+
+						<div class="slider-ticks">
+							<span>0% (Pendiente)</span>
+							<span>50%</span>
+							<span>100% (Completada ✓)</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="edit-task-desc" class="form-label">Instrucciones Técnicas / Notas de Campo</label>
+						<textarea
+							id="edit-task-desc"
+							name="description"
+							rows="3"
+							class="form-textarea"
+							placeholder="Detalles sobre insumos requeridos, precauciones de seguridad o especificaciones..."
+						></textarea>
+					</div>
+
+					<div class="form-footer-action">
+						<button id="btn-save-task-detail" type="submit" class="btn-primary-save">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+								<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+								<polyline points="17 21 17 13 7 13 7 21"></polyline>
+								<polyline points="7 3 7 8 15 8"></polyline>
+							</svg>
+							<span>Guardar Cambios</span>
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- PESTAÑA 2: EVIDENCIAS FOTOGRÁFICAS -->
+			<div id="panel-tab-evidences" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-detail-evidences">
+				<!-- Barra de captura / carga rápida de fotos -->
+				<div class="evidence-upload-cluster">
+					<input
+						type="file"
+						id="evidence-file-input"
+						accept="image/*"
+						capture="environment"
+						class="hidden"
+					/>
+
+					<div class="evidence-inputs-row">
+						<input
+							type="text"
+							id="evidence-caption-input"
+							placeholder="Pie de foto / Descripción (ej: Verificación de tubería a 50 PSI)"
+							class="form-input caption-input"
+						/>
+						
+						<div class="upload-buttons-group">
+							<button
+								id="btn-trigger-upload-evidence"
+								type="button"
+								class="btn-evidence-camera"
+								title="Tomar o seleccionar foto del dispositivo"
+							>
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+									<circle cx="12" cy="13" r="4"></circle>
+								</svg>
+								<span>Cámara / Archivo</span>
+							</button>
+
+							<button
+								id="btn-quick-demo-evidence"
+								type="button"
+								class="btn-evidence-quick"
+								title="Generar foto técnica instantánea con sello de agua para pruebas"
+							>
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<polyline points="20 6 9 17 4 12"></polyline>
+								</svg>
+								<span>Foto Rápida Demo</span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Galería de Evidencias de la Tarea -->
+				<div id="evidences-gallery-grid" class="evidences-grid"></div>
+
+				<!-- Estado vacío si no hay fotos aún -->
+				<div id="evidences-empty-state" class="empty-panel hidden">
+					<div class="empty-circle-icon">
+						<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+							<circle cx="8.5" cy="8.5" r="1.5"></circle>
+							<polyline points="21 15 16 10 5 21"></polyline>
+						</svg>
+					</div>
+					<h4 class="empty-heading">No hay evidencias fotográficas registradas</h4>
+					<p class="empty-sub">Toma una foto de avance con la cámara o genera una foto de prueba técnica.</p>
+				</div>
+			</div>
+
+			<!-- PESTAÑA 3: BITÁCORA Y COMENTARIOS -->
+			<div id="panel-tab-comments" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-detail-comments">
+				<!-- Historial de Comentarios -->
+				<div id="comments-history-list" class="comments-stream"></div>
+
+				<!-- Estado vacío si no hay comentarios -->
+				<div id="comments-empty-state" class="empty-panel hidden">
+					<div class="empty-circle-icon">
+						<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+						</svg>
+					</div>
+					<h4 class="empty-heading">No hay notas de bitácora en esta actividad</h4>
+					<p class="empty-sub">Escribe observaciones técnicas, instrucciones o incidentes para el equipo.</p>
+				</div>
+
+				<!-- Caja de Envío de Nuevo Comentario -->
+				<div class="comment-input-box">
+					<div class="comment-author-badge-line">
+						<span class="comment-author-prefix">Comentando como:</span>
+						<span id="comment-active-author-label" class="active-author-pill">Ing. Mateo Gómez (Residente)</span>
+					</div>
+
+					<div class="comment-send-row">
+						<textarea
+							id="new-comment-textarea"
+							rows="2"
+							class="comment-textarea"
+							placeholder="Escribe una observación de obra, duda o instrucción técnica..."
+						></textarea>
+
+						<button id="btn-submit-comment" type="button" class="btn-send-comment">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+								<line x1="22" y1="2" x2="11" y2="13"></line>
+								<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+							</svg>
+							<span>Publicar</span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal Lightbox para Visualizar Fotos en Grande -->
+<div id="evidence-lightbox-modal" class="lightbox-overlay hidden" aria-hidden="true">
+	<div class="lightbox-content">
+		<button id="btn-close-lightbox" type="button" class="btn-lightbox-close" aria-label="Cerrar foto">✕</button>
+		<img id="lightbox-image" src="" alt="Evidencia de obra ampliada" class="lightbox-img" />
+		<div id="lightbox-caption" class="lightbox-caption-text"></div>
+	</div>
+</div>
+
+<style>
+	.detail-backdrop {
+		position: fixed;
+		inset: 0;
+		background-color: rgba(15, 23, 42, 0.65);
+		backdrop-filter: blur(4px);
+		z-index: 250;
+		transition: opacity 0.2s ease;
+	}
+
+	.detail-dialog {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		z-index: 260;
+		overflow-y: auto;
+	}
+
+	.detail-card {
+		background-color: #FFFFFF;
+		width: 100%;
+		max-width: 680px;
+		max-height: 90vh;
+		border-radius: 1rem;
+		box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.25), 0 10px 10px -5px rgba(15, 23, 42, 0.1);
+		border: 1px solid #E2E8F0;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		animation: modalZoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes modalZoomIn {
+		from { opacity: 0; transform: scale(0.96) translateY(8px); }
+		to { opacity: 1; transform: scale(1) translateY(0); }
+	}
+
+	/* 1. Header */
+	.detail-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1.25rem 1.5rem;
+		background-color: #F8FAFC;
+		border-bottom: 1px solid #E2E8F0;
+		gap: 1rem;
+	}
+
+	.header-left-group {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.task-type-badge {
+		width: 44px;
+		height: 44px;
+		border-radius: 0.625rem;
+		background-color: #0F172A;
+		color: #F97316;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.header-title-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	.badges-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.header-chip-chapter {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		background-color: #E2E8F0;
+		color: #0F172A;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.header-chip-status {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.detail-main-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.btn-detail-close {
+		width: 48px;
+		height: 48px;
+		border-radius: 0.5rem;
+		border: none;
+		background: transparent;
+		color: #64748B;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.btn-detail-close:hover {
+		background-color: #F1F5F9;
+		color: #0F172A;
+	}
+
+	/* 2. Tabs Bar */
+	.detail-tabs-bar {
+		display: flex;
+		border-bottom: 1px solid #E2E8F0;
+		background-color: #FFFFFF;
+		padding: 0 1rem;
+		gap: 0.5rem;
+	}
+
+	.detail-tab-btn {
+		min-height: 48px;
+		padding: 0 1rem;
+		border: none;
+		background: transparent;
+		color: #64748B;
+		font-size: 0.875rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		position: relative;
+		transition: color 0.15s ease;
+	}
+
+	.detail-tab-btn:hover {
+		color: #0F172A;
+	}
+
+	.detail-tab-btn.active {
+		color: #F97316;
+	}
+
+	.detail-tab-btn.active::after {
+		content: '';
+		position: absolute;
+		bottom: -1px;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background-color: #F97316;
+		border-radius: 3px 3px 0 0;
+	}
+
+	.tab-mini-badge {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		background-color: #F1F5F9;
+		color: #475569;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+	}
+
+	.detail-tab-btn.active .tab-mini-badge {
+		background-color: #FFEDD5;
+		color: #EA580C;
+	}
+
+	/* 3. Viewport de contenido */
+	.detail-tab-viewport {
+		flex: 1;
+		overflow-y: auto;
+		padding: 1.5rem;
+	}
+
+	.tab-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	/* Formulario de edición */
+	.edit-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.125rem;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.form-label {
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #1E293B;
+	}
+
+	.required {
+		color: #EF4444;
+	}
+
+	.form-row-2col {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.form-input,
+	.form-select,
+	.form-textarea {
+		width: 100%;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #0F172A;
+		font-family: inherit;
+		font-size: 0.875rem;
+		padding: 0.625rem 0.875rem;
+		box-sizing: border-box;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.form-input:focus,
+	.form-select:focus,
+	.form-textarea:focus {
+		outline: none;
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	/* Slider de Avance */
+	.progress-slider-card {
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.progress-slider-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.slider-title {
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.slider-val-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	#edit-task-progress-num {
+		font-size: 1.125rem;
+		font-weight: 900;
+		color: #0F172A;
+		font-family: 'JetBrains Mono', monospace;
+	}
+
+	.chip-status-preview {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		background-color: #ECFDF5;
+		color: #047857;
+	}
+
+	.range-slider {
+		width: 100%;
+		height: 8px;
+		border-radius: 4px;
+		background: #E2E8F0;
+		outline: none;
+		cursor: pointer;
+		accent-color: #F97316;
+	}
+
+	.slider-ticks {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.6875rem;
+		color: #64748B;
+		font-weight: 600;
+	}
+
+	.form-footer-action {
+		display: flex;
+		justify-content: flex-end;
+		padding-top: 0.5rem;
+	}
+
+	.btn-primary-save {
+		min-height: 48px;
+		padding: 0 1.5rem;
+		border-radius: 0.5rem;
+		border: none;
+		background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+		color: #FFFFFF;
+		font-size: 0.875rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+		transition: all 0.15s ease;
+	}
+
+	.btn-primary-save:hover {
+		background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 10px rgba(249, 115, 22, 0.45);
+	}
+
+	/* Pestaña 2: Evidencias */
+	.evidence-upload-cluster {
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.evidence-inputs-row {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.caption-input {
+		flex: 1;
+		min-width: 220px;
+	}
+
+	.upload-buttons-group {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.btn-evidence-camera,
+	.btn-evidence-quick {
+		min-height: 48px;
+		padding: 0 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-evidence-camera {
+		border: 1.5px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #0F172A;
+	}
+
+	.btn-evidence-camera:hover {
+		border-color: #F97316;
+		color: #F97316;
+	}
+
+	.btn-evidence-quick {
+		border: none;
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	.btn-evidence-quick:hover {
+		background-color: #1E293B;
+		color: #F97316;
+	}
+
+	.evidences-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+		gap: 1rem;
+	}
+
+	:global(.evidence-card) {
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		position: relative;
+		transition: all 0.15s ease;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	}
+
+	:global(.evidence-card:hover) {
+		border-color: #CBD5E1;
+		box-shadow: 0 4px 8px rgba(15, 23, 42, 0.08);
+	}
+
+	:global(.evidence-thumb-wrap) {
+		width: 100%;
+		height: 120px;
+		overflow: hidden;
+		background-color: #0F172A;
+		cursor: pointer;
+		position: relative;
+	}
+
+	:global(.evidence-thumb-img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.2s ease;
+	}
+
+	:global(.evidence-thumb-wrap:hover .evidence-thumb-img) {
+		transform: scale(1.05);
+	}
+
+	:global(.evidence-caption-box) {
+		padding: 0.625rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		flex: 1;
+	}
+
+	:global(.evidence-caption-text) {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #0F172A;
+		line-height: 1.3;
+	}
+
+	:global(.evidence-meta-text) {
+		font-size: 0.625rem;
+		color: #64748B;
+	}
+
+	:global(.btn-delete-evidence) {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		border: none;
+		background-color: rgba(15, 23, 42, 0.75);
+		color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	:global(.btn-delete-evidence:hover) {
+		background-color: #EF4444;
+	}
+
+	/* Pestaña 3: Comentarios */
+	.comments-stream {
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		max-height: 280px;
+		overflow-y: auto;
+		padding-right: 0.5rem;
+	}
+
+	:global(.comment-bubble-item) {
+		display: flex;
+		gap: 0.75rem;
+		align-items: flex-start;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		padding: 0.875rem;
+	}
+
+	:global(.comment-author-avatar) {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		font-size: 0.75rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	:global(.comment-bubble-content) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	:global(.comment-author-meta) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	:global(.comment-author-name) {
+		font-size: 0.8125rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	:global(.comment-role-pill) {
+		font-size: 0.625rem;
+		font-weight: 700;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+		background-color: #E2E8F0;
+		color: #334155;
+	}
+
+	:global(.comment-timestamp) {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+		margin-left: auto;
+	}
+
+	:global(.comment-text) {
+		font-size: 0.8125rem;
+		color: #334155;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.comment-input-box {
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.comment-author-badge-line {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+	}
+
+	.comment-author-prefix {
+		color: #64748B;
+		font-weight: 600;
+	}
+
+	.active-author-pill {
+		font-weight: 800;
+		color: #0F172A;
+		background-color: #FFEDD5;
+		border: 1px solid #FED7AA;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.comment-send-row {
+		display: flex;
+		gap: 0.75rem;
+		align-items: flex-end;
+	}
+
+	.comment-textarea {
+		flex: 1;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #0F172A;
+		font-family: inherit;
+		font-size: 0.875rem;
+		padding: 0.625rem 0.875rem;
+		resize: none;
+		box-sizing: border-box;
+	}
+
+	.comment-textarea:focus {
+		outline: none;
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.btn-send-comment {
+		min-height: 48px;
+		padding: 0 1.25rem;
+		border-radius: 0.5rem;
+		border: none;
+		background-color: #0F172A;
+		color: #FFFFFF;
+		font-size: 0.8125rem;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.btn-send-comment:hover {
+		background-color: #1E293B;
+		color: #F97316;
+	}
+
+	/* Estado Vacío */
+	.empty-panel {
+		padding: 2rem 1rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		background-color: #F8FAFC;
+		border: 1px dashed #CBD5E1;
+		border-radius: 0.75rem;
+	}
+
+	.empty-circle-icon {
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		color: #94A3B8;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.empty-heading {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+		margin: 0;
+	}
+
+	.empty-sub {
+		font-size: 0.75rem;
+		color: #64748B;
+		margin: 0;
+		max-width: 320px;
+	}
+
+	/* Lightbox */
+	.lightbox-overlay {
+		position: fixed;
+		inset: 0;
+		background-color: rgba(0, 0, 0, 0.85);
+		z-index: 300;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.5rem;
+	}
+
+	.lightbox-content {
+		position: relative;
+		max-width: 800px;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.lightbox-img {
+		max-width: 100%;
+		max-height: 80vh;
+		border-radius: 0.5rem;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+	}
+
+	.lightbox-caption-text {
+		color: #F8FAFC;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-align: center;
+	}
+
+	.btn-lightbox-close {
+		position: absolute;
+		top: -40px;
+		right: 0;
+		background: transparent;
+		border: none;
+		color: #FFFFFF;
+		font-size: 1.5rem;
+		cursor: pointer;
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	@media (max-width: 640px) {
+		.form-row-2col {
+			grid-template-columns: 1fr;
+		}
+
+		.evidence-inputs-row {
+			flex-direction: column;
+		}
+
+		.upload-buttons-group {
+			width: 100%;
+		}
+
+		.btn-evidence-camera,
+		.btn-evidence-quick {
+			flex: 1;
+			justify-content: center;
+		}
+
+		.comment-send-row {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.btn-send-comment {
+			justify-content: center;
+		}
+	}
+</style>
