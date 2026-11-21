@@ -1,0 +1,303 @@
+---
+// src/components/Header.astro
+---
+
+<header class="app-header">
+	<div class="header-inner">
+		<!-- Brand & Organization Context -->
+		<div class="brand-group">
+			<a href="/" class="brand-link">
+				<div class="brand-emblem">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M2 20h20"></path>
+						<path d="m5 20 5-15h4l5 15"></path>
+						<path d="M9 13h6"></path>
+					</svg>
+				</div>
+				<div class="brand-text">
+					<div class="brand-title">
+						Obra<span class="text-accent">Flow</span>
+						<span class="badge-saas">SaaS</span>
+					</div>
+					<div class="brand-subtitle">
+						Gestión de Obras & Presupuestos
+					</div>
+				</div>
+			</a>
+
+			<!-- Organization Badge -->
+			<div class="org-badge desktop-only">
+				<span class="status-pulse"></span>
+				<div class="org-details">
+					<span class="org-name">Construcciones & Reformas Andina SAS</span>
+					<span class="org-sub">NIT 901.442.188-4 • Plan Pro</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Action Stats & User Controls -->
+		<div class="actions-group">
+			<!-- Pipeline Value Pill -->
+			<div class="pipeline-pill desktop-only">
+				<span class="pill-label">Pipeline Activo:</span>
+				<span class="pill-val">$ 184,500,000 COP</span>
+			</div>
+
+			<!-- Desktop "Nuevo Lead" Trigger Button -->
+			<button
+				id="header-new-lead-btn"
+				type="button"
+				class="btn-primary desktop-only"
+			>
+				<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="12" y1="5" x2="12" y2="19"></line>
+					<line x1="5" y1="12" x2="19" y2="12"></line>
+				</svg>
+				<span>Nuevo Lead</span>
+				<kbd class="kbd-badge">Alt+N</kbd>
+			</button>
+
+			<!-- User Avatar -->
+			<div class="user-profile">
+				<div class="avatar">CM</div>
+				<div class="user-details desktop-only">
+					<span class="user-name">Carlos Mendoza</span>
+					<span class="user-role">Contratista / Dueño</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</header>
+
+<style>
+	.app-header {
+		position: sticky;
+		top: 0;
+		z-index: 30;
+		background-color: #0F172A;
+		border-bottom: 1px solid #1E293B;
+		color: #FFFFFF;
+		padding: 0.75rem 1.25rem;
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+	}
+
+	.header-inner {
+		max-width: 80rem;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.brand-group {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.brand-link {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		text-decoration: none;
+		color: #FFFFFF;
+	}
+
+	.brand-emblem {
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.75rem;
+		background: linear-gradient(135deg, #F97316, #D97706);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #FFFFFF;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+	}
+
+	.brand-text {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.brand-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.text-accent {
+		color: #FB923C;
+	}
+
+	.badge-saas {
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		background: rgba(249, 115, 22, 0.2);
+		color: #FED7AA;
+		border: 1px solid rgba(249, 115, 22, 0.3);
+		padding: 0.125rem 0.375rem;
+		border-radius: 9999px;
+	}
+
+	.brand-subtitle {
+		font-size: 0.75rem;
+		color: #94A3B8;
+		font-weight: 500;
+	}
+
+	.org-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding-left: 1rem;
+		border-left: 1px solid #1E293B;
+	}
+
+	.status-pulse {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 9999px;
+		background-color: #34D399;
+		box-shadow: 0 0 8px #34D399;
+	}
+
+	.org-details {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.org-name {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #E2E8F0;
+	}
+
+	.org-sub {
+		font-size: 0.6875rem;
+		color: #94A3B8;
+	}
+
+	.actions-group {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+	}
+
+	.pipeline-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		background-color: rgba(30, 41, 59, 0.8);
+		border: 1px solid rgba(51, 65, 85, 0.6);
+		border-radius: 0.75rem;
+		padding: 0.375rem 0.875rem;
+		font-size: 0.75rem;
+	}
+
+	.pill-label {
+		color: #94A3B8;
+	}
+
+	.pill-val {
+		color: #34D399;
+		font-family: var(--font-mono);
+		font-weight: 700;
+	}
+
+	.btn-primary {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background-color: #F97316;
+		color: #FFFFFF;
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.75rem;
+		border: none;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+		transition: all 0.15s ease;
+	}
+
+	.btn-primary:hover {
+		background-color: #EA580C;
+		transform: translateY(-1px);
+	}
+
+	.kbd-badge {
+		font-family: var(--font-mono);
+		font-size: 0.625rem;
+		background: rgba(194, 65, 12, 0.6);
+		border: 1px solid rgba(251, 146, 60, 0.4);
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		color: #FFF7ED;
+	}
+
+	.user-profile {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding-left: 0.75rem;
+		border-left: 1px solid #1E293B;
+	}
+
+	.avatar {
+		width: 2rem;
+		height: 2rem;
+		border-radius: 9999px;
+		background-color: #334155;
+		border: 1px solid #475569;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #FB923C;
+	}
+
+	.user-details {
+		display: flex;
+		flex-direction: column;
+		text-align: left;
+	}
+
+	.user-name {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #F1F5F9;
+	}
+
+	.user-role {
+		font-size: 0.625rem;
+		color: #FB923C;
+		font-weight: 600;
+	}
+
+	@media (max-width: 768px) {
+		.desktop-only {
+			display: none !important;
+		}
+	}
+</style>
+
+<script>
+	document.getElementById('header-new-lead-btn')?.addEventListener('click', () => {
+		window.dispatchEvent(new CustomEvent('open-lead-modal'));
+	});
+
+	window.addEventListener('keydown', (e) => {
+		if ((e.altKey && e.key.toLowerCase() === 'n') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l')) {
+			e.preventDefault();
+			window.dispatchEvent(new CustomEvent('open-lead-modal'));
+		}
+	});
+</script>

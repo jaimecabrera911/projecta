@@ -1,11 +1,27 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Header from '../components/Header.astro';
+import KanbanBoard from '../components/KanbanBoard.astro';
+import QuickLeadFAB from '../components/QuickLeadFAB.astro';
+import LeadCaptureModal from '../components/LeadCaptureModal.astro';
+import Toast from '../components/Toast.astro';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="ObraFlow — CRM de Ventas y Gestión de Obras">
+	<!-- Top App Header -->
+	<Header />
+
+	<!-- Main CRM Kanban Workspace -->
+	<main class="flex-1 flex flex-col overflow-hidden">
+		<KanbanBoard />
+	</main>
+
+	<!-- HU-01: Quick Lead Floating Action Button (FAB) -->
+	<QuickLeadFAB />
+
+	<!-- HU-01: Lead Capture Modal / Mobile Bottom-Sheet -->
+	<LeadCaptureModal />
+
+	<!-- Global Toast System -->
+	<Toast />
 </Layout>

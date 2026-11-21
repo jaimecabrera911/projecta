@@ -1,0 +1,84 @@
+---
+// src/components/QuickLeadFAB.astro
+---
+
+<!-- Floating Action Button for HU-01: Captura Rápida de Lead en Campo -->
+<div class="fab-wrapper">
+	<button
+		id="quick-lead-fab-btn"
+		type="button"
+		aria-label="Registrar nuevo prospecto de obra en menos de 15 segundos"
+		class="fab-btn"
+	>
+		<svg 
+			width="28" 
+			height="28" 
+			viewBox="0 0 24 24" 
+			fill="none" 
+			stroke="currentColor" 
+			stroke-width="3" 
+			stroke-linecap="round" 
+			stroke-linejoin="round"
+		>
+			<line x1="12" y1="5" x2="12" y2="19"></line>
+			<line x1="5" y1="12" x2="19" y2="12"></line>
+		</svg>
+		<span class="fab-badge"></span>
+	</button>
+</div>
+
+<style>
+	.fab-wrapper {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		z-index: 40;
+	}
+
+	.fab-btn {
+		width: 3.75rem;
+		height: 3.75rem;
+		border-radius: 1.25rem;
+		background: linear-gradient(135deg, #F97316, #EA580C);
+		color: #FFFFFF;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 10px 25px -4px rgba(249, 115, 22, 0.5);
+		cursor: pointer;
+		position: relative;
+		transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.fab-btn:hover {
+		transform: scale(1.06);
+		box-shadow: 0 14px 28px -4px rgba(249, 115, 22, 0.65);
+	}
+
+	.fab-btn:active {
+		transform: scale(0.95);
+	}
+
+	.fab-badge {
+		position: absolute;
+		top: -0.25rem;
+		right: -0.25rem;
+		width: 1rem;
+		height: 1rem;
+		background-color: #10B981;
+		border: 2px solid #0F172A;
+		border-radius: 9999px;
+	}
+</style>
+
+<script>
+	const fab = document.getElementById('quick-lead-fab-btn');
+
+	fab?.addEventListener('click', () => {
+		if ('vibrate' in navigator) {
+			try { navigator.vibrate(30); } catch (_) {}
+		}
+		window.dispatchEvent(new CustomEvent('open-lead-modal'));
+	});
+</script>

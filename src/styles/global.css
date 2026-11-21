@@ -1,0 +1,340 @@
+/* src/styles/global.css - ObraFlow Design System */
+
+:root {
+	--font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
+
+	--color-slate-900: #0F172A;
+	--color-slate-800: #1E293B;
+	--color-slate-700: #334155;
+	--color-slate-600: #475569;
+	--color-slate-500: #64748B;
+	--color-slate-400: #94A3B8;
+	--color-slate-300: #CBD5E1;
+	--color-slate-200: #E2E8F0;
+	--color-slate-100: #F1F5F9;
+	--color-slate-50:  #F8FAFC;
+	--color-white:     #FFFFFF;
+
+	--color-orange-500: #F97316;
+	--color-orange-600: #EA580C;
+	--color-orange-700: #C2410C;
+	--color-orange-50:  #FFF7ED;
+	--color-orange-100: #FFEDD5;
+
+	--color-emerald-500: #10B981;
+	--color-emerald-600: #059669;
+	--color-emerald-50:  #ECFDF5;
+	--color-emerald-100: #D1FAE5;
+
+	--color-blue-500: #3B82F6;
+	--color-blue-50:  #EFF6FF;
+	--color-blue-100: #DBEAFE;
+
+	--color-purple-500: #8B5CF6;
+	--color-purple-50:  #F5F3FF;
+	--color-purple-100: #EDE9FE;
+
+	--color-amber-500: #F59E0B;
+	--color-amber-50:  #FFFBEB;
+	--color-amber-100: #FEF3C7;
+
+	--color-red-500: #EF4444;
+	--color-red-50:  #FEF2F2;
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+	font-family: var(--font-sans);
+	background-color: var(--color-slate-50);
+	color: var(--color-slate-900);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4 {
+	font-family: var(--font-sans);
+	letter-spacing: -0.025em;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+header {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	background-color: var(--color-slate-900);
+	border-bottom: 1px solid var(--color-slate-800);
+	color: var(--color-white);
+	padding: 0.875rem 1.25rem;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+}
+
+header .max-w-7xl {
+	max-width: 80rem;
+	margin: 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.brand-emblem {
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 0.75rem;
+	background: linear-gradient(135deg, var(--color-orange-500), #D97706);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-white);
+	box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
+}
+
+/* ==========================================================================
+   KANBAN BOARD WORKSPACE
+   ========================================================================== */
+main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.kanban-wrapper {
+	flex: 1;
+	width: 100%;
+	max-width: 80rem;
+	margin: 0 auto;
+	padding: 1.5rem 1rem 4rem 1rem;
+	display: flex;
+	flex-direction: column;
+}
+
+.kanban-scroll {
+	flex: 1;
+	overflow-x: auto;
+	padding-top: 1.5rem;
+	padding-bottom: 2rem;
+	display: flex;
+	gap: 1.25rem;
+}
+
+.kanban-column {
+	width: 20.5rem;
+	min-width: 20.5rem;
+	background-color: rgba(241, 245, 249, 0.8);
+	border-radius: 1rem;
+	padding: 0.875rem;
+	border: 1px solid var(--color-slate-200);
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 210px);
+}
+
+.kanban-column.column-highlight {
+	border: 2px solid var(--color-orange-200);
+	background-color: rgba(255, 247, 237, 0.4);
+}
+
+.column-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid var(--color-slate-200);
+	margin-bottom: 0.875rem;
+}
+
+.cards-container {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding-right: 0.25rem;
+}
+
+.lead-card {
+	background-color: var(--color-white);
+	border-radius: 0.75rem;
+	padding: 0.875rem;
+	border: 1px solid var(--color-slate-200);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	transition: all 0.2s ease;
+	text-align: left;
+}
+
+.lead-card:hover {
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+	border-color: var(--color-slate-300);
+}
+
+/* ==========================================================================
+   QUICK LEAD FAB (HU-01)
+   ========================================================================== */
+.fab-container {
+	position: fixed;
+	bottom: 1.5rem;
+	right: 1.5rem;
+	z-index: 40;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.fab-button {
+	position: relative;
+	width: 3.75rem;
+	height: 3.75rem;
+	border-radius: 1.125rem;
+	background: linear-gradient(135deg, var(--color-orange-600), var(--color-orange-500));
+	color: var(--color-white);
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.45);
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fab-button:hover {
+	transform: scale(1.05);
+	box-shadow: 0 14px 28px -4px rgba(249, 115, 22, 0.55);
+}
+
+.fab-button:active {
+	transform: scale(0.95);
+}
+
+/* ==========================================================================
+   MODAL / BOTTOM SHEET (HU-01)
+   ========================================================================== */
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease-out;
+}
+
+@media (min-width: 640px) {
+	.modal-overlay {
+		align-items: center;
+		padding: 1rem;
+	}
+}
+
+.modal-overlay.active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.modal-backdrop-el {
+	position: fixed;
+	inset: 0;
+	background-color: rgba(2, 6, 23, 0.65);
+	backdrop-filter: blur(4px);
+}
+
+.modal-sheet-card {
+	position: relative;
+	width: 100%;
+	max-width: 32rem;
+	background-color: var(--color-white);
+	border-top-left-radius: 1.5rem;
+	border-top-right-radius: 1.5rem;
+	border: 1px solid var(--color-slate-200);
+	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+	overflow: hidden;
+	transform: translateY(100%);
+	transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+	display: flex;
+	flex-direction: column;
+	max-height: 90vh;
+}
+
+@media (min-width: 640px) {
+	.modal-sheet-card {
+		border-radius: 1rem;
+		transform: translateY(1rem) scale(0.97);
+	}
+}
+
+.modal-overlay.active .modal-sheet-card {
+	transform: translateY(0) scale(1);
+}
+
+/* Tactile Chips Group */
+.chips-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+	.chips-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.tactile-chip {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.625rem;
+	border-radius: 0.75rem;
+	border: 2px solid var(--color-slate-200);
+	background-color: var(--color-white);
+	color: var(--color-slate-700);
+	font-size: 0.75rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.tactile-chip:hover {
+	background-color: var(--color-slate-50);
+	border-color: var(--color-slate-300);
+}
+
+.tactile-chip.active {
+	border-color: var(--color-orange-500);
+	background-color: var(--color-orange-50);
+	color: var(--color-slate-900);
+}
+
+/* Animations */
+@keyframes slideDownIn {
+	from {
+		opacity: 0;
+		transform: translateY(-0.75rem);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-card-in {
+	animation: slideDownIn 0.2s ease-out forwards;
+}
