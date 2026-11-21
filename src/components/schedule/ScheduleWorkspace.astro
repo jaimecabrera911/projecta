@@ -662,6 +662,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 	// Estado del Gantt (Frappe Gantt)
 	let ganttViewMode: 'Day' | 'Week' | 'Month' = 'Day';
 	let ganttChapterFilter: string = 'all';
+	let ganttCrewFilter: string = 'all';
 	let frappeGanttInstance: any = null;
 	let ganttZoom: 'days' | 'weeks' = 'days';
 
@@ -787,6 +788,11 @@ import TaskDetailModal from './TaskDetailModal.astro';
 			renderGanttView();
 		});
 
+		document.getElementById('gantt-crew-select')?.addEventListener('change', (e) => {
+			ganttCrewFilter = (e.target as HTMLSelectElement).value;
+			renderGanttView();
+		});
+
 		window.addEventListener('open-task-modal-from-gantt', (e: any) => {
 			if (e.detail?.taskId) {
 				openTaskDetailModal(e.detail.taskId);
@@ -823,6 +829,7 @@ import TaskDetailModal from './TaskDetailModal.astro';
 
 	function updateAll() {
 		updateGanttChapterFilterOptions();
+		updateGanttCrewFilterOptions();
 		renderMetrics();
 		renderCurrentView();
 	}
@@ -843,6 +850,30 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		} else {
 			select.value = 'all';
 			ganttChapterFilter = 'all';
+		}
+	}
+
+	function updateGanttCrewFilterOptions() {
+		const select = document.getElementById('gantt-crew-select') as HTMLSelectElement | null;
+		if (!select) return;
+		const allProjTasks = getTasksByProject(activeProjectId);
+		const crewsSet = new Set<string>();
+		allProjTasks.forEach((t) => {
+			if (t.assigned_to) crewsSet.add(t.assigned_to.trim());
+		});
+		const crews = Array.from(crewsSet).sort();
+		const currentValue = select.value || 'all';
+		let optionsHtml = '<option value="all">👷 Todos los Responsables</option>';
+		crews.forEach((c) => {
+			optionsHtml += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+		});
+		select.innerHTML = optionsHtml;
+		if (crews.includes(currentValue)) {
+			select.value = currentValue;
+			ganttCrewFilter = currentValue;
+		} else {
+			select.value = 'all';
+			ganttCrewFilter = 'all';
 		}
 	}
 
@@ -1364,7 +1395,10 @@ import TaskDetailModal from './TaskDetailModal.astro';
 		if (!viewport) return;
 
 		const allProjTasks = getTasksByProject(activeProjectId);
-		const filtered = filterTasks(allProjTasks);
+		let filtered = filterTasks(allProjTasks);
+		if (ganttCrewFilter !== 'all') {
+			filtered = filtered.filter((t) => t.assigned_to === ganttCrewFilter);
+		}
 		const chapters = getProjectChapters(activeProjectId);
 		const todayStr = getTodayDateString();
 
@@ -2058,13 +2092,15 @@ import TaskDetailModal from './TaskDetailModal.astro';
 				commentsEmpty?.classList.add('hidden');
 				commentsStream.innerHTML = comments.map((cmt) => {
 					const initials = cmt.author_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+					const isDailyLogSync = cmt.message.includes('[Bitácora Diaria');
 					return `
-						<div class="comment-bubble-item" id="cmt-item-${cmt.id}">
-							<div class="comment-author-avatar">${initials}</div>
-							<div class="comment-bubble-content">
+						<div class="comment-bubble-item ${isDailyLogSync ? 'comment-daily-log-sync' : ''}" id="cmt-item-${cmt.id}">
+							<div class="comment-author-avatar" style="${isDailyLogSync ? 'background-color: #EA580C;' : ''}">${isDailyLogSync ? '📋' : initials}</div>
+							<div class="comment-bubble-content" style="${isDailyLogSync ? 'border-color: #FED7AA; background-color: #FFFDFB;' : ''}">
 								<div class="comment-author-meta">
 									<span class="comment-author-name">${escapeHtml(cmt.author_name)}</span>
-									<span class="comment-role-pill">${escapeHtml(cmt.author_role)}</span>
+									<span class="comment-role-pill" style="${isDailyLogSync ? 'background-color: #FFEDD5; color: #C2410C;' : ''}">${escapeHtml(cmt.author_role)}</span>
+									${isDailyLogSync ? '<span style="font-size: 0.6875rem; font-weight: 800; background-color: #FEF3C7; color: #92400E; padding: 1px 6px; border-radius: 4px;">Bitácora Sincronizada</span>' : ''}
 									<span class="comment-timestamp">${formatDateShort(cmt.created_at.split('T')[0])}</span>
 								</div>
 								<p class="comment-text">${escapeHtml(cmt.message)}</p>

@@ -56,6 +56,21 @@
 				</div>
 			</div>
 
+			<!-- Selector de Filtro por Cuadrilla / Responsable -->
+			<div class="gantt-crew-filter-box" role="group" aria-label="Filtrar diagrama por cuadrilla o responsable">
+				<label for="gantt-crew-select" class="gantt-chapter-label">Responsable:</label>
+				<div class="gantt-select-wrapper">
+					<select id="gantt-crew-select" class="gantt-chapter-select" aria-label="Seleccionar cuadrilla o responsable">
+						<option value="all">👷 Todos los Responsables</option>
+					</select>
+					<div class="select-chevron-mini" aria-hidden="true">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+							<polyline points="6 9 12 15 18 9"></polyline>
+						</svg>
+					</div>
+				</div>
+			</div>
+
 			<span class="gantt-hint-badge desktop-only">
 				💡 Arrastra las barras para mover fechas o el tirador circular para % de avance
 			</span>
@@ -185,8 +200,9 @@
 	.color-overdue { background-color: #EF4444; }
 	.color-pending { background-color: #94A3B8; }
 
-	/* Selector de Capítulo Presupuestal */
-	.gantt-chapter-filter-box {
+	/* Selector de Capítulo Presupuestal y Cuadrilla */
+	.gantt-chapter-filter-box,
+	.gantt-crew-filter-box {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;

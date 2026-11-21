@@ -4,6 +4,15 @@
 
 export type WeatherType = 'sunny' | 'rainy' | 'cloudy';
 
+export interface TaskProgressUpdate {
+	task_id: string;
+	task_title: string;
+	chapter_name?: string;
+	previous_pct: number;
+	new_pct: number;
+	notes?: string;
+}
+
 export interface DailyLogPhoto {
 	id: string;
 	url: string; // WebP Data URL o SVG técnico
@@ -20,7 +29,10 @@ export interface DailyLogEntry {
 	officials_count: number;
 	helpers_count: number;
 	total_workers: number;
+	downtime_hours: number; // Horas de paro por lluvia o fuerza mayor (0 a 12)
+	downtime_reason: string; // Motivo del paro: 'lluvia' | 'fuerza_mayor' | 'otro' | ''
 	notes: string;
+	tasks_progress?: TaskProgressUpdate[]; // Sincronización bidireccional con actividades del cronograma
 	photos: DailyLogPhoto[];
 	author_name: string;
 	author_role: string;
@@ -92,7 +104,10 @@ export function createDailyLog(data: {
 	weather: WeatherType;
 	officials_count: number;
 	helpers_count: number;
+	downtime_hours?: number;
+	downtime_reason?: string;
 	notes: string;
+	tasks_progress?: TaskProgressUpdate[];
 	photos?: DailyLogPhoto[];
 	author_name: string;
 	author_role: string;
@@ -110,7 +125,10 @@ export function createDailyLog(data: {
 		officials_count: officials,
 		helpers_count: helpers,
 		total_workers: officials + helpers,
+		downtime_hours: Math.max(0, Math.min(12, data.downtime_hours || 0)),
+		downtime_reason: data.downtime_reason?.trim() || '',
 		notes: data.notes.trim(),
+		tasks_progress: data.tasks_progress || [],
 		photos: data.photos || [],
 		author_name: data.author_name.trim() || 'Residente de Obra',
 		author_role: data.author_role.trim() || 'Residente',
@@ -271,7 +289,27 @@ export function getInitialDemoDailyLogs(): DailyLogEntry[] {
 			officials_count: 3,
 			helpers_count: 2,
 			total_workers: 5,
+			downtime_hours: 0,
+			downtime_reason: '',
 			notes: 'Jornada completa con clima favorable. Se finalizó el armado de perfiles metálicos en muro divisorio de la sala y se instalaron las cajas de paso eléctricas. Prueba de continuidad exitosa. Sin incidentes de seguridad.',
+			tasks_progress: [
+				{
+					task_id: 'task_003',
+					task_title: 'Replanteo y armado de estructura metálica Drywall para isla y sala',
+					chapter_name: '02. Mampostería, Muros y Drywall',
+					previous_pct: 80,
+					new_pct: 100,
+					notes: 'Estructura metálica finalizada y anclada a losa con plomada verificada.'
+				},
+				{
+					task_id: 'task_005',
+					task_title: 'Cableado y entubado de 6 tomas pop-up en isla (OC-001)',
+					chapter_name: '03. Instalaciones Hidrosanitarias y Red Eléctrica',
+					previous_pct: 50,
+					new_pct: 70,
+					notes: 'Tubería EMT y cajas instaladas; prueba de continuidad completada.'
+				}
+			],
 			photos: [
 				{
 					id: 'p_001',
@@ -300,7 +338,19 @@ export function getInitialDemoDailyLogs(): DailyLogEntry[] {
 			officials_count: 3,
 			helpers_count: 1,
 			total_workers: 4,
+			downtime_hours: 3,
+			downtime_reason: 'Lluvia intensa en horas de la tarde — suspensión de labores exteriores',
 			notes: 'Lluvia intensa en horas de la tarde. Se suspendió el cargue de escombros en la terraza pero se continuó con labores internas de resane y trazado de puntos hidrosanitarios en baño principal. Personal laboró con EPP completo.',
+			tasks_progress: [
+				{
+					task_id: 'task_006',
+					task_title: 'Enchape porcelanato 60x120 en baño principal y nicho de ducha',
+					chapter_name: '04. Acabados, Pisos y Enchapes',
+					previous_pct: 40,
+					new_pct: 60,
+					notes: 'Mortero hidrófugo aplicado en zonas húmedas.'
+				}
+			],
 			photos: [
 				{
 					id: 'p_003',
@@ -322,6 +372,8 @@ export function getInitialDemoDailyLogs(): DailyLogEntry[] {
 			officials_count: 2,
 			helpers_count: 2,
 			total_workers: 4,
+			downtime_hours: 0,
+			downtime_reason: '',
 			notes: 'Se recibió material en obra: 25 bultos de yeso, 40 perfiles cal. 26 y 15 láminas Drywall RH. Se verificó inventario contra remisión de Sodimac Corona. Todo conforme.',
 			photos: [
 				{

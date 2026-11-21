@@ -109,6 +109,19 @@ import DailyLogFeed from './DailyLogFeed.astro';
 				<span class="metric-caption">Fotos en Memoria Técnica</span>
 			</div>
 		</div>
+
+		<div class="metric-summary-card">
+			<div class="metric-icon-wrap icon-downtime">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<circle cx="12" cy="12" r="10"></circle>
+					<polyline points="12 6 12 12 8 14"></polyline>
+				</svg>
+			</div>
+			<div class="metric-text-box">
+				<span class="metric-number" id="metric-total-downtime-hours">0</span>
+				<span class="metric-caption">Horas de Paro Acumuladas</span>
+			</div>
+		</div>
 	</section>
 
 	<!-- 3. Formulario de Publicación de Bitácora -->
@@ -260,7 +273,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 	/* 2. Métricas Strip */
 	.metrics-strip-grid {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(5, 1fr);
 		gap: 1rem;
 	}
 
@@ -289,6 +302,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 	.icon-weather { background-color: #FEF3C7; }
 	.icon-workers { background-color: #ECFDF5; color: #059669; }
 	.icon-photos { background-color: #FFF7ED; color: #EA580C; }
+	.icon-downtime { background-color: #FEF3C7; color: #D97706; }
 
 	.metric-text-box {
 		display: flex;
@@ -378,19 +392,31 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		getTodayDateString,
 		type DailyLogEntry,
 		type DailyLogPhoto,
-		type WeatherType
+		type WeatherType,
+		type TaskProgressUpdate
 	} from '../../lib/daily-log-store.ts';
 	import { getActiveRoleConfig } from '../../lib/role-store.ts';
+	import { printDailyLogPdf } from '../../lib/daily-log-pdf.ts';
+	import {
+		getTasksByProject,
+		updateTask,
+		addTaskComment,
+		getProjectChapters,
+		type ScheduleTask
+	} from '../../lib/task-schedule-store.ts';
 
 	let activeProjectId = 'proj_penthouse_poblado';
 	let selectedWeather: WeatherType = 'sunny';
 	let officialsCount = 3;
 	let helpersCount = 2;
+	let downtimeHours = 0;
 	let stagedPhotos: DailyLogPhoto[] = [];
+	let stagedTaskUpdates: Map<string, TaskProgressUpdate> = new Map();
 
 	function initDailyLogWorkspace() {
 		setupFormControls();
 		updateWorkspace();
+		renderTasksSyncList();
 	}
 
 	function setupFormControls() {
@@ -398,7 +424,9 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		const projSelect = document.getElementById('daily-log-project-select') as HTMLSelectElement | null;
 		projSelect?.addEventListener('change', () => {
 			activeProjectId = projSelect.value;
+			stagedTaskUpdates.clear();
 			updateWorkspace();
+			renderTasksSyncList();
 		});
 
 		// 2. Botón Reset Demo
@@ -431,6 +459,9 @@ import DailyLogFeed from './DailyLogFeed.astro';
 				});
 				btn.classList.add('active');
 				btn.setAttribute('aria-pressed', 'true');
+
+				// Mostrar/ocultar sección de horas de paro según clima
+				toggleDowntimeSection(w);
 			});
 		});
 
@@ -460,6 +491,23 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		document.getElementById('btn-increment-helpers')?.addEventListener('click', () => {
 			helpersCount++;
 			updateSteppersDisplay();
+		});
+
+		// 5.5. Steppers de Horas de Paro por Clima
+		const updateDowntimeDisplay = () => {
+			const dtDisp = document.getElementById('downtime-hours-display');
+			const dtSummary = document.getElementById('downtime-hours-summary');
+			if (dtDisp) dtDisp.textContent = downtimeHours.toString();
+			if (dtSummary) dtSummary.textContent = downtimeHours.toString();
+		};
+
+		document.getElementById('btn-decrement-downtime')?.addEventListener('click', () => {
+			if (downtimeHours > 0) downtimeHours--;
+			updateDowntimeDisplay();
+		});
+		document.getElementById('btn-increment-downtime')?.addEventListener('click', () => {
+			if (downtimeHours < 12) downtimeHours++;
+			updateDowntimeDisplay();
 		});
 
 		// 6. Subida de Fotos y Compresión WebP
@@ -519,7 +567,40 @@ import DailyLogFeed from './DailyLogFeed.astro';
 			}
 			officialsCount = 3;
 			helpersCount = 2;
+			downtimeHours = 0;
 			updateSteppersDisplay();
+			updateDowntimeDisplay();
+
+			// Auto-seleccionar 2 tareas del cronograma para demostración de sincronización bidireccional
+			const demoTasks = getTasksByProject(activeProjectId);
+			const chapters = getProjectChapters(activeProjectId);
+			if (demoTasks.length > 0) {
+				stagedTaskUpdates.clear();
+				const t1 = demoTasks[0];
+				const ch1 = chapters.find((c) => c.id === t1.chapter_id);
+				stagedTaskUpdates.set(t1.id, {
+					task_id: t1.id,
+					task_title: t1.title,
+					chapter_name: ch1?.name || 'Capítulo',
+					previous_pct: t1.progress_pct,
+					new_pct: Math.min(100, t1.progress_pct + 25),
+					notes: 'Avance verificado en obra con cuadrilla asignada.'
+				});
+
+				if (demoTasks.length > 1) {
+					const t2 = demoTasks[1];
+					const ch2 = chapters.find((c) => c.id === t2.chapter_id);
+					stagedTaskUpdates.set(t2.id, {
+						task_id: t2.id,
+						task_title: t2.title,
+						chapter_name: ch2?.name || 'Capítulo',
+						previous_pct: t2.progress_pct,
+						new_pct: Math.min(100, t2.progress_pct + 20),
+						notes: 'Instalación y trazado técnico conforme a planos.'
+					});
+				}
+				renderTasksSyncList();
+			}
 
 			if (stagedPhotos.length === 0) {
 				const svg1 = generateDailyPhotoSvg('Penthouse El Poblado', 'Instalación de tubería conduit', selectedWeather);
@@ -552,25 +633,60 @@ import DailyLogFeed from './DailyLogFeed.astro';
 
 			const roleConfig = getActiveRoleConfig();
 
+			const downtimeReasonInput = document.getElementById('downtime-reason-input') as HTMLInputElement | null;
+			const tasksProgressPayload: TaskProgressUpdate[] = Array.from(stagedTaskUpdates.values());
+
 			createDailyLog({
 				project_id: activeProjectId,
 				date: dateVal,
 				weather: selectedWeather,
 				officials_count: officialsCount,
 				helpers_count: helpersCount,
+				downtime_hours: downtimeHours,
+				downtime_reason: downtimeReasonInput?.value.trim() || '',
 				notes: notesVal,
+				tasks_progress: tasksProgressPayload,
 				photos: [...stagedPhotos],
 				author_name: roleConfig.name,
 				author_role: roleConfig.label
 			});
 
-			// Resetear formulario
+			// Sincronización automática con las actividades del Cronograma (HU-16 <-> HU-17)
+			tasksProgressPayload.forEach((tp) => {
+				try {
+					updateTask(tp.task_id, {
+						progress_pct: tp.new_pct
+					});
+					const weatherLabel = selectedWeather === 'sunny' ? '☀️ Soleado' : selectedWeather === 'rainy' ? '🌧️ Lluvia' : '☁️ Nublado';
+					addTaskComment(tp.task_id, {
+						author_name: roleConfig.name,
+						author_role: roleConfig.label,
+						message: `[Bitácora Diaria ${dateVal} • ${weatherLabel}] Avance físico reportado del ${tp.previous_pct}% al ${tp.new_pct}%. ${tp.notes ? `Nota de campo: "${tp.notes}"` : ''}`
+					});
+				} catch (err) {
+					console.error('Error sincronizando actividad en cronograma:', err);
+				}
+			});
+
+			if (tasksProgressPayload.length > 0) {
+				window.dispatchEvent(new CustomEvent('obraflow:tasks-updated'));
+			}
+
+			// Resetear formulario y tareas sincronizadas
 			(document.getElementById('log-notes-textarea') as HTMLTextAreaElement).value = '';
+			if (downtimeReasonInput) downtimeReasonInput.value = '';
+			downtimeHours = 0;
+			updateDowntimeDisplay();
 			stagedPhotos = [];
+			stagedTaskUpdates.clear();
+			renderTasksSyncList();
 			renderPhotosPreview();
 			updateWorkspace();
 
-			showToast('✓ Bitácora del día publicada con éxito en el muro.');
+			const syncMsg = tasksProgressPayload.length > 0
+				? `✓ Bitácora publicada y ${tasksProgressPayload.length} ${tasksProgressPayload.length === 1 ? 'actividad sincronizada' : 'actividades sincronizadas'} en el Cronograma.`
+				: '✓ Bitácora del día publicada con éxito en el muro.';
+			showToast(syncMsg);
 		});
 
 		// 10. Lightbox
@@ -623,10 +739,270 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		});
 	}
 
+	function renderTasksSyncList() {
+		const container = document.getElementById('daily-log-tasks-checklist');
+		const counterBadge = document.getElementById('sync-tasks-counter-badge');
+		if (!container) return;
+
+		const allTasks = getTasksByProject(activeProjectId);
+		const chapters = getProjectChapters(activeProjectId);
+
+		if (counterBadge) {
+			const count = stagedTaskUpdates.size;
+			counterBadge.textContent = `${count} ${count === 1 ? 'actividad marcada' : 'actividades marcadas'}`;
+			if (count > 0) {
+				counterBadge.style.backgroundColor = '#FFEDD5';
+				counterBadge.style.color = '#EA580C';
+				counterBadge.style.borderColor = '#FED7AA';
+			} else {
+				counterBadge.style.backgroundColor = '#ECFDF5';
+				counterBadge.style.color = '#047857';
+				counterBadge.style.borderColor = '#A7F3D0';
+			}
+		}
+
+		if (allTasks.length === 0) {
+			container.innerHTML = `
+				<div style="padding: 1.25rem; text-align: center; color: #64748B; font-size: 0.8125rem;">
+					No hay tareas registradas en el cronograma de este proyecto. Puedes crearlas desde la vista <a href="/schedule" style="color: #F97316; font-weight: 700;">Cronograma</a>.
+				</div>
+			`;
+			return;
+		}
+
+		// Agrupar tareas por capítulo presupuestal
+		const groupedChapters: { id: string; name: string; tasks: ScheduleTask[] }[] = [];
+
+		chapters.forEach((ch) => {
+			const chTasks = allTasks.filter((t) => t.chapter_id === ch.id);
+			if (chTasks.length > 0) {
+				groupedChapters.push({
+					id: ch.id,
+					name: ch.name,
+					tasks: chTasks
+				});
+			}
+		});
+
+		// Actividades sin capítulo asignado o con capítulo externo
+		const orphanTasks = allTasks.filter((t) => !chapters.some((c) => c.id === t.chapter_id));
+		if (orphanTasks.length > 0) {
+			groupedChapters.push({
+				id: 'chap_other',
+				name: 'Otras Actividades / General',
+				tasks: orphanTasks
+			});
+		}
+
+		let html = '';
+		groupedChapters.forEach((grp) => {
+			const markedInChapter = grp.tasks.filter((t) => stagedTaskUpdates.has(t.id)).length;
+			const hasMarked = markedInChapter > 0;
+
+			html += `
+				<div class="sync-chapter-group ${hasMarked ? 'has-marked' : ''}" id="sync-chapter-group-${grp.id}">
+					<div class="sync-chapter-header">
+						<div class="sync-chapter-title-box">
+							<span class="sync-chapter-folder-icon" aria-hidden="true">📁</span>
+							<span class="sync-chapter-title">${escapeHtml(grp.name)}</span>
+						</div>
+						<div class="sync-chapter-header-right">
+							${
+								hasMarked
+									? `<span class="sync-chapter-selected-badge">✓ ${markedInChapter} ${markedInChapter === 1 ? 'marcada' : 'marcadas'}</span>`
+									: ''
+							}
+							<span class="sync-chapter-count-pill">${grp.tasks.length} ${grp.tasks.length === 1 ? 'actividad' : 'actividades'}</span>
+						</div>
+					</div>
+					<div class="sync-chapter-tasks-list">
+			`;
+
+			grp.tasks.forEach((task) => {
+				const isSelected = stagedTaskUpdates.has(task.id);
+				const staged = stagedTaskUpdates.get(task.id);
+				const currentPct = task.progress_pct;
+				const newPct = staged ? staged.new_pct : Math.min(100, currentPct + 10);
+				const taskNotes = staged ? staged.notes || '' : '';
+
+				html += `
+					<div class="task-sync-item-card ${isSelected ? 'selected' : ''}" id="task-sync-card-${task.id}">
+						<div class="task-sync-top-row" data-toggle-task="${task.id}">
+							<div class="task-sync-left-info">
+								<button
+									type="button"
+									class="task-sync-checkbox-btn"
+									data-toggle-task="${task.id}"
+									aria-label="${isSelected ? 'Deseleccionar actividad' : 'Seleccionar actividad trabajada hoy'}"
+									title="${isSelected ? 'Actividad marcada' : 'Toca para marcar que se laboró en esta actividad hoy'}"
+								>
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+										<polyline points="20 6 9 17 4 12"></polyline>
+									</svg>
+								</button>
+
+								<div class="task-sync-name-meta">
+									<span class="task-sync-title">${escapeHtml(task.title)}</span>
+									<div class="task-sync-meta-line">
+										<span>Asignado: <strong>${escapeHtml(task.assigned_to)}</strong></span>
+										<span>• Avance actual: <strong class="task-sync-current-pct">${currentPct}%</strong></span>
+										${task.status === 'completed' ? '<span style="color: #059669; font-weight: 800;">(Completada)</span>' : ''}
+									</div>
+								</div>
+							</div>
+
+							<div style="font-size: 0.8125rem; font-weight: 800; font-family: monospace; color: ${isSelected ? '#EA580C' : '#64748B'};">
+								${isSelected ? `${currentPct}% ➔ ${newPct}%` : `${currentPct}%`}
+							</div>
+						</div>
+
+						<div class="task-sync-adjuster-panel ${isSelected ? '' : 'hidden'}" id="adjuster-panel-${task.id}">
+							<div class="adjuster-controls-row">
+								<div class="pct-stepper-box">
+									<span style="font-size: 0.75rem; font-weight: 700; color: #475569;">Nuevo % Avance:</span>
+									<button type="button" class="btn-pct-step" data-step-task="${task.id}" data-dir="-1">−5%</button>
+									<input
+										type="number"
+										min="0"
+										max="100"
+										value="${newPct}"
+										class="pct-value-input"
+										id="pct-input-${task.id}"
+										data-input-task="${task.id}"
+									/>
+									<button type="button" class="btn-pct-step" data-step-task="${task.id}" data-dir="1">+5%</button>
+								</div>
+
+								<div class="pct-presets-row">
+									<span style="font-size: 0.6875rem; color: #64748B; font-weight: 700;">Accesos rápidos:</span>
+									<button type="button" class="btn-preset-chip" data-preset-task="${task.id}" data-preset-val="${Math.min(100, currentPct + 10)}">+10%</button>
+									<button type="button" class="btn-preset-chip" data-preset-task="${task.id}" data-preset-val="${Math.min(100, currentPct + 25)}">+25%</button>
+									<button type="button" class="btn-preset-chip" data-preset-task="${task.id}" data-preset-val="${Math.min(100, currentPct + 50)}">+50%</button>
+									<button type="button" class="btn-preset-chip complete" data-preset-task="${task.id}" data-preset-val="100">✓ 100% Lista</button>
+								</div>
+							</div>
+
+							<input
+								type="text"
+								class="task-sync-note-input"
+								id="task-note-input-${task.id}"
+								data-note-task="${task.id}"
+								placeholder="Observación técnica de la actividad (ej: Se fundieron 10 m lineales con acelerante)..."
+								value="${escapeHtml(taskNotes)}"
+							/>
+						</div>
+					</div>
+				`;
+			});
+
+			html += `
+					</div>
+				</div>
+			`;
+		});
+
+		container.innerHTML = html;
+
+		// Listeners para checkboxes y selección
+		container.querySelectorAll<HTMLElement>('[data-toggle-task]').forEach((btn) => {
+			btn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const taskId = btn.dataset.toggleTask;
+				if (!taskId) return;
+				const task = allTasks.find((t) => t.id === taskId);
+				if (!task) return;
+				const chapter = chapters.find((c) => c.id === task.chapter_id);
+
+				if (stagedTaskUpdates.has(taskId)) {
+					stagedTaskUpdates.delete(taskId);
+				} else {
+					stagedTaskUpdates.set(taskId, {
+						task_id: taskId,
+						task_title: task.title,
+						chapter_name: chapter?.name || 'Capítulo',
+						previous_pct: task.progress_pct,
+						new_pct: Math.min(100, task.progress_pct + 10),
+						notes: ''
+					});
+				}
+				renderTasksSyncList();
+			});
+		});
+
+		// Listeners para botones de paso +-5%
+		container.querySelectorAll<HTMLButtonElement>('[data-step-task]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const taskId = btn.dataset.stepTask;
+				const dir = parseInt(btn.dataset.dir || '0', 10);
+				if (!taskId || !stagedTaskUpdates.has(taskId)) return;
+				const current = stagedTaskUpdates.get(taskId)!;
+				const updatedPct = Math.max(0, Math.min(100, current.new_pct + dir * 5));
+				current.new_pct = updatedPct;
+				stagedTaskUpdates.set(taskId, current);
+				renderTasksSyncList();
+			});
+		});
+
+		// Listeners para botones de preset
+		container.querySelectorAll<HTMLButtonElement>('[data-preset-task]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const taskId = btn.dataset.presetTask;
+				const val = parseInt(btn.dataset.presetVal || '0', 10);
+				if (!taskId || !stagedTaskUpdates.has(taskId)) return;
+				const current = stagedTaskUpdates.get(taskId)!;
+				current.new_pct = Math.max(0, Math.min(100, val));
+				stagedTaskUpdates.set(taskId, current);
+				renderTasksSyncList();
+			});
+		});
+
+		// Listeners para input directo de porcentaje
+		container.querySelectorAll<HTMLInputElement>('[data-input-task]').forEach((input) => {
+			input.addEventListener('change', () => {
+				const taskId = input.dataset.inputTask;
+				if (!taskId || !stagedTaskUpdates.has(taskId)) return;
+				const val = Math.max(0, Math.min(100, parseInt(input.value || '0', 10)));
+				const current = stagedTaskUpdates.get(taskId)!;
+				current.new_pct = val;
+				stagedTaskUpdates.set(taskId, current);
+				renderTasksSyncList();
+			});
+		});
+
+		// Listeners para input de nota específica
+		container.querySelectorAll<HTMLInputElement>('[data-note-task]').forEach((input) => {
+			input.addEventListener('input', () => {
+				const taskId = input.dataset.noteTask;
+				if (!taskId || !stagedTaskUpdates.has(taskId)) return;
+				const current = stagedTaskUpdates.get(taskId)!;
+				current.notes = input.value.trim();
+				stagedTaskUpdates.set(taskId, current);
+			});
+		});
+	}
+
 	function updateWorkspace() {
 		renderMetrics();
 		renderFeed();
 		updateActiveAuthor();
+	}
+
+	function toggleDowntimeSection(weather: WeatherType) {
+		const section = document.getElementById('downtime-section');
+		if (!section) return;
+		// Siempre visible si es lluvia; para otros climas, mostrar si ya tiene horas registradas
+		if (weather === 'rainy') {
+			section.classList.remove('hidden');
+		} else if (downtimeHours > 0) {
+			section.classList.remove('hidden');
+		} else {
+			section.classList.add('hidden');
+			downtimeHours = 0;
+			const dtDisp = document.getElementById('downtime-hours-display');
+			const dtSummary = document.getElementById('downtime-hours-summary');
+			if (dtDisp) dtDisp.textContent = '0';
+			if (dtSummary) dtSummary.textContent = '0';
+		}
 	}
 
 	function updateActiveAuthor() {
@@ -643,6 +1019,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		const weatherElem = document.getElementById('metric-dominant-weather-text');
 		const avgElem = document.getElementById('metric-avg-workers-num');
 		const photosElem = document.getElementById('metric-total-photos-count');
+		const downtimeElem = document.getElementById('metric-total-downtime-hours');
 
 		if (daysCountElem) daysCountElem.textContent = logs.length.toString();
 
@@ -650,6 +1027,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 			if (weatherElem) weatherElem.textContent = 'Sin datos';
 			if (avgElem) avgElem.textContent = '0';
 			if (photosElem) photosElem.textContent = '0';
+			if (downtimeElem) downtimeElem.textContent = '0';
 			return;
 		}
 
@@ -657,11 +1035,13 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		const weatherCounts: Record<WeatherType, number> = { sunny: 0, rainy: 0, cloudy: 0 };
 		let totalWorkersSum = 0;
 		let totalPhotosCount = 0;
+		let totalDowntimeHours = 0;
 
 		logs.forEach((l) => {
 			weatherCounts[l.weather] = (weatherCounts[l.weather] || 0) + 1;
 			totalWorkersSum += l.total_workers;
 			totalPhotosCount += l.photos?.length || 0;
+			totalDowntimeHours += l.downtime_hours || 0;
 		});
 
 		let dominant: WeatherType = 'sunny';
@@ -682,6 +1062,7 @@ import DailyLogFeed from './DailyLogFeed.astro';
 		if (weatherElem) weatherElem.textContent = weatherLabels[dominant] || 'Soleado';
 		if (avgElem) avgElem.textContent = (totalWorkersSum / logs.length).toFixed(1);
 		if (photosElem) photosElem.textContent = totalPhotosCount.toString();
+		if (downtimeElem) downtimeElem.textContent = totalDowntimeHours.toString();
 	}
 
 	function renderFeed() {
@@ -724,20 +1105,44 @@ import DailyLogFeed from './DailyLogFeed.astro';
 							<span class="workers-badge" title="${entry.officials_count} oficiales y ${entry.helpers_count} ayudantes">
 								👷 ${entry.total_workers} en obra (${entry.officials_count} ofi. / ${entry.helpers_count} ayud.)
 							</span>
+							${entry.downtime_hours > 0 ? `
+								<span class="downtime-badge" title="${escapeHtml(entry.downtime_reason || 'Paro por condiciones climáticas')}">
+									⏸️ ${entry.downtime_hours} hrs paro
+								</span>
+							` : ''}
 						</div>
 
-						<button
-							type="button"
-							class="btn-delete-log"
-							data-delete-log-id="${entry.id}"
-							aria-label="Eliminar entrada de bitácora"
-							title="Eliminar reporte de bitácora"
-						>
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<polyline points="3 6 5 6 21 6"></polyline>
-								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-							</svg>
-						</button>
+						<div class="log-header-actions">
+							<button
+								type="button"
+								class="btn-export-pdf"
+								data-export-pdf-id="${entry.id}"
+								aria-label="Exportar reporte en PDF"
+								title="Generar y descargar Acta de Reporte Diario en PDF"
+							>
+								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+									<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+									<polyline points="14 2 14 8 20 8"></polyline>
+									<line x1="16" y1="13" x2="8" y2="13"></line>
+									<line x1="16" y1="17" x2="8" y2="17"></line>
+									<polyline points="10 9 9 9 8 9"></polyline>
+								</svg>
+								<span>Exportar PDF</span>
+							</button>
+
+							<button
+								type="button"
+								class="btn-delete-log"
+								data-delete-log-id="${entry.id}"
+								aria-label="Eliminar entrada de bitácora"
+								title="Eliminar reporte de bitácora"
+							>
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<polyline points="3 6 5 6 21 6"></polyline>
+									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+								</svg>
+							</button>
+						</div>
 					</div>
 
 					<div class="log-card-body">
@@ -750,6 +1155,28 @@ import DailyLogFeed from './DailyLogFeed.astro';
 						</div>
 
 						<p class="log-notes-paragraph">${escapeHtml(entry.notes)}</p>
+
+						${entry.tasks_progress && entry.tasks_progress.length > 0 ? `
+							<div class="log-tasks-progress-strip">
+								<span class="tasks-strip-label">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+										<polyline points="9 11 12 14 22 4"></polyline>
+										<path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+									</svg>
+									Avance Reportado en Cronograma de Obra:
+								</span>
+								<div class="tasks-chips-flow">
+									${entry.tasks_progress.map((tp) => `
+										<div class="task-sync-badge ${tp.new_pct === 100 ? 'done' : ''}">
+											<span>📌 <strong>${escapeHtml(tp.task_title)}</strong></span>
+											<span style="font-family: monospace; font-weight: 800;">${tp.previous_pct}% ➔ ${tp.new_pct}%</span>
+											${tp.new_pct === 100 ? '<span style="font-weight: 800; color: #059669;">✓ Completada</span>' : ''}
+											${tp.notes ? `<span class="task-sync-badge-note">«${escapeHtml(tp.notes)}»</span>` : ''}
+										</div>
+									`).join('')}
+								</div>
+							</div>
+						` : ''}
 
 						${photos.length > 0 ? `
 							<div class="log-photos-gallery-grid">
@@ -797,6 +1224,20 @@ import DailyLogFeed from './DailyLogFeed.astro';
 				deleteDailyLog(logId);
 				updateWorkspace();
 				showToast('Entrada de bitácora eliminada.');
+			});
+		});
+
+		// Listeners para exportar e imprimir PDF (HU-17)
+		stream.querySelectorAll<HTMLButtonElement>('.btn-export-pdf').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const logId = btn.dataset.exportPdfId;
+				if (!logId) return;
+				const entry = logs.find((l) => l.id === logId);
+				if (!entry) return;
+				const projSelect = document.getElementById('daily-log-project-select') as HTMLSelectElement | null;
+				const projectTitle = projSelect?.options[projSelect.selectedIndex]?.text || 'ObraFlow Proyecto';
+				showToast('📄 Generando Acta de Reporte Diario...');
+				printDailyLogPdf(entry, projectTitle);
 			});
 		});
 	}

@@ -112,6 +112,19 @@
 		border: 1px solid #E2E8F0;
 	}
 
+	:global(.downtime-badge) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+		font-weight: 800;
+		background-color: #FEF3C7;
+		color: #92400E;
+		border: 1px solid #FCD34D;
+		padding: 0.2rem 0.65rem;
+		border-radius: 9999px;
+	}
+
 	:global(.workers-badge) {
 		display: inline-flex;
 		align-items: center;
@@ -123,6 +136,34 @@
 		color: #0F172A;
 		padding: 0.2rem 0.6rem;
 		border-radius: 9999px;
+	}
+
+	:global(.log-header-actions) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.btn-export-pdf) {
+		min-height: 38px;
+		padding: 0.35rem 0.85rem;
+		border-radius: 0.5rem;
+		border: 1.5px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #0F172A;
+		font-size: 0.75rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-export-pdf:hover) {
+		background-color: #FFF7ED;
+		border-color: #F97316;
+		color: #F97316;
 	}
 
 	:global(.btn-delete-log) {
@@ -199,6 +240,58 @@
 		line-height: 1.55;
 		margin: 0;
 		white-space: pre-line;
+	}
+
+	/* Bloque de actividades vinculadas del cronograma */
+	:global(.log-tasks-progress-strip) {
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		padding: 0.75rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	:global(.tasks-strip-label) {
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #475569;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	:global(.tasks-chips-flow) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	:global(.task-sync-badge) {
+		background-color: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #0F172A;
+		font-size: 0.75rem;
+		padding: 0.35rem 0.65rem;
+		border-radius: 0.5rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	:global(.task-sync-badge.done) {
+		background-color: #ECFDF5;
+		border-color: #A7F3D0;
+		color: #065F46;
+	}
+
+	:global(.task-sync-badge-note) {
+		display: block;
+		font-size: 0.6875rem;
+		color: #64748B;
+		margin-top: 0.15rem;
+		font-style: italic;
 	}
 
 	/* Galería de fotos del reporte */
