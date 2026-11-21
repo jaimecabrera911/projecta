@@ -1,0 +1,570 @@
+---
+// src/components/portal/ClientPortalWorkspace.astro
+// HU-19: Espacio de Trabajo Coordinador del Portal Web Consolidado del Cliente sin Contraseña.
+// Integra cabecera pública, banner de alerta, pestañas de finanzas, documentos y avance, y navegación inferior fija.
+
+import ClientPortalHeader from './ClientPortalHeader.astro';
+import ClientPortalAlertBanner from './ClientPortalAlertBanner.astro';
+import ClientPortalFinancesTab from './ClientPortalFinancesTab.astro';
+import ClientPortalDocumentsTab from './ClientPortalDocumentsTab.astro';
+import ClientPortalProgressTab from './ClientPortalProgressTab.astro';
+import ClientPortalBottomNav from './ClientPortalBottomNav.astro';
+
+interface Props {
+	initialToken?: string;
+}
+
+const { initialToken = 'portal_restrepo_001' } = Astro.props;
+---
+
+<div id="client-portal-workspace-root" class="portal-workspace-shell" data-initial-token={initialToken}>
+	<!-- 1. Cabecera Pública del Contratista y Obra -->
+	<ClientPortalHeader />
+
+	<!-- 2. Banner de Alerta para Firmas Digitales Pendientes (Órdenes de Cambio) -->
+	<ClientPortalAlertBanner />
+
+	<!-- 3. Contenedor de Pestañas Principales -->
+	<main id="portal-main-content" class="portal-main-container">
+		<!-- Pestaña 1: Finanzas, Saldos y Abonos -->
+		<ClientPortalFinancesTab />
+
+		<!-- Pestaña 2: Contratos y Órdenes de Cambio Firmables -->
+		<ClientPortalDocumentsTab />
+
+		<!-- Pestaña 3: Avance y Memoria Fotográfica de Obra -->
+		<ClientPortalProgressTab />
+	</main>
+
+	<!-- 4. Barra de Navegación Inferior Fija (Thumb Zone, 3 Pestañas) -->
+	<ClientPortalBottomNav />
+</div>
+
+<style>
+	.portal-workspace-shell {
+		background-color: #F8FAFC;
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		padding-bottom: 80px; /* Espacio para el Bottom Nav fijo */
+	}
+
+	.portal-main-container {
+		max-width: 900px;
+		width: 100%;
+		margin: 0 auto;
+		padding: 1.5rem 1rem 3rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		flex: 1;
+	}
+
+	@media (max-width: 600px) {
+		.portal-main-container {
+			padding: 1rem 0.75rem 3.5rem;
+		}
+	}
+</style>
+
+<script>
+	// Motor Reactivo y Orquestador del Portal del Cliente (HU-19)
+	import {
+		getClientPortalData,
+		type ClientPortalData
+	} from '../../lib/client-portal-store.ts';
+	import { renderIconSvg } from '../../lib/icons.ts';
+
+	function initClientPortal() {
+		const root = document.getElementById('client-portal-workspace-root');
+		if (!root) return;
+
+		// 1. Detección Inteligente del Token de Acceso Seguro (Magic Link)
+		const urlParams = new URLSearchParams(window.location.search);
+		const paramToken = urlParams.get('token') || urlParams.get('id');
+		const pathParts = window.location.pathname.split('/').filter(Boolean);
+		const pathToken = pathParts.length > 1 && pathParts[0] === 'portal' ? pathParts[1] : null;
+
+		const activeToken = paramToken || pathToken || root.dataset.initialToken || 'portal_restrepo_001';
+
+		// 2. Consulta de Datos Consolidados del Portal
+		const portalData = getClientPortalData(activeToken);
+		if (!portalData) {
+			console.error('No se encontraron datos para el token de portal:', activeToken);
+			return;
+		}
+
+		renderPortalView(portalData);
+		setupTabNavigation();
+		setupPortalInteractions(portalData);
+	}
+
+	function renderPortalView(data: ClientPortalData) {
+		// A. Cabecera
+		const contractorName = document.getElementById('portal-contractor-name');
+		const projectTitle = document.getElementById('portal-project-title');
+		const clientGreeting = document.getElementById('portal-client-greeting');
+		const statusLabel = document.getElementById('portal-status-label');
+		const linkWhatsapp = document.getElementById('link-whatsapp-contractor') as HTMLAnchorElement | null;
+
+		if (contractorName) contractorName.textContent = data.contractor_company;
+		if (projectTitle) projectTitle.textContent = data.project_name;
+		if (clientGreeting) clientGreeting.textContent = `Propietario: ${data.client_name}`;
+		if (statusLabel) statusLabel.textContent = data.status_label;
+		if (linkWhatsapp) linkWhatsapp.href = data.whatsapp_share_url;
+
+		// B. Banner de Alerta para Firmas Pendientes
+		const alertBanner = document.getElementById('portal-pending-approval-banner');
+		const alertMsg = document.getElementById('portal-pending-banner-msg');
+		const navPendingDot = document.getElementById('nav-pending-dot');
+
+		if (data.pending_change_orders_count > 0) {
+			if (alertBanner) alertBanner.classList.remove('hidden');
+			if (navPendingDot) navPendingDot.classList.remove('hidden');
+			if (alertMsg) {
+				alertMsg.textContent = `Tienes ${data.pending_change_orders_count} ${
+					data.pending_change_orders_count === 1 ? 'trabajo adicional pendiente' : 'trabajos adicionales pendientes'
+				} de tu firma digital para autorizar su ejecución.`;
+			}
+		} else {
+			if (alertBanner) alertBanner.classList.add('hidden');
+			if (navPendingDot) navPendingDot.classList.add('hidden');
+		}
+
+		// C. Pestaña 1: Finanzas
+		const valContracted = document.getElementById('portal-val-contracted');
+		const valPaid = document.getElementById('portal-val-paid');
+		const valBalance = document.getElementById('portal-val-balance');
+		const paidPctBadge = document.getElementById('portal-paid-pct-badge');
+		const countAbonos = document.getElementById('portal-count-abonos');
+		const paymentsCount = document.getElementById('portal-payments-count');
+		const progressBarFill = document.getElementById('portal-progress-bar-fill');
+		const progressTextPaid = document.getElementById('progress-text-paid');
+		const progressTextBalance = document.getElementById('progress-text-balance');
+
+		const fmt = (n: number) => `$ ${n.toLocaleString('es-CO')}`;
+
+		if (valContracted) valContracted.textContent = fmt(data.financials.total_contract_value);
+		if (valPaid) valPaid.textContent = fmt(data.financials.total_paid_amount);
+		if (valBalance) valBalance.textContent = fmt(data.financials.remaining_balance);
+
+		const pctPaid = data.financials.paid_percentage;
+		const pctBalance = Math.max(0, Math.round((100 - pctPaid) * 10) / 10);
+
+		if (paidPctBadge) paidPctBadge.textContent = `${pctPaid}% Pagado`;
+		if (countAbonos) countAbonos.textContent = `${data.payments.length} ${data.payments.length === 1 ? 'abono registrado' : 'abonos registrados'}`;
+		if (paymentsCount) paymentsCount.textContent = `${data.payments.length} ${data.payments.length === 1 ? 'pago' : 'pagos'}`;
+		if (progressBarFill) progressBarFill.style.width = `${pctPaid}%`;
+		if (progressTextPaid) progressTextPaid.textContent = `${pctPaid}%`;
+		if (progressTextBalance) progressTextBalance.textContent = `${pctBalance}%`;
+
+		// Historial de Pagos
+		const paymentsList = document.getElementById('portal-payments-list');
+		if (paymentsList) {
+			if (data.payments.length === 0) {
+				paymentsList.innerHTML = `
+					<div style="padding: 1rem; text-align: center; color: #64748B; font-size: 0.8125rem;">
+						No se han registrado abonos hasta el momento.
+					</div>
+				`;
+			} else {
+				paymentsList.innerHTML = data.payments.map((pay) => `
+					<article class="payment-item-card" id="payment-card-${pay.id}">
+						<div class="payment-left-meta">
+							<span class="payment-receipt-pill">${escapeHtml(pay.receipt_number)}</span>
+							<div class="payment-text-col">
+								<strong class="payment-concept-text">${escapeHtml(pay.concept)}</strong>
+								<div class="payment-sub-line">
+									<span>Fecha: <strong>${formatDateShort(pay.date)}</strong></span>
+									<span>• Medio: <strong>${escapeHtml(pay.method)}</strong></span>
+								</div>
+							</div>
+						</div>
+
+						<div class="payment-right-col">
+							<span class="payment-amount-val">${fmt(pay.amount)}</span>
+							<button
+								type="button"
+								class="btn-view-receipt"
+								data-receipt-svg="${encodeURIComponent(pay.receipt_url || '')}"
+								data-receipt-num="${escapeHtml(pay.receipt_number)}"
+								title="Ver comprobante oficial de caja"
+							>
+								<span style="display: flex; align-items: center;">${renderIconSvg('receipt', { size: 14 })}</span>
+								<span>Ver Recibo</span>
+							</button>
+						</div>
+					</article>
+				`).join('');
+			}
+		}
+
+		// D. Pestaña 2: Documentos y Órdenes de Cambio
+		const contractCode = document.getElementById('portal-contract-code');
+		const contractTitle = document.getElementById('portal-contract-title');
+		const coCounterBadge = document.getElementById('portal-co-counter-badge');
+		const coList = document.getElementById('portal-change-orders-list');
+
+		if (contractCode) contractCode.textContent = data.documents.contract.code;
+		if (contractTitle) contractTitle.textContent = data.documents.contract.title;
+
+		const changeOrders = data.documents.change_orders || [];
+		if (coCounterBadge) {
+			coCounterBadge.textContent = `${changeOrders.length} ${changeOrders.length === 1 ? 'adicional' : 'adicionales'}`;
+		}
+
+		if (coList) {
+			if (changeOrders.length === 0) {
+				coList.innerHTML = `
+					<div class="empty-change-orders-box">
+						No hay trabajos adicionales registrados. Todas las labores se ejecutan conforme al contrato original.
+					</div>
+				`;
+			} else {
+				coList.innerHTML = changeOrders.map((co) => {
+					const isApproved = co.status === 'approved';
+					const isPending = co.status === 'pending_signature';
+
+					return `
+						<article class="co-item-card ${isPending ? 'pending' : isApproved ? 'approved' : ''}" id="co-card-${co.id}">
+							<div class="co-card-top-row">
+								<div class="co-code-title-wrap">
+									<span class="co-code-badge">${escapeHtml(co.code)}</span>
+									<strong class="co-title-text">${escapeHtml(co.title)}</strong>
+								</div>
+
+								<div class="co-status-box">
+									${
+										isPending
+											? `<span class="co-status-pill pending">${renderIconSvg('lockOpen', { size: 12 })} Pendiente de Firma</span>`
+											: isApproved
+											? `<span class="co-status-pill approved">${renderIconSvg('check', { size: 12 })} Aprobada y en Ejecución</span>`
+											: `<span class="co-status-pill">${escapeHtml(co.status)}</span>`
+									}
+								</div>
+							</div>
+
+							<p class="co-justification-text">${escapeHtml(co.justification)}</p>
+
+							<div class="co-meta-footer-row">
+								<div class="co-price-days-box">
+									<div>
+										<span style="font-size: 0.6875rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Valor Adicional:</span>
+										<div class="co-amount-number">${fmt(co.sale_price_amount)}</div>
+									</div>
+									${
+										co.additional_days > 0
+											? `<span class="co-days-pill">+${co.additional_days} días prórroga</span>`
+											: ''
+									}
+								</div>
+
+								<div class="co-action-col">
+									${
+										isPending
+											? `
+												<a
+													href="/change-orders/view?token=${encodeURIComponent(co.magic_token)}"
+													class="btn-action-sign-co"
+													title="Abrir hoja de firma táctil digital"
+												>
+													<span style="display: flex; align-items: center;">${renderIconSvg('lockOpen', { size: 14 })}</span>
+													<span>Firmar Ahora</span>
+												</a>
+											`
+											: isApproved
+											? `
+												<span class="co-signed-signature-info">
+													${renderIconSvg('check', { size: 14 })}
+													<span>Aprobado por ${escapeHtml(co.signed_by_name || data.client_name)}</span>
+												</span>
+											`
+											: ''
+									}
+								</div>
+							</div>
+						</article>
+					`;
+				}).join('');
+			}
+		}
+
+		// E. Pestaña 3: Avance y Fotos Públicas
+		const photosCountBadge = document.getElementById('portal-photos-count-badge');
+		const logsCountBadge = document.getElementById('portal-logs-count-badge');
+		const photosGrid = document.getElementById('portal-public-photos-grid');
+		const logsStream = document.getElementById('portal-public-logs-stream');
+
+		const photos = data.public_photos || [];
+		const logs = data.daily_logs || [];
+
+		if (photosCountBadge) photosCountBadge.textContent = `${photos.length} ${photos.length === 1 ? 'foto' : 'fotos'}`;
+		if (logsCountBadge) logsCountBadge.textContent = `${logs.length} ${logs.length === 1 ? 'reporte' : 'reportes'}`;
+
+		if (photosGrid) {
+			if (photos.length === 0) {
+				photosGrid.innerHTML = `
+					<div style="grid-column: 1 / -1; padding: 1.5rem; text-align: center; color: #64748B; font-size: 0.8125rem;">
+						Aún no se han publicado fotografías autorizadas de la obra.
+					</div>
+				`;
+			} else {
+				photosGrid.innerHTML = photos.map((p) => `
+					<div class="portal-photo-card" data-lightbox-src="${encodeURI(p.url)}" data-lightbox-cap="${escapeHtml(p.caption || p.name)}" data-lightbox-date="${escapeHtml(p.date)}">
+						<div class="portal-photo-img-box">
+							<img src="${p.url}" alt="${escapeHtml(p.caption || p.name)}" class="portal-photo-img" loading="lazy" />
+						</div>
+						<div class="portal-photo-info-bar">
+							<span class="portal-photo-caption">${escapeHtml(p.caption || p.name)}</span>
+							<span class="portal-photo-date">${formatDateShort(p.date)}</span>
+						</div>
+					</div>
+				`).join('');
+			}
+		}
+
+		if (logsStream) {
+			if (logs.length === 0) {
+				logsStream.innerHTML = `
+					<div style="padding: 1.5rem; text-align: center; color: #64748B; font-size: 0.8125rem;">
+						No hay reportes de bitácora compartidos para esta obra.
+					</div>
+				`;
+			} else {
+				logsStream.innerHTML = logs.map((log) => {
+					const weatherLabel = log.weather === 'rainy' ? 'Lluvia' : log.weather === 'cloudy' ? 'Nublado' : 'Soleado';
+					const weatherIconName = log.weather === 'rainy' ? 'rain' : log.weather === 'cloudy' ? 'cloud' : 'sun';
+
+					return `
+						<article class="portal-log-card" id="portal-log-entry-${log.id}">
+							<div class="portal-log-top-row">
+								<span class="portal-log-date-badge">
+									${renderIconSvg('calendar', { size: 14 })}
+									<span>${formatDateFull(log.date)}</span>
+								</span>
+
+								<div class="portal-log-meta-badges">
+									<span class="portal-weather-badge">
+										<span style="display: flex; align-items: center;">${renderIconSvg(weatherIconName, { size: 12 })}</span>
+										<span>${weatherLabel}</span>
+									</span>
+									<span class="portal-workers-badge">
+										<span style="display: flex; align-items: center;">${renderIconSvg('worker', { size: 12 })}</span>
+										<span>${log.total_workers} en obra</span>
+									</span>
+								</div>
+							</div>
+
+							<p class="portal-log-notes">${escapeHtml(log.notes)}</p>
+
+							${
+								log.tasks_progress && log.tasks_progress.length > 0
+									? `
+										<div class="portal-log-tasks-flow">
+											${log.tasks_progress.map((tp) => `
+												<span class="portal-task-pill ${tp.new_pct === 100 ? 'done' : ''}">
+													${tp.new_pct === 100 ? renderIconSvg('check', { size: 11 }) : ''}
+													<span><strong>${escapeHtml(tp.task_title)}</strong>: ${tp.new_pct}% avance</span>
+												</span>
+											`).join('')}
+										</div>
+									`
+									: ''
+							}
+						</article>
+					`;
+				}).join('');
+			}
+		}
+	}
+
+	function setupTabNavigation() {
+		const navBtns = document.querySelectorAll<HTMLButtonElement>('.nav-tab-btn');
+		const panels = {
+			finances: document.getElementById('tab-finances-panel'),
+			documents: document.getElementById('tab-documents-panel'),
+			progress: document.getElementById('tab-progress-panel')
+		};
+
+		function switchTab(tabKey: 'finances' | 'documents' | 'progress') {
+			navBtns.forEach((btn) => {
+				const isCurrent = btn.dataset.tab === tabKey;
+				btn.classList.toggle('active', isCurrent);
+				btn.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+			});
+
+			Object.entries(panels).forEach(([k, panel]) => {
+				if (panel) {
+					panel.classList.toggle('active', k === tabKey);
+				}
+			});
+
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+			if (history.replaceState) {
+				history.replaceState(null, '', `#${tabKey}`);
+			}
+		}
+
+		navBtns.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const tab = btn.dataset.tab as 'finances' | 'documents' | 'progress';
+				if (tab) switchTab(tab);
+			});
+		});
+
+		// Atajo desde el banner superior de alerta
+		document.getElementById('btn-banner-review-signature')?.addEventListener('click', (e) => {
+			e.preventDefault();
+			switchTab('documents');
+		});
+
+		// Leer hash inicial si existe (#documents, #progress)
+		const hash = window.location.hash.replace('#', '');
+		if (hash === 'documents' || hash === 'progress' || hash === 'finances') {
+			switchTab(hash as any);
+		}
+	}
+
+	function setupPortalInteractions(data: ClientPortalData) {
+		// 1. Botón Copiar Magic Link
+		document.getElementById('btn-copy-portal-link')?.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(data.portal_url);
+				showPortalToast('Enlace seguro del portal copiado al portapapeles.');
+			} catch (err) {
+				// Fallback si no hay soporte de clipboard
+				const tempInput = document.createElement('input');
+				tempInput.value = data.portal_url;
+				document.body.appendChild(tempInput);
+				tempInput.select();
+				document.execCommand('copy');
+				document.body.removeChild(tempInput);
+				showPortalToast('Enlace seguro del portal copiado.');
+			}
+		});
+
+		// 2. Descargar PDF del Contrato
+		document.getElementById('btn-download-contract-pdf')?.addEventListener('click', () => {
+			showPortalToast('📄 Descargando copia oficial del contrato...');
+			setTimeout(() => {
+				window.print();
+			}, 400);
+		});
+
+		// 3. Lightbox de Comprobantes de Caja
+		const receiptModal = document.getElementById('receipt-modal-lightbox');
+		const receiptImg = document.getElementById('receipt-modal-img') as HTMLImageElement | null;
+		const receiptTitle = document.getElementById('receipt-modal-title');
+		const btnCloseReceipt = document.getElementById('btn-close-receipt-modal');
+
+		document.querySelectorAll<HTMLButtonElement>('.btn-view-receipt').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const rawSvg = decodeURIComponent(btn.dataset.receiptSvg || '');
+				const num = btn.dataset.receiptNum || 'Recibo Oficial';
+				if (receiptImg && rawSvg) {
+					receiptImg.src = rawSvg;
+				}
+				if (receiptTitle) {
+					receiptTitle.textContent = `Comprobante de Caja • ${num}`;
+				}
+				receiptModal?.classList.remove('hidden');
+			});
+		});
+
+		btnCloseReceipt?.addEventListener('click', () => {
+			receiptModal?.classList.add('hidden');
+		});
+
+		receiptModal?.addEventListener('click', (e) => {
+			if (e.target === receiptModal) {
+				receiptModal.classList.add('hidden');
+			}
+		});
+
+		document.getElementById('btn-print-receipt')?.addEventListener('click', () => {
+			window.print();
+		});
+
+		// 4. Lightbox de Fotografías de Avance
+		const photoModal = document.getElementById('portal-photo-lightbox');
+		const photoImg = document.getElementById('portal-lightbox-img') as HTMLImageElement | null;
+		const photoCap = document.getElementById('portal-lightbox-caption');
+		const photoDate = document.getElementById('portal-lightbox-date');
+		const btnClosePhoto = document.getElementById('btn-close-photo-lightbox');
+
+		document.querySelectorAll<HTMLElement>('.portal-photo-card').forEach((card) => {
+			card.addEventListener('click', () => {
+				const src = card.dataset.lightboxSrc;
+				const cap = card.dataset.lightboxCap;
+				const d = card.dataset.lightboxDate;
+
+				if (photoImg && src) photoImg.src = src;
+				if (photoCap) photoCap.textContent = cap || 'Evidencia técnica de obra';
+				if (photoDate) photoDate.textContent = d ? formatDateFull(d) : '';
+
+				photoModal?.classList.remove('hidden');
+			});
+		});
+
+		btnClosePhoto?.addEventListener('click', () => {
+			photoModal?.classList.add('hidden');
+		});
+
+		photoModal?.addEventListener('click', (e) => {
+			if (e.target === photoModal) {
+				photoModal.classList.add('hidden');
+			}
+		});
+	}
+
+	function formatDateShort(dateStr: string): string {
+		if (!dateStr) return '';
+		const parts = dateStr.split('-');
+		if (parts.length < 3) return dateStr;
+		return `${parts[2]}/${parts[1]}/${parts[0]}`;
+	}
+
+	const MONTH_NAMES = [
+		'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+	];
+
+	function formatDateFull(dateStr: string): string {
+		if (!dateStr) return '';
+		const parts = dateStr.split('-');
+		if (parts.length < 3) return dateStr;
+		const year = parts[0];
+		const monthNum = parseInt(parts[1], 10) - 1;
+		const day = parseInt(parts[2], 10);
+		const monthName = MONTH_NAMES[monthNum] || '';
+		return `${day} de ${monthName} de ${year}`;
+	}
+
+	function escapeHtml(str: string): string {
+		return str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function showPortalToast(message: string) {
+		window.dispatchEvent(
+			new CustomEvent('show-toast', {
+				detail: {
+					message,
+					type: 'success'
+				}
+			})
+		);
+	}
+
+	// Inicialización
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initClientPortal);
+	} else {
+		initClientPortal();
+	}
+</script>

@@ -1,0 +1,33 @@
+---
+// src/pages/portal/[token].astro
+// HU-19: Portal Web Consolidado del Cliente sin Contraseña (Magic Link).
+// Acceso 100% público mediante token sin login, password ni fricción.
+import Layout from '../../layouts/Layout.astro';
+import ClientPortalWorkspace from '../../components/portal/ClientPortalWorkspace.astro';
+import Toast from '../../components/Toast.astro';
+
+export function getStaticPaths() {
+	return [
+		{ params: { token: 'portal_restrepo_001' } },
+		{ params: { token: 'portal_nova_002' } },
+		{ params: { token: 'demo' } }
+	];
+}
+
+const { token } = Astro.params;
+---
+
+<Layout title="Portal de Obra del Cliente — ObraFlow" hasSidebar={false}>
+	<main id="portal-page-main" class="portal-page-root">
+		<ClientPortalWorkspace initialToken={token} />
+		<Toast />
+	</main>
+</Layout>
+
+<style>
+	.portal-page-root {
+		min-height: 100vh;
+		background-color: #0F172A;
+		color: #F8FAFC;
+	}
+</style>

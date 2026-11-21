@@ -1,0 +1,136 @@
+---
+// src/components/portal/ClientPortalAlertBanner.astro
+// HU-19: Banner Persistente de Alerta para Firmas Digitales Pendientes (Órdenes de Cambio).
+import { renderIconSvg } from '../../lib/icons.ts';
+---
+
+<div id="portal-pending-approval-banner" class="alert-banner-wrap hidden" role="alert">
+	<div class="banner-inner">
+		<div class="banner-left">
+			<div class="banner-icon-emblem" set:html={renderIconSvg('alert', { size: 18 })}></div>
+			<div class="banner-text-box">
+				<strong class="banner-headline">Trabajo Adicional Pendiente de Aprobación</strong>
+				<p id="portal-pending-banner-msg" class="banner-subtext">
+					Tienes 1 orden de cambio esperando tu firma digital para autorizar la ejecución en obra.
+				</p>
+			</div>
+		</div>
+
+		<div class="banner-right">
+			<a
+				id="btn-banner-review-signature"
+				href="#tab-documents"
+				class="btn-banner-action"
+				title="Revisar y firmar trabajo adicional pendiente"
+			>
+				<span set:html={renderIconSvg('lockOpen', { size: 16 })}></span>
+				<span>Revisar y Firmar</span>
+			</a>
+		</div>
+	</div>
+</div>
+
+<style>
+	.alert-banner-wrap {
+		background: linear-gradient(135deg, #FFF7ED 0%, #FEF3C7 100%);
+		border-bottom: 2px solid #F59E0B;
+		padding: 0.875rem 1rem;
+		box-shadow: 0 2px 6px rgba(245, 158, 11, 0.12);
+		width: 100%;
+		transition: all 0.2s ease;
+	}
+
+	.alert-banner-wrap.hidden {
+		display: none !important;
+	}
+
+	.banner-inner {
+		max-width: 900px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.banner-left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex: 1;
+		min-width: 260px;
+	}
+
+	.banner-icon-emblem {
+		width: 38px;
+		height: 38px;
+		border-radius: 0.5rem;
+		background-color: #FEF3C7;
+		color: #D97706;
+		border: 1px solid #F59E0B;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.banner-text-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
+	.banner-headline {
+		font-size: 0.875rem;
+		font-weight: 800;
+		color: #92400E;
+	}
+
+	.banner-subtext {
+		font-size: 0.75rem;
+		color: #78350F;
+		margin: 0;
+		line-height: 1.35;
+	}
+
+	.banner-right {
+		display: flex;
+		align-items: center;
+	}
+
+	.btn-banner-action {
+		min-height: 48px;
+		padding: 0 1.125rem;
+		background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+		color: #FFFFFF;
+		border-radius: 0.625rem;
+		font-size: 0.8125rem;
+		font-weight: 800;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
+		transition: all 0.15s ease;
+		user-select: none;
+		white-space: nowrap;
+	}
+
+	.btn-banner-action:hover {
+		background: linear-gradient(135deg, #C2410C 0%, #9A3412 100%);
+		transform: translateY(-1px);
+	}
+
+	@media (max-width: 600px) {
+		.banner-inner {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.btn-banner-action {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+</style>

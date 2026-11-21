@@ -20,10 +20,7 @@ import { renderIconSvg } from '../../lib/icons';
 				<span class="traffic-sublabel">del presupuesto vigente ejecutado</span>
 			</div>
 			<div class="traffic-icon-wrap" id="traffic-icon-container" aria-hidden="true">
-				<svg id="traffic-icon-svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-					<path d="m9 12 2 2 4-4"></path>
-				</svg>
+				<span id="traffic-icon-svg" style="display:flex;"><Fragment set:html={renderIconSvg('circleCheck', { size: 32 })} /></span>
 			</div>
 		</div>
 		<div class="traffic-progress-track">
@@ -41,7 +38,7 @@ import { renderIconSvg } from '../../lib/icons';
 		<div class="card-header-compact">
 			<span class="card-eyebrow">Rentabilidad & Margen en Vivo</span>
 			<span id="margin-delta-pill" class="margin-delta-pill delta-positive">
-				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"></polyline></svg>
+				<Fragment set:html={renderIconSvg('chevronUp', { size: 12 })} />
 				<span id="margin-delta-text">+0.0% vs Base</span>
 			</span>
 		</div>
@@ -63,7 +60,7 @@ import { renderIconSvg } from '../../lib/icons';
 			</div>
 		</div>
 		<div class="margin-explainer">
-			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+			<Fragment set:html={renderIconSvg('info', { size: 14 })} />
 			<span>El margen real se recalcula automáticamente con cada factura registrada.</span>
 		</div>
 	</div>

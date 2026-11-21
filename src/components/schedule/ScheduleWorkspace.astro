@@ -9,7 +9,7 @@ import CalendarView from './CalendarView.astro';
 import GanttChartView from './GanttChartView.astro';
 import CreateTaskModal from './CreateTaskModal.astro';
 import TaskDetailModal from './TaskDetailModal.astro';
-import { renderIconSvg } from '../../lib/icons.ts';
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="schedule-workspace-root" class="schedule-workspace-shell">
@@ -24,9 +24,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						<option value="proj_andina_002">Adecuación Oficinas Coworking Laureles (Inversiones Nova SAS)</option>
 					</select>
 					<div class="select-chevron" aria-hidden="true">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<polyline points="6 9 12 15 18 9"></polyline>
-						</svg>
+						<Fragment set:html={renderIconSvg('chevronDown', { size: 18 })} />
 					</div>
 				</div>
 			</div>
@@ -39,9 +37,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				class="btn-reset-tasks"
 				title="Restablecer tareas de demostración iniciales"
 			>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-				</svg>
+				<Fragment set:html={renderIconSvg('refresh', { size: 16 })} />
 				<span class="desktop-only">Reset Demo</span>
 			</button>
 
@@ -51,15 +47,13 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				class="btn-new-task"
 				title="Programar una nueva actividad en el cronograma"
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-					<line x1="12" y1="5" x2="12" y2="19"></line>
-					<line x1="5" y1="12" x2="19" y2="12"></line>
-				</svg>
-				<span>+ Nueva Tarea</span>
+				<Fragment set:html={renderIconSvg('plus', { size: 18 })} />
+				<span>Nueva Tarea</span>
 			</button>
 		</div>
 	</header>
-
+	<div id="schedule-no-project" class="schedule-no-project hidden"><p class="costing-no-project-title">No hay obra fijada</p><p class="costing-no-project-sub">Fija una obra desde el header o selecciónala aquí para ver su cronograma.</p></div>
+	<div id="schedule-content-wrap">
 	<!-- 2. TARJETA DE AVANCE FÍSICO GLOBAL DEL PROYECTO -->
 	<section id="schedule-metrics-card" class="schedule-metrics-card" aria-label="Métricas de avance físico de obra">
 		<div class="metrics-main-col">
@@ -117,14 +111,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				class="view-switch-btn active"
 				data-view="list"
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<line x1="8" y1="6" x2="21" y2="6"></line>
-					<line x1="8" y1="12" x2="21" y2="12"></line>
-					<line x1="8" y1="18" x2="21" y2="18"></line>
-					<line x1="3" y1="6" x2="3.01" y2="6"></line>
-					<line x1="3" y1="12" x2="3.01" y2="12"></line>
-					<line x1="3" y1="18" x2="3.01" y2="18"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('list', { size: 18 })} />
 				<span>Lista de Tareas</span>
 				<span id="tab-list-count" class="tab-badge">5</span>
 			</button>
@@ -137,12 +124,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				class="view-switch-btn"
 				data-view="calendar"
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-					<line x1="16" y1="2" x2="16" y2="6"></line>
-					<line x1="8" y1="2" x2="8" y2="6"></line>
-					<line x1="3" y1="10" x2="21" y2="10"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('calendar', { size: 18 })} />
 				<span>Calendario</span>
 			</button>
 
@@ -194,6 +176,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		<!-- Vista 3: Diagrama de Gantt Temporal -->
 		<GanttChartView />
 	</div>
+	</div>
 
 	<!-- Modal de Creación de Tarea -->
 	<CreateTaskModal />
@@ -203,14 +186,12 @@ import { renderIconSvg } from '../../lib/icons.ts';
 </div>
 
 <style>
-	.schedule-workspace-shell {
-		max-width: 1320px;
-		margin: 0 auto;
-		padding: 1.5rem 1rem 3rem 1rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
+	.schedule-workspace-shell { max-width: 1320px; margin: 0 auto; padding: 1.5rem 1rem 3rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
+	.schedule-no-project { padding: 2rem; border: 1px dashed #CBD5E1; border-radius: 0.75rem; background: #F8FAFC; text-align: center; }
+	.schedule-no-project .costing-no-project-title { margin: 0 0 0.35rem; font-size: 1rem; font-weight: 700; color: #0F172A; }
+	.schedule-no-project .costing-no-project-sub { margin: 0; font-size: 0.875rem; color: #475569; }
+	#schedule-content-wrap { display: flex; flex-direction: column; gap: 1.5rem; }
+	#schedule-content-wrap.hidden, .schedule-no-project.hidden { display: none !important; }
 
 	/* 1. Top Bar */
 	.schedule-top-bar {
@@ -627,6 +608,8 @@ import { renderIconSvg } from '../../lib/icons.ts';
 </style>
 
 <script>
+	import { renderIconSvg } from '../../lib/icons';
+	
 	// HU-16: Orquestador y Motor Reactivo del Cronograma Táctil
 	import {
 		loadAllTasks,
@@ -647,16 +630,12 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		type ScheduleTask
 	} from '../../lib/task-schedule-store.ts';
 	import { getActiveRoleConfig } from '../../lib/role-store.ts';
-	import {
-		getActiveProjectId,
-		setActiveProjectId
-	} from '../../lib/active-project-store.ts';
-	import { renderIconSvg } from '../../lib/icons.ts';
+	import { clearActiveProjectId, getPinnedProjectId, setActiveProjectId } from '../../lib/active-project-store.ts';
 	import Gantt from 'frappe-gantt';
 	import '../../styles/frappe-gantt.css';
 
 	// Estado local de la sesión (sincronizado con Obra Fijada Global)
-	let activeProjectId = getActiveProjectId();
+	let activeProjectId: string | null = getPinnedProjectId();
 	let currentView: 'list' | 'calendar' | 'gantt' = 'list';
 	let currentFilter: 'all' | 'pending' | 'in_progress' | 'completed' | 'overdue' = 'all';
 
@@ -686,25 +665,19 @@ import { renderIconSvg } from '../../lib/icons.ts';
 	}
 
 	function setupEventListeners() {
-		// 1. Selector de Proyecto
 		const projectSelect = document.getElementById('schedule-project-select') as HTMLSelectElement | null;
 		if (projectSelect) {
-			projectSelect.value = activeProjectId;
+			if (!activeProjectId) { projectSelect.insertAdjacentHTML('afterbegin', '<option value="">Sin obra fijada</option>'); projectSelect.value = ''; }
+			else projectSelect.value = activeProjectId;
 			projectSelect.addEventListener('change', () => {
-				activeProjectId = projectSelect.value;
-				setActiveProjectId(activeProjectId);
-				updateAll();
+				const val = projectSelect.value;
+				if (!val) { clearActiveProjectId(); activeProjectId = null; updateAll(); return; }
+				activeProjectId = val; setActiveProjectId(val); updateAll();
 			});
 		}
-
-		// Escuchar cambios de obra fijada desde el Header
 		window.addEventListener('obraflow:project-changed', (e: any) => {
-			const newId = e.detail?.projectId;
-			if (newId && newId !== activeProjectId) {
-				activeProjectId = newId;
-				if (projectSelect) projectSelect.value = newId;
-				updateAll();
-			}
+			const newId = e.detail?.projectId ?? null;
+			if (newId !== activeProjectId) { activeProjectId = newId; if (projectSelect) projectSelect.value = newId || ''; updateAll(); }
 		});
 
 		// 2. Botón Reset Demo
@@ -848,6 +821,10 @@ import { renderIconSvg } from '../../lib/icons.ts';
 	}
 
 	function updateAll() {
+		const noProject = document.getElementById('schedule-no-project');
+		const content = document.getElementById('schedule-content-wrap');
+		if (!activeProjectId) { noProject?.classList.remove('hidden'); content?.classList.add('hidden'); return; }
+		noProject?.classList.add('hidden'); content?.classList.remove('hidden');
 		updateGanttChapterFilterOptions();
 		updateGanttCrewFilterOptions();
 		renderMetrics();
@@ -1040,9 +1017,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 					<div class="chapter-group-header">
 						<div class="chapter-title-left">
 							<div class="chapter-folder-icon" aria-hidden="true">
-								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-									<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-								</svg>
+								${renderIconSvg("folder", { size: 18 })}
 							</div>
 							<h3 class="chapter-name">${escapeHtml(chap.name)}</h3>
 						</div>
@@ -1083,9 +1058,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 								title="${isDone ? 'Completada. Clic para desmarcar.' : 'Toque para completar tarea'}"
 							>
 								<div class="checkbox-circle">
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-										<polyline points="20 6 9 17 4 12"></polyline>
-									</svg>
+									${renderIconSvg("check", { size: 16 })}
 								</div>
 							</button>
 
@@ -1098,20 +1071,12 @@ import { renderIconSvg } from '../../lib/icons.ts';
 
 								<div class="task-meta-row">
 									<span class="crew-chip">
-										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-											<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-											<circle cx="9" cy="7" r="4"></circle>
-										</svg>
+										${renderIconSvg("users", { size: 12 })}
 										${escapeHtml(task.assigned_to)}
 									</span>
 
 									<span class="dates-chip">
-										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-											<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-											<line x1="16" y1="2" x2="16" y2="6"></line>
-											<line x1="8" y1="2" x2="8" y2="6"></line>
-											<line x1="3" y1="10" x2="21" y2="10"></line>
-										</svg>
+										${renderIconSvg("calendar", { size: 12 })}
 										${formatDateShort(task.start_date)} → ${formatDateShort(task.end_date)}
 									</span>
 
@@ -1149,10 +1114,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 								aria-label="Ver detalle, fotos y notas"
 								title="Editar actividad, fotos y bitácora"
 							>
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-									<path d="M12 20h9"></path>
-									<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-								</svg>
+								${renderIconSvg("pencil", { size: 16 })}
 							</button>
 
 							<!-- Botón Eliminar Tarea -->
@@ -1163,10 +1125,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 								aria-label="Eliminar actividad"
 								title="Eliminar actividad"
 							>
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<polyline points="3 6 5 6 21 6"></polyline>
-									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-								</svg>
+								${renderIconSvg("trash", { size: 16 })}
 							</button>
 						</div>
 					`;
@@ -1365,9 +1324,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 							aria-label="${isDone ? 'Marcar pendiente' : 'Marcar completada'}"
 						>
 							<div class="checkbox-circle">
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5">
-									<polyline points="20 6 9 17 4 12"></polyline>
-								</svg>
+								${renderIconSvg("check", { size: 16 })}
 							</div>
 						</button>
 						<div class="agenda-task-info" data-open-detail="${t.id}" style="cursor: pointer;" title="Toca para ver detalle, fotos y comentarios">

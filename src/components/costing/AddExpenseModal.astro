@@ -9,12 +9,7 @@ import { renderIconSvg } from '../../lib/icons';
 		<!-- Header del Modal -->
 		<div class="expense-modal-header">
 			<div class="expense-title-group">
-				<div class="expense-icon-badge" aria-hidden="true">
-					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<line x1="12" y1="5" x2="12" y2="19"></line>
-						<line x1="5" y1="12" x2="19" y2="12"></line>
-					</svg>
-				</div>
+				<div class="expense-icon-badge" aria-hidden="true" set:html={renderIconSvg('plus', { size: 22 })}></div>
 				<div>
 					<h3 id="expense-modal-title" class="expense-modal-title">Registrar Gasto de Obra</h3>
 					<p class="expense-modal-subtitle">Imputación directa a la matriz de Job Costing</p>
@@ -22,10 +17,7 @@ import { renderIconSvg } from '../../lib/icons';
 			</div>
 
 			<button id="btn-close-expense-modal" type="button" class="btn-modal-close" aria-label="Cerrar formulario de gasto">
-				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<line x1="18" y1="6" x2="6" y2="18"></line>
-					<line x1="6" y1="6" x2="18" y2="18"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('x', { size: 22 })} />
 			</button>
 		</div>
 
@@ -154,11 +146,7 @@ import { renderIconSvg } from '../../lib/icons';
 							aria-label="Cargar foto del recibo"
 						/>
 						<div class="receipt-drop-content" id="receipt-drop-content">
-							<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon">
-								<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-								<circle cx="8.5" cy="8.5" r="1.5"></circle>
-								<polyline points="21 15 16 10 5 21"></polyline>
-							</svg>
+							<span class="upload-icon"><Fragment set:html={renderIconSvg('photo', { size: 28 })} /></span>
 							<div class="drop-text-group">
 								<span class="drop-main-text">Toca para subir foto o arrastra aquí</span>
 								<span class="drop-sub-text">PNG, JPG o WebP</span>
@@ -203,9 +191,7 @@ import { renderIconSvg } from '../../lib/icons';
 					Cancelar
 				</button>
 				<button id="btn-submit-expense" type="submit" class="btn-modal-submit">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-						<polyline points="20 6 9 17 4 12"></polyline>
-					</svg>
+					<Fragment set:html={renderIconSvg('check', { size: 18 })} />
 					<span>Guardar Gasto e Imputar</span>
 				</button>
 			</div>

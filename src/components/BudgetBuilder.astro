@@ -2,16 +2,13 @@
 // src/components/BudgetBuilder.astro
 // HU-06: Constructor jerárquico de presupuestos por capítulos (Operate Mode).
 import BudgetTotalsBar from './BudgetTotalsBar.astro';
+import { renderIconSvg } from '../lib/icons';
 ---
 
 <section id="budget-builder" class="budget-builder" aria-label="Constructor de presupuesto">
 	<div id="budget-not-found" class="budget-not-found hidden">
 		<div class="not-found-icon" aria-hidden="true">
-			<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<circle cx="11" cy="11" r="8"></circle>
-				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-				<line x1="8" y1="11" x2="14" y2="11"></line>
-			</svg>
+			<Fragment set:html={renderIconSvg('search', { size: 30 })} />
 		</div>
 		<h1 class="not-found-title">No encontramos este presupuesto</h1>
 		<p class="not-found-text">El enlace no corresponde a un presupuesto guardado en este dispositivo.</p>
@@ -21,26 +18,18 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 	<div id="budget-builder-content" class="budget-builder-content">
 		<nav class="builder-breadcrumb" aria-label="Migas de pan">
 			<a id="btn-back-to-budgets" href="/budgets" class="breadcrumb-link">
-				<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<polyline points="15 18 9 12 15 6"></polyline>
-				</svg>
+				<Fragment set:html={renderIconSvg('chevronLeft', { size: 15 })} />
 				<span>Presupuestos</span>
 			</a>
 			<span class="breadcrumb-sep" aria-hidden="true">/</span>
 			<span id="budget-breadcrumb-title" class="breadcrumb-current">Constructor</span>
 			<div class="breadcrumb-actions">
 				<a id="btn-preview-proposal" class="breadcrumb-preview" href="#" target="_blank" rel="noopener" title="Ver la propuesta comercial que recibirá el cliente">
-					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-						<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-						<circle cx="12" cy="12" r="3"></circle>
-					</svg>
+					<Fragment set:html={renderIconSvg('eye', { size: 15 })} />
 					<span>Vista previa comercial</span>
 				</a>
 				<button id="btn-share-proposal" type="button" class="breadcrumb-share" title="Copiar enlace de propuesta para seguimiento (HU-10)">
-					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-					</svg>
+					<Fragment set:html={renderIconSvg('link', { size: 15 })} />
 					<span>Copiar enlace de seguimiento</span>
 				</button>
 			</div>
@@ -61,10 +50,7 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 
 					<div id="budget-delete-zone" class="hero-delete-zone">
 						<button type="button" id="btn-delete-budget" class="btn-delete-budget">
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-								<polyline points="3 6 5 6 21 6"></polyline>
-								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-							</svg>
+							<Fragment set:html={renderIconSvg('trash', { size: 15 })} />
 							<span>Eliminar</span>
 						</button>
 						<div id="budget-delete-confirm" class="hero-delete-confirm hidden" role="alert" aria-label="Confirmar eliminación del presupuesto">
@@ -197,10 +183,7 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 				</p>
 			</div>
 			<button id="btn-toggle-chapter-form" type="button" class="btn-add-chapter">
-				<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<line x1="12" y1="5" x2="12" y2="19"></line>
-					<line x1="5" y1="12" x2="19" y2="12"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('plus', { size: 17 })} />
 				<span>Añadir Capítulo</span>
 			</button>
 		</div>
@@ -225,12 +208,7 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 
 		<div id="budget-empty-state" class="budget-empty-state hidden">
 			<div class="empty-icon" aria-hidden="true">
-				<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-					<polyline points="14 2 14 8 20 8"></polyline>
-					<line x1="16" y1="13" x2="8" y2="13"></line>
-					<line x1="16" y1="17" x2="8" y2="17"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('fileText', { size: 34 })} />
 			</div>
 			<h2 class="empty-title">Tu presupuesto aún no tiene capítulos</h2>
 			<p class="empty-text">
@@ -2038,6 +2016,8 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 </style>
 
 <script>
+	import { renderIconSvg } from '../lib/icons';
+	
 	import { calcLine, calcTax, calcTotals, formatMoney } from '../lib/budget-math';
 	import { loadCatalog, type CatalogItem } from '../lib/catalog';
 	import {
@@ -2377,16 +2357,10 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 					<div class="item-actions">
 						<div class="item-action-buttons">
 							<button type="button" class="icon-btn" data-action="edit-item" title="Editar descripción y datos" aria-label="Editar ${escapeHtml(item.description)}">
-								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-									<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-									<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-								</svg>
+								${renderIconSvg("pencil", { size: 15 })}
 							</button>
 							<button type="button" class="icon-btn icon-btn-danger" data-action="delete-item" title="Eliminar partida" aria-label="Eliminar ${escapeHtml(item.description)}">
-								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-									<polyline points="3 6 5 6 21 6"></polyline>
-									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-								</svg>
+								${renderIconSvg("trash", { size: 15 })}
 							</button>
 						</div>
 						<div class="item-delete-confirm">
@@ -2507,18 +2481,12 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 				<div class="catalog-panel" data-panel="catalog" data-chapter-id="${chapter.id}">
 					<div class="catalog-panel-head">
 						<div class="catalog-search-shell">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-								<circle cx="11" cy="11" r="8"></circle>
-								<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-							</svg>
+							${renderIconSvg("search", { size: 16 })}
 							<input class="catalog-search-input" type="text" data-catalog-search autocomplete="off"
 								placeholder="Buscar por nombre, código o proveedor..." aria-label="Buscar insumo en el catálogo" />
 						</div>
 						<button type="button" class="btn-close-panel" data-action="close-catalog" aria-label="Cerrar buscador de catálogo">
-							<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-								<line x1="18" y1="6" x2="6" y2="18"></line>
-								<line x1="6" y1="6" x2="18" y2="18"></line>
-							</svg>
+							${renderIconSvg("x", { size: 17 })}
 						</button>
 					</div>
 					<div class="catalog-results" data-catalog-results>
@@ -2546,20 +2514,13 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 						<button type="button" class="btn-ghost-sm" data-action="cancel-delete-chapter">No</button>
 					</div>`
 				: `<button type="button" class="icon-btn" data-action="move-up" ${isFirst ? 'disabled' : ''} title="Subir capítulo" aria-label="Subir capítulo ${escapeHtml(chapter.name)}">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<polyline points="18 15 12 9 6 15"></polyline>
-						</svg>
+						${renderIconSvg("chevronUp", { size: 16 })}
 					</button>
 					<button type="button" class="icon-btn" data-action="move-down" ${isLast ? 'disabled' : ''} title="Bajar capítulo" aria-label="Bajar capítulo ${escapeHtml(chapter.name)}">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<polyline points="6 9 12 15 18 9"></polyline>
-						</svg>
+						${renderIconSvg("chevronDown", { size: 16 })}
 					</button>
 					<button type="button" class="icon-btn icon-btn-danger" data-action="delete-chapter" title="Eliminar capítulo" aria-label="Eliminar capítulo ${escapeHtml(chapter.name)}">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<polyline points="3 6 5 6 21 6"></polyline>
-							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						</svg>
+						${renderIconSvg("trash", { size: 16 })}
 					</button>`;
 
 			return `
@@ -2604,10 +2565,7 @@ import BudgetTotalsBar from './BudgetTotalsBar.astro';
 
 								<div class="chapter-add-actions">
 									<button type="button" class="btn-add-from-catalog" data-action="open-catalog">
-										<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-											<circle cx="11" cy="11" r="8"></circle>
-											<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-										</svg>
+										${renderIconSvg("search", { size: 15 })}
 										Partida desde Catálogo
 									</button>
 									<button type="button" class="btn-add-custom" data-action="open-custom">

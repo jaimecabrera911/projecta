@@ -2,6 +2,7 @@
 // src/components/ShareFormModal.astro
 // Modal para Compartir y Embeber el Formulario Web Público (HU-02)
 const defaultSlug = "andina-sas";
+import { renderIconSvg } from '../lib/icons';
 ---
 
 <div
@@ -20,11 +21,7 @@ const defaultSlug = "andina-sas";
 		<div class="modal-header">
 			<div class="title-wrap">
 				<div class="header-icon globe-icon">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="12" cy="12" r="10"></circle>
-						<line x1="2" y1="12" x2="22" y2="12"></line>
-						<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-					</svg>
+					<Fragment set:html={renderIconSvg('globe', { size: 20 })} />
 				</div>
 				<div>
 					<div class="title-with-pill">
@@ -36,10 +33,7 @@ const defaultSlug = "andina-sas";
 			</div>
 
 			<button id="close-share-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<line x1="18" y1="6" x2="6" y2="18"></line>
-					<line x1="6" y1="6" x2="18" y2="18"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('x', { size: 18 })} />
 			</button>
 		</div>
 
@@ -71,10 +65,7 @@ const defaultSlug = "andina-sas";
 						class="btn-copy-action"
 						title="Copiar enlace al portapapeles"
 					>
-						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('copy', { size: 15 })} />
 						<span id="copy-direct-label">Copiar Enlace</span>
 					</button>
 
@@ -85,11 +76,7 @@ const defaultSlug = "andina-sas";
 						class="btn-open-action"
 						title="Abrir formulario en nueva pestaña"
 					>
-						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-							<polyline points="15 3 21 3 21 9"></polyline>
-							<line x1="10" y1="14" x2="21" y2="3"></line>
-						</svg>
+						<Fragment set:html={renderIconSvg('externalLink', { size: 15 })} />
 						<span>Abrir</span>
 					</a>
 				</div>
@@ -111,10 +98,7 @@ const defaultSlug = "andina-sas";
 						class="btn-copy-code"
 						title="Copiar código HTML"
 					>
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('copy', { size: 14 })} />
 						<span id="copy-iframe-label">Copiar Iframe</span>
 					</button>
 				</div>
@@ -134,10 +118,7 @@ const defaultSlug = "andina-sas";
 				<div class="preview-header-bar">
 					<button type="button" id="toggle-preview-btn" class="preview-toggle-btn">
 						<span id="preview-toggle-icon" class="preview-eye-icon">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-								<circle cx="12" cy="12" r="3"></circle>
-							</svg>
+							<Fragment set:html={renderIconSvg('eye', { size: 16 })} />
 						</span>
 						<span id="preview-toggle-label">Ver Vista Previa Rápida Embebida</span>
 					</button>

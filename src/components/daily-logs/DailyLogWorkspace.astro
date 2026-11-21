@@ -5,7 +5,7 @@
 
 import DailyLogForm from './DailyLogForm.astro';
 import DailyLogFeed from './DailyLogFeed.astro';
-import { renderIconSvg } from '../../lib/icons.ts';
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="daily-log-workspace-root" class="daily-workspace-shell">
@@ -20,9 +20,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						<option value="proj_andina_002">Adecuación Oficinas Coworking Laureles (Inversiones Nova SAS)</option>
 					</select>
 					<div class="select-chevron" aria-hidden="true">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<polyline points="6 9 12 15 18 9"></polyline>
-						</svg>
+						<Fragment set:html={renderIconSvg('chevronDown', { size: 18 })} />
 					</div>
 				</div>
 			</div>
@@ -35,9 +33,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				class="btn-reset-logs"
 				title="Restablecer bitácoras de demostración iniciales"
 			>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-				</svg>
+				<Fragment set:html={renderIconSvg('refresh', { size: 16 })} />
 				<span class="desktop-only">Reset Demo</span>
 			</button>
 
@@ -47,25 +43,18 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				class="btn-new-log-cta"
 				title="Ir al formulario para reportar la jornada de hoy"
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<line x1="12" y1="5" x2="12" y2="19"></line>
-					<line x1="5" y1="12" x2="19" y2="12"></line>
-				</svg>
-				<span>+ Reportar Jornada</span>
+				<Fragment set:html={renderIconSvg('plus', { size: 18 })} />
+				<span>Reportar Jornada</span>
 			</a>
 		</div>
 	</header>
-
+	<div id="daily-log-no-project" class="daily-no-project hidden"><p class="costing-no-project-title">No hay obra fijada</p><p class="costing-no-project-sub">Fija una obra desde el header o selecciónala aquí para ver su bitácora.</p></div>
+	<div id="daily-log-content-wrap">
 	<!-- 2. Tarjetas de Resumen & Métricas de Bitácora -->
 	<section id="daily-log-metrics-strip" class="metrics-strip-grid" aria-label="Resumen de bitácora de obra">
 		<div class="metric-summary-card">
 			<div class="metric-icon-wrap icon-calendar">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-					<line x1="16" y1="2" x2="16" y2="6"></line>
-					<line x1="8" y1="2" x2="8" y2="6"></line>
-					<line x1="3" y1="10" x2="21" y2="10"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('calendar', { size: 20 })} />
 			</div>
 			<div class="metric-text-box">
 				<span class="metric-number" id="metric-logged-days-count">3</span>
@@ -83,12 +72,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 
 		<div class="metric-summary-card">
 			<div class="metric-icon-wrap icon-workers">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-					<circle cx="9" cy="7" r="4"></circle>
-					<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-					<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-				</svg>
+				<Fragment set:html={renderIconSvg('users', { size: 20 })} />
 			</div>
 			<div class="metric-text-box">
 				<span class="metric-number" id="metric-avg-workers-num">4.3</span>
@@ -98,10 +82,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 
 		<div class="metric-summary-card">
 			<div class="metric-icon-wrap icon-photos">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-					<circle cx="12" cy="13" r="4"></circle>
-				</svg>
+				<Fragment set:html={renderIconSvg('camera', { size: 20 })} />
 			</div>
 			<div class="metric-text-box">
 				<span class="metric-number" id="metric-total-photos-count">4</span>
@@ -111,10 +92,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 
 		<div class="metric-summary-card">
 			<div class="metric-icon-wrap icon-downtime">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<circle cx="12" cy="12" r="10"></circle>
-					<polyline points="12 6 12 12 8 14"></polyline>
-				</svg>
+				<Fragment set:html={renderIconSvg('clock', { size: 20 })} />
 			</div>
 			<div class="metric-text-box">
 				<span class="metric-number" id="metric-total-downtime-hours">0</span>
@@ -136,17 +114,16 @@ import { renderIconSvg } from '../../lib/icons.ts';
 
 	<!-- 5. Muro Social Estilo Feed -->
 	<DailyLogFeed />
+	</div>
 </div>
 
 <style>
-	.daily-workspace-shell {
-		max-width: 1080px;
-		margin: 0 auto;
-		padding: 1.5rem 1rem 3.5rem 1rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
+	.daily-workspace-shell { max-width: 1080px; margin: 0 auto; padding: 1.5rem 1rem 3.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
+	.daily-no-project { padding: 2rem; border: 1px dashed #CBD5E1; border-radius: 0.75rem; background: #F8FAFC; text-align: center; }
+	.daily-no-project .costing-no-project-title { margin: 0 0 0.35rem; font-size: 1rem; font-weight: 700; color: #0F172A; }
+	.daily-no-project .costing-no-project-sub { margin: 0; font-size: 0.875rem; color: #475569; }
+	#daily-log-content-wrap { display: flex; flex-direction: column; gap: 1.5rem; }
+	#daily-log-content-wrap.hidden, .daily-no-project.hidden { display: none !important; }
 
 	/* Top Bar */
 	.daily-top-bar {
@@ -379,10 +356,14 @@ import { renderIconSvg } from '../../lib/icons.ts';
 </style>
 
 <script>
-	// HU-17: Orquestador y Motor Reactivo de Bitácora Diaria de Obra
+	import { renderIconSvg } from '../../lib/icons';
+	
+	// HU-17 / HU-18: Orquestador y Motor Reactivo de Bitácora Diaria de Obra
 	import {
 		loadAllDailyLogs,
 		getDailyLogsByProject,
+		getClientVisibleDailyLogs,
+		toggleDailyLogVisibility,
 		createDailyLog,
 		deleteDailyLog,
 		resetDemoDailyLogs,
@@ -404,17 +385,16 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		resetDemoTasks,
 		type ScheduleTask
 	} from '../../lib/task-schedule-store.ts';
-	import {
-		getActiveProjectId,
-		setActiveProjectId
-	} from '../../lib/active-project-store.ts';
-	import { renderIconSvg } from '../../lib/icons.ts';
+	import { clearActiveProjectId, getPinnedProjectId, setActiveProjectId } from '../../lib/active-project-store.ts';
 
-	let activeProjectId = getActiveProjectId();
+	let activeProjectId: string | null = getPinnedProjectId();
 	let selectedWeather: WeatherType = 'sunny';
 	let officialsCount = 3;
 	let helpersCount = 2;
 	let downtimeHours = 0;
+	let selectedPrivacy: 'client' | 'internal' = 'client'; // HU-18: Selector de Privacidad en Formulario
+	let feedPrivacyFilter: 'all' | 'client' | 'internal' = 'all'; // HU-18: Filtro del Muro
+	let isClientSimulationActive: boolean = false; // HU-18: Modo simulación portal cliente
 	let stagedPhotos: DailyLogPhoto[] = [];
 	let stagedTaskUpdates: Map<string, TaskProgressUpdate> = new Map();
 	let expandedChapterIds: Set<string> = new Set();
@@ -426,33 +406,25 @@ import { renderIconSvg } from '../../lib/icons.ts';
 	}
 
 	function setupFormControls() {
-		// 1. Selector de Proyecto
 		const projSelect = document.getElementById('daily-log-project-select') as HTMLSelectElement | null;
 		const hiddenProjInput = document.getElementById('log-project-id') as HTMLInputElement | null;
 		if (projSelect) {
-			projSelect.value = activeProjectId;
+			if (!activeProjectId) { projSelect.insertAdjacentHTML('afterbegin', '<option value="">Sin obra fijada</option>'); projSelect.value = ''; }
+			else projSelect.value = activeProjectId;
 			projSelect.addEventListener('change', () => {
-				activeProjectId = projSelect.value;
-				setActiveProjectId(activeProjectId);
-				if (hiddenProjInput) hiddenProjInput.value = activeProjectId;
-				stagedTaskUpdates.clear();
-				expandedChapterIds.clear();
-				updateWorkspace();
-				renderTasksSyncList();
+				const val = projSelect.value;
+				if (!val) { clearActiveProjectId(); activeProjectId = null; if (hiddenProjInput) hiddenProjInput.value = ''; stagedTaskUpdates.clear(); expandedChapterIds.clear(); updateWorkspace(); renderTasksSyncList(); return; }
+				activeProjectId = val; setActiveProjectId(val); if (hiddenProjInput) hiddenProjInput.value = val;
+				stagedTaskUpdates.clear(); expandedChapterIds.clear(); updateWorkspace(); renderTasksSyncList();
 			});
 		}
-
-		// Escuchar cambios de obra fijada desde el Header
 		window.addEventListener('obraflow:project-changed', (e: any) => {
-			const newId = e.detail?.projectId;
-			if (newId && newId !== activeProjectId) {
+			const newId = e.detail?.projectId ?? null;
+			if (newId !== activeProjectId) {
 				activeProjectId = newId;
-				if (projSelect) projSelect.value = newId;
-				if (hiddenProjInput) hiddenProjInput.value = newId;
-				stagedTaskUpdates.clear();
-				expandedChapterIds.clear();
-				updateWorkspace();
-				renderTasksSyncList();
+				if (projSelect) projSelect.value = newId || '';
+				if (hiddenProjInput) hiddenProjInput.value = newId || '';
+				stagedTaskUpdates.clear(); expandedChapterIds.clear(); updateWorkspace(); renderTasksSyncList();
 			}
 		});
 
@@ -647,7 +619,135 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				renderPhotosPreview();
 			}
 
+			updatePrivacyUI('client');
 			showToast('Datos de prueba cargados en el formulario.');
+		});
+
+		// 8.5. Selector de Privacidad y Detección de Incidentes (HU-18)
+		const btnPrivacyClient = document.getElementById('btn-privacy-client') as HTMLButtonElement | null;
+		const btnPrivacyInternal = document.getElementById('btn-privacy-internal') as HTMLButtonElement | null;
+		const hiddenPrivacyInput = document.getElementById('log-visible-to-client') as HTMLInputElement | null;
+		const warningBanner = document.getElementById('incident-privacy-warning');
+		const notesTextarea = document.getElementById('log-notes-textarea') as HTMLTextAreaElement | null;
+		const downtimeInput = document.getElementById('downtime-reason-input') as HTMLInputElement | null;
+
+		function updatePrivacyUI(val: 'client' | 'internal') {
+			selectedPrivacy = val;
+			if (hiddenPrivacyInput) hiddenPrivacyInput.value = val === 'client' ? 'true' : 'false';
+			if (btnPrivacyClient && btnPrivacyInternal) {
+				if (val === 'client') {
+					btnPrivacyClient.classList.add('active');
+					btnPrivacyClient.setAttribute('aria-checked', 'true');
+					btnPrivacyInternal.classList.remove('active');
+					btnPrivacyInternal.setAttribute('aria-checked', 'false');
+				} else {
+					btnPrivacyInternal.classList.add('active');
+					btnPrivacyInternal.setAttribute('aria-checked', 'true');
+					btnPrivacyClient.classList.remove('active');
+					btnPrivacyClient.setAttribute('aria-checked', 'false');
+					warningBanner?.classList.add('hidden');
+				}
+			}
+		}
+
+		btnPrivacyClient?.addEventListener('click', () => {
+			updatePrivacyUI('client');
+			checkIncidentKeywords();
+		});
+
+		btnPrivacyInternal?.addEventListener('click', () => {
+			updatePrivacyUI('internal');
+		});
+
+		// Detección preventiva de incidentes o retrasos en tiempo real (Error Prevention)
+		const INCIDENT_REGEX = /(accidente|rotura|daño|falla|retraso|imprevisto|sobrecosto|demanda|reclamo|paro|tuber[ií]a\s+rota)/i;
+
+		function checkIncidentKeywords() {
+			if (!notesTextarea || !warningBanner) return;
+			const notes = notesTextarea.value || '';
+			const downtime = downtimeInput?.value || '';
+			const combined = `${notes} ${downtime}`;
+			if (selectedPrivacy === 'client' && INCIDENT_REGEX.test(combined)) {
+				warningBanner.classList.remove('hidden');
+			} else {
+				warningBanner.classList.add('hidden');
+			}
+		}
+
+		notesTextarea?.addEventListener('input', checkIncidentKeywords);
+		downtimeInput?.addEventListener('input', checkIncidentKeywords);
+
+		document.getElementById('btn-switch-to-confidential')?.addEventListener('click', () => {
+			updatePrivacyUI('internal');
+			showToast('Entrada cambiada a "Solo Equipo Interno (Confidencial)".');
+		});
+
+		// 8.8. Filtros de Privacidad del Muro y Simulación de Vista Cliente (HU-18 / HU-19)
+		const filterChips = document.querySelectorAll<HTMLButtonElement>('.feed-filter-chip');
+		filterChips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				const filterVal = (chip.dataset.filter || 'all') as 'all' | 'client' | 'internal';
+				feedPrivacyFilter = filterVal;
+				if (isClientSimulationActive && filterVal !== 'client') {
+					exitClientSimulation();
+				}
+				updateFilterChipsUI();
+				renderFeed();
+			});
+		});
+
+		function updateFilterChipsUI() {
+			filterChips.forEach((chip) => {
+				const f = chip.dataset.filter;
+				if (f === feedPrivacyFilter) {
+					chip.classList.add('active');
+					chip.setAttribute('aria-selected', 'true');
+				} else {
+					chip.classList.remove('active');
+					chip.setAttribute('aria-selected', 'false');
+				}
+			});
+		}
+
+		const btnSimulate = document.getElementById('btn-simulate-client-portal');
+		const simBanner = document.getElementById('client-simulation-banner');
+		const btnExitSim = document.getElementById('btn-exit-simulation');
+		const simBtnText = document.getElementById('simulate-client-btn-text');
+
+		function enterClientSimulation() {
+			isClientSimulationActive = true;
+			feedPrivacyFilter = 'client';
+			simBanner?.classList.remove('hidden');
+			btnSimulate?.classList.add('active-sim');
+			if (simBtnText) simBtnText.textContent = 'Salir de Vista Cliente';
+			updateFilterChipsUI();
+			renderFeed();
+			showToast('Modo Simulación: Viendo el muro tal como lo ve el cliente.');
+		}
+
+		function exitClientSimulation() {
+			isClientSimulationActive = false;
+			simBanner?.classList.add('hidden');
+			btnSimulate?.classList.remove('active-sim');
+			if (simBtnText) simBtnText.textContent = 'Ver como Cliente';
+		}
+
+		btnSimulate?.addEventListener('click', () => {
+			if (isClientSimulationActive) {
+				exitClientSimulation();
+				feedPrivacyFilter = 'all';
+				updateFilterChipsUI();
+				renderFeed();
+			} else {
+				enterClientSimulation();
+			}
+		});
+
+		btnExitSim?.addEventListener('click', () => {
+			exitClientSimulation();
+			feedPrivacyFilter = 'all';
+			updateFilterChipsUI();
+			renderFeed();
 		});
 
 		// 9. Envío del Formulario
@@ -678,6 +778,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				downtime_hours: downtimeHours,
 				downtime_reason: downtimeReasonInput?.value.trim() || '',
 				notes: notesVal,
+				visible_to_client: selectedPrivacy === 'client',
 				tasks_progress: tasksProgressPayload,
 				photos: [...stagedPhotos],
 				author_name: roleConfig.name,
@@ -710,6 +811,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 			if (downtimeReasonInput) downtimeReasonInput.value = '';
 			downtimeHours = 0;
 			updateDowntimeDisplay();
+			updatePrivacyUI('client');
 			stagedPhotos = [];
 			stagedTaskUpdates.clear();
 			expandedChapterIds.clear();
@@ -778,6 +880,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		const counterBadge = document.getElementById('sync-tasks-counter-badge');
 		if (!container) return;
 
+		if (!activeProjectId) { container.innerHTML = '<div style="padding:1rem;color:#64748B;font-size:0.8125rem;">Fija una obra para sincronizar actividades.</div>'; return; }
 		const allTasks = getTasksByProject(activeProjectId);
 		const chapters = getProjectChapters(activeProjectId);
 
@@ -879,9 +982,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 									aria-label="${isSelected ? 'Deseleccionar actividad' : 'Seleccionar actividad trabajada hoy'}"
 									title="${isSelected ? 'Actividad marcada' : 'Toca para marcar que se laboró en esta actividad hoy'}"
 								>
-									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-										<polyline points="20 6 9 17 4 12"></polyline>
-									</svg>
+									${renderIconSvg("check", { size: 18 })}
 								</button>
 
 								<div class="task-sync-name-meta">
@@ -1068,6 +1169,10 @@ import { renderIconSvg } from '../../lib/icons.ts';
 	}
 
 	function updateWorkspace() {
+		const noProject = document.getElementById('daily-log-no-project');
+		const content = document.getElementById('daily-log-content-wrap');
+		if (!activeProjectId) { noProject?.classList.remove('hidden'); content?.classList.add('hidden'); return; }
+		noProject?.classList.add('hidden'); content?.classList.remove('hidden');
 		renderMetrics();
 		renderFeed();
 		updateActiveAuthor();
@@ -1156,7 +1261,27 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		const emptyNotice = document.getElementById('daily-logs-empty-state');
 		if (!stream) return;
 
-		const logs = getDailyLogsByProject(activeProjectId);
+		const allLogs = getDailyLogsByProject(activeProjectId);
+
+		// Actualizar contadores numéricos de la barra de privacidad HU-18
+		const countAll = allLogs.length;
+		const countClient = allLogs.filter((l) => l.visible_to_client !== false).length;
+		const countInternal = allLogs.filter((l) => l.visible_to_client === false).length;
+
+		const chipCountAll = document.getElementById('chip-count-all');
+		const chipCountClient = document.getElementById('chip-count-client');
+		const chipCountInternal = document.getElementById('chip-count-internal');
+		if (chipCountAll) chipCountAll.textContent = countAll.toString();
+		if (chipCountClient) chipCountClient.textContent = countClient.toString();
+		if (chipCountInternal) chipCountInternal.textContent = countInternal.toString();
+
+		// Filtrar según el estado seleccionado en el muro
+		let logs = allLogs;
+		if (feedPrivacyFilter === 'client') {
+			logs = allLogs.filter((l) => l.visible_to_client !== false);
+		} else if (feedPrivacyFilter === 'internal') {
+			logs = allLogs.filter((l) => l.visible_to_client === false);
+		}
 
 		if (logs.length === 0) {
 			stream.innerHTML = '';
@@ -1178,9 +1303,10 @@ import { renderIconSvg } from '../../lib/icons.ts';
 			const w = weatherConfig[entry.weather] || weatherConfig.sunny;
 			const initials = entry.author_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 			const photos = entry.photos || [];
+			const isVisibleToClient = entry.visible_to_client !== false;
 
 			html += `
-				<article class="daily-log-card" id="log-card-${entry.id}">
+				<article class="daily-log-card ${isVisibleToClient ? '' : 'confidential-card'}" id="log-card-${entry.id}">
 					<div class="log-card-header">
 						<div class="log-header-left">
 							<h4 class="log-date-heading" style="display: inline-flex; align-items: center; gap: 6px;">${renderIconSvg('calendar', { size: 16 })} ${formatDateFull(entry.date)}</h4>
@@ -1196,9 +1322,32 @@ import { renderIconSvg } from '../../lib/icons.ts';
 									${renderIconSvg('clock', { size: 14 })} ${entry.downtime_hours} hrs paro
 								</span>
 							` : ''}
+							${isVisibleToClient ? `
+								<span class="privacy-badge client" title="Esta entrada está autorizada y es visible para el cliente en su portal web">
+									<span style="display: flex; align-items: center;">${renderIconSvg('eye', { size: 12 })}</span>
+									<span>Compartido con Cliente</span>
+								</span>
+							` : `
+								<span class="privacy-badge internal" title="Esta entrada es de uso confidencial del equipo interno de obra y NO se muestra en el portal del cliente">
+									<span style="display: flex; align-items: center;">${renderIconSvg('lock', { size: 12 })}</span>
+									<span>Nota Interna Confidencial</span>
+								</span>
+							`}
 						</div>
 
 						<div class="log-header-actions">
+							<!-- Botón de Acción Rápida para Conmutar Privacidad en 1 Toque (HU-18) -->
+							<button
+								type="button"
+								class="btn-toggle-card-privacy ${isVisibleToClient ? 'to-internal' : 'to-client'}"
+								data-toggle-privacy-id="${entry.id}"
+								aria-label="${isVisibleToClient ? 'Hacer nota confidencial' : 'Compartir con el cliente'}"
+								title="${isVisibleToClient ? 'Ocultar del portal del cliente (hacer confidencial)' : 'Autorizar y compartir con el cliente en su portal'}"
+							>
+								<span style="display: flex; align-items: center;">${renderIconSvg(isVisibleToClient ? 'lock' : 'eye', { size: 14 })}</span>
+								<span>${isVisibleToClient ? 'Hacer Confidencial' : 'Compartir con Cliente'}</span>
+							</button>
+
 							<button
 								type="button"
 								class="btn-export-pdf"
@@ -1206,13 +1355,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 								aria-label="Exportar reporte en PDF"
 								title="Generar y descargar Acta de Reporte Diario en PDF"
 							>
-								<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-									<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-									<polyline points="14 2 14 8 20 8"></polyline>
-									<line x1="16" y1="13" x2="8" y2="13"></line>
-									<line x1="16" y1="17" x2="8" y2="17"></line>
-									<polyline points="10 9 9 9 8 9"></polyline>
-								</svg>
+								${renderIconSvg("fileText", { size: 15 })}
 								<span>Exportar PDF</span>
 							</button>
 
@@ -1223,10 +1366,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 								aria-label="Eliminar entrada de bitácora"
 								title="Eliminar reporte de bitácora"
 							>
-								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<polyline points="3 6 5 6 21 6"></polyline>
-									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-								</svg>
+								${renderIconSvg("trash", { size: 18 })}
 							</button>
 						</div>
 					</div>
@@ -1245,10 +1385,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						${entry.tasks_progress && entry.tasks_progress.length > 0 ? `
 							<div class="log-tasks-progress-strip">
 								<span class="tasks-strip-label">
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-										<polyline points="9 11 12 14 22 4"></polyline>
-										<path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-									</svg>
+									<Fragment set:html={renderIconSvg('listCheck', { size: 14 })} />
 									Avance Reportado en Cronograma de Obra:
 								</span>
 								<div class="tasks-chips-flow">
@@ -1324,6 +1461,22 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				const projectTitle = projSelect?.options[projSelect.selectedIndex]?.text || 'ObraFlow Proyecto';
 				showToast('Generando Acta de Reporte Diario en PDF...');
 				printDailyLogPdf(entry, projectTitle);
+			});
+		});
+
+		// Listeners para conmutar privacidad en 1 toque en tarjetas del muro (HU-18)
+		stream.querySelectorAll<HTMLButtonElement>('[data-toggle-privacy-id]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const logId = btn.dataset.togglePrivacyId;
+				if (!logId) return;
+				const updated = toggleDailyLogVisibility(logId);
+				renderFeed();
+				updateWorkspace();
+				showToast(
+					updated.visible_to_client
+						? 'Entrada autorizada y compartida con el cliente en su portal.'
+						: 'Entrada marcada como confidencial (solo equipo interno).'
+				);
 			});
 		});
 	}

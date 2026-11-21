@@ -32,6 +32,7 @@ export interface DailyLogEntry {
 	downtime_hours: number; // Horas de paro por lluvia o fuerza mayor (0 a 12)
 	downtime_reason: string; // Motivo del paro: 'lluvia' | 'fuerza_mayor' | 'otro' | ''
 	notes: string;
+	visible_to_client: boolean; // HU-18: Selector de Privacidad (true: visible para cliente / false: uso interno confidencial)
 	tasks_progress?: TaskProgressUpdate[]; // Sincronización bidireccional con actividades del cronograma
 	photos: DailyLogPhoto[];
 	author_name: string;
@@ -39,7 +40,7 @@ export interface DailyLogEntry {
 	created_at: string; // ISO string
 }
 
-export const STORAGE_KEY_DAILY_LOGS = 'obraflow_daily_logs_v1';
+export const STORAGE_KEY_DAILY_LOGS = 'obraflow_daily_logs_v2';
 
 /**
  * Retorna la fecha de hoy en formato YYYY-MM-DD.
@@ -96,6 +97,14 @@ export function getDailyLogsByProject(projectId: string): DailyLogEntry[] {
 }
 
 /**
+ * Retorna las entradas de bitácora autorizadas para el cliente (visible_to_client === true).
+ * Cumple con el criterio de seguridad de la HU-18: ninguna nota ni foto confidencial es expuesta.
+ */
+export function getClientVisibleDailyLogs(projectId: string): DailyLogEntry[] {
+	return getDailyLogsByProject(projectId).filter((log) => log.visible_to_client === true);
+}
+
+/**
  * Crea y publica una nueva entrada de bitácora diaria.
  */
 export function createDailyLog(data: {
@@ -107,6 +116,7 @@ export function createDailyLog(data: {
 	downtime_hours?: number;
 	downtime_reason?: string;
 	notes: string;
+	visible_to_client?: boolean;
 	tasks_progress?: TaskProgressUpdate[];
 	photos?: DailyLogPhoto[];
 	author_name: string;
@@ -128,6 +138,7 @@ export function createDailyLog(data: {
 		downtime_hours: Math.max(0, Math.min(12, data.downtime_hours || 0)),
 		downtime_reason: data.downtime_reason?.trim() || '',
 		notes: data.notes.trim(),
+		visible_to_client: data.visible_to_client !== undefined ? data.visible_to_client : true,
 		tasks_progress: data.tasks_progress || [],
 		photos: data.photos || [],
 		author_name: data.author_name.trim() || 'Residente de Obra',
@@ -140,6 +151,28 @@ export function createDailyLog(data: {
 	saveAllDailyLogs(all);
 
 	return newEntry;
+}
+
+/**
+ * Alterna el estado de privacidad de una bitácora en 1 toque.
+ * Permite conmutar entre 'Compartido con el Cliente' y 'Nota Interna Confidencial'.
+ */
+export function toggleDailyLogVisibility(logId: string): DailyLogEntry {
+	const all = loadAllDailyLogs();
+	const index = all.findIndex((l) => l.id === logId);
+	if (index === -1) {
+		throw new Error(`Bitácora no encontrada con ID: ${logId}`);
+	}
+
+	const existing = all[index];
+	const updated: DailyLogEntry = {
+		...existing,
+		visible_to_client: !existing.visible_to_client
+	};
+
+	all[index] = updated;
+	saveAllDailyLogs(all);
+	return updated;
 }
 
 /**
@@ -292,22 +325,23 @@ export function getInitialDemoDailyLogs(): DailyLogEntry[] {
 			downtime_hours: 0,
 			downtime_reason: '',
 			notes: 'Jornada completa con clima favorable. Se finalizó el armado de perfiles metálicos en muro divisorio de la sala y se instalaron las cajas de paso eléctricas. Prueba de continuidad exitosa. Sin incidentes de seguridad.',
+			visible_to_client: true,
 			tasks_progress: [
 				{
 					task_id: 'task_003',
-					task_title: 'Replanteo y armado de estructura metálica Drywall para isla y sala',
-					chapter_name: '02. Mampostería, Muros y Drywall',
+					task_title: 'Instalación de tubería de desagüe y punto de lavavajillas',
+					chapter_name: '02. Redes Hidráulicas y Sanitarias',
 					previous_pct: 80,
 					new_pct: 100,
-					notes: 'Estructura metálica finalizada y anclada a losa con plomada verificada.'
+					notes: 'Desagües listos con prueba hidráulica a presión.'
 				},
 				{
 					task_id: 'task_005',
-					task_title: 'Cableado y entubado de 6 tomas pop-up en isla (OC-001)',
-					chapter_name: '03. Instalaciones Hidrosanitarias y Red Eléctrica',
+					task_title: 'Enchape porcelanato 60x120 en baño principal y nicho de ducha',
+					chapter_name: '03. Enchapes y Revestimientos Porcelánicos',
 					previous_pct: 50,
-					new_pct: 70,
-					notes: 'Tubería EMT y cajas instaladas; prueba de continuidad completada.'
+					new_pct: 60,
+					notes: 'Avance en enchape vertical de zona de ducha.'
 				}
 			],
 			photos: [
@@ -341,13 +375,14 @@ export function getInitialDemoDailyLogs(): DailyLogEntry[] {
 			downtime_hours: 3,
 			downtime_reason: 'Lluvia intensa en horas de la tarde — suspensión de labores exteriores',
 			notes: 'Lluvia intensa en horas de la tarde. Se suspendió el cargue de escombros en la terraza pero se continuó con labores internas de resane y trazado de puntos hidrosanitarios en baño principal. Personal laboró con EPP completo.',
+			visible_to_client: true,
 			tasks_progress: [
 				{
 					task_id: 'task_006',
-					task_title: 'Enchape porcelanato 60x120 en baño principal y nicho de ducha',
-					chapter_name: '04. Acabados, Pisos y Enchapes',
-					previous_pct: 40,
-					new_pct: 60,
+					task_title: 'Emboquillado epóxico y sellado impermeable en zonas húmedas',
+					chapter_name: '03. Enchapes y Revestimientos Porcelánicos',
+					previous_pct: 0,
+					new_pct: 25,
 					notes: 'Mortero hidrófugo aplicado en zonas húmedas.'
 				}
 			],
@@ -372,21 +407,47 @@ export function getInitialDemoDailyLogs(): DailyLogEntry[] {
 			officials_count: 2,
 			helpers_count: 2,
 			total_workers: 4,
-			downtime_hours: 0,
-			downtime_reason: '',
-			notes: 'Se recibió material en obra: 25 bultos de yeso, 40 perfiles cal. 26 y 15 láminas Drywall RH. Se verificó inventario contra remisión de Sodimac Corona. Todo conforme.',
+			downtime_hours: 1,
+			downtime_reason: 'Incidente técnico interno en red secundaria',
+			notes: 'INCIDENTE TÉCNICO INTERNO: Se presentó rotura accidental de tubería de agua secundaria de 1/2 pulgada al perforar el muro divisorio de la cocina. Se cerró la válvula general en 2 minutos sin daños a acabados. Se reemplazó el tramo afectado con niple y unión rápida CPVC. Se acordó debate técnico con el subcontratista sobre trazado as-built. NOTA CONFIDENCIAL.',
+			visible_to_client: false, // HU-18: Nota Interna Confidencial
 			photos: [
 				{
 					id: 'p_004',
+					name: 'reparacion_acometida_cocina.jpg',
+					url: generateDailyPhotoSvg('Penthouse El Poblado', 'Reparación interna CPVC cocina', 'cloudy'),
+					caption: 'Unión rápida y prueba de estanqueidad interna.',
+					created_at: '2026-11-18T11:40:00Z'
+				}
+			],
+			author_name: 'Ing. Mateo Gómez',
+			author_role: 'Residente de Obra',
+			created_at: '2026-11-18T12:30:00Z'
+		},
+		{
+			id: 'log_004',
+			project_id: 'proj_andina_001',
+			date: '2026-11-17',
+			weather: 'sunny',
+			officials_count: 2,
+			helpers_count: 2,
+			total_workers: 4,
+			downtime_hours: 0,
+			downtime_reason: '',
+			notes: 'Se recibió material en obra: 25 bultos de yeso, 40 perfiles cal. 26 y 15 láminas Drywall RH. Se verificó inventario contra remisión de Sodimac Corona. Todo conforme y acopiado bajo techo.',
+			visible_to_client: true,
+			photos: [
+				{
+					id: 'p_005',
 					name: 'recepcion_material_acopio.jpg',
-					url: generateDailyPhotoSvg('Penthouse El Poblado', 'Acopio de láminas RH y perfiles', 'cloudy'),
+					url: generateDailyPhotoSvg('Penthouse El Poblado', 'Acopio de láminas RH y perfiles', 'sunny'),
 					caption: 'Material estibado bajo cubierta.',
-					created_at: '2026-11-18T14:10:00Z'
+					created_at: '2026-11-17T14:10:00Z'
 				}
 			],
 			author_name: 'Maestro Pedro Flórez',
 			author_role: 'Maestro Supervisor',
-			created_at: '2026-11-18T16:50:00Z'
+			created_at: '2026-11-17T16:50:00Z'
 		}
 	];
 }

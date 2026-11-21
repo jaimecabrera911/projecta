@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {
 	getActiveProjectId,
 	setActiveProjectId,
+	clearActiveProjectId,
 	getActiveProject,
 	getAvailableProjects,
 	DEFAULT_PROJECT_ID,
@@ -83,5 +84,11 @@ const fallbackResult = setActiveProjectId(invalidId);
 assert.equal(fallbackResult, DEFAULT_PROJECT_ID, 'Debe hacer fallback a la obra por defecto');
 assert.equal(getActiveProjectId(), DEFAULT_PROJECT_ID, 'Debe mantenerse en la obra por defecto');
 console.log('✓ Test 5 superado: Fallback seguro ante proyecto no reconocido.');
+
+// Test 6: Limpiar obra fijada
+clearActiveProjectId();
+assert.equal(mockStorage[STORAGE_KEY_ACTIVE_PROJECT], undefined, 'Debe eliminar la clave de obra fijada');
+assert.equal(getActiveProjectId(), DEFAULT_PROJECT_ID, 'Sin obra fijada, debe retornar fallback por defecto');
+console.log('✓ Test 6 superado: Limpiar obra fijada.');
 
 console.log('Todos los tests de Obra Fijada pasaron exitosamente.');

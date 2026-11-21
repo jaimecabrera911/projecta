@@ -1,6 +1,7 @@
 ---
 // src/components/costing/JobCostingMatrix.astro
 // HU-13: Matriz Financiera por Capítulos con Drill-down interactivo a Recibos de Campo.
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <section id="job-costing-matrix" class="costing-matrix-card" aria-label="Matriz comparativa de costos por capítulos">
@@ -8,14 +9,7 @@
 	<div class="matrix-toolbar" id="matrix-toolbar">
 		<div class="matrix-title-wrap">
 			<div class="matrix-heading-icon" aria-hidden="true">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-					<line x1="8" y1="6" x2="21" y2="6"></line>
-					<line x1="8" y1="12" x2="21" y2="12"></line>
-					<line x1="8" y1="18" x2="21" y2="18"></line>
-					<line x1="3" y1="6" x2="3.01" y2="6"></line>
-					<line x1="3" y1="12" x2="3.01" y2="12"></line>
-					<line x1="3" y1="18" x2="3.01" y2="18"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('list', { size: 20 })} />
 			</div>
 			<div>
 				<h2 class="matrix-title">Desglose por Capítulos de Obra</h2>
@@ -26,10 +20,7 @@
 		<!-- Filtros de Estado & Búsqueda -->
 		<div class="matrix-controls-group">
 			<div class="matrix-search-box">
-				<svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<circle cx="11" cy="11" r="8"></circle>
-					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-				</svg>
+				<span class="search-icon"><Fragment set:html={renderIconSvg('search', { size: 16 })} /></span>
 				<input
 					id="matrix-search-input"
 					type="search"
@@ -74,10 +65,7 @@
 	<!-- Estado vacío si el filtro no arroja resultados -->
 	<div id="matrix-empty-state" class="matrix-empty hidden">
 		<div class="empty-icon" aria-hidden="true">
-			<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-				<circle cx="11" cy="11" r="8"></circle>
-				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-			</svg>
+			<Fragment set:html={renderIconSvg('search', { size: 40 })} />
 		</div>
 		<p class="empty-text">No se encontraron capítulos con el filtro seleccionado</p>
 		<button id="btn-matrix-clear-filter" type="button" class="btn-clear-filter">Ver todos los capítulos</button>

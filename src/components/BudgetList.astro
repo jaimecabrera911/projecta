@@ -2,6 +2,7 @@
 // src/components/BudgetList.astro
 // HU-06: Listado de presupuestos y creación de un borrador nuevo.
 import Icon from './Icon';
+import { renderIconSvg } from '../lib/icons';
 ---
 
 <section id="budget-list" class="budget-list" aria-label="Listado de presupuestos">
@@ -41,10 +42,7 @@ import Icon from './Icon';
 			</div>
 
 			<button id="btn-new-budget" type="button" class="btn-new-budget">
-				<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<line x1="12" y1="5" x2="12" y2="19"></line>
-					<line x1="5" y1="12" x2="19" y2="12"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('plus', { size: 17 })} />
 				<span>Nuevo Presupuesto</span>
 			</button>
 		</div>
@@ -57,10 +55,7 @@ import Icon from './Icon';
 				<p class="create-panel-hint">Empieza en borrador. Podrás añadir capítulos y partidas en el constructor.</p>
 			</div>
 			<button id="btn-close-create-budget" type="button" class="btn-close-create" aria-label="Cerrar formulario de nuevo presupuesto">
-				<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<line x1="18" y1="6" x2="6" y2="18"></line>
-					<line x1="6" y1="6" x2="18" y2="18"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('x', { size: 17 })} />
 			</button>
 		</div>
 
@@ -92,12 +87,7 @@ import Icon from './Icon';
 
 	<div id="budget-list-empty" class="list-empty hidden">
 		<div class="list-empty-icon" aria-hidden="true">
-			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-				<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-				<polyline points="14 2 14 8 20 8"></polyline>
-				<line x1="16" y1="13" x2="8" y2="13"></line>
-				<line x1="16" y1="17" x2="8" y2="17"></line>
-			</svg>
+			<Fragment set:html={renderIconSvg('fileText', { size: 32 })} />
 		</div>
 		<h2 class="list-empty-title">Todavía no hay presupuestos</h2>
 		<p class="list-empty-text">Crea el primero y estructura la propuesta por capítulos para no perder ningún costo.</p>
@@ -116,10 +106,7 @@ import Icon from './Icon';
 					<p class="dup-subtitle">Crea una copia editable y asígnala a un cliente.</p>
 				</div>
 				<button id="dup-close" type="button" class="dup-close" aria-label="Cerrar modal de duplicación">
-					<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-						<line x1="18" y1="6" x2="6" y2="18"></line>
-						<line x1="6" y1="6" x2="18" y2="18"></line>
-					</svg>
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
 				</button>
 			</div>
 
@@ -1053,6 +1040,8 @@ import Icon from './Icon';
 </style>
 
 <script>
+	import { renderIconSvg } from '../lib/icons';
+	
 	import { calcTax, calcTotals, formatMoney } from '../lib/budget-math';
 	import { createBudget, deleteBudget, duplicateBudget, loadBudgets, persistBudget, type Budget } from '../lib/budget-store';
 
@@ -1204,19 +1193,13 @@ import Icon from './Icon';
 
 				const duplicateButton = `
 					<button type="button" class="card-icon-btn" data-action="duplicate-budget" title="Duplicar como plantilla" aria-label="Duplicar presupuesto ${safeTitle}">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-						</svg>
+						${renderIconSvg("copy", { size: 16 })}
 					</button>
 				`;
 
 				const deleteButton = `
 					<button type="button" class="card-icon-btn card-icon-btn-danger" data-action="delete-budget" title="Eliminar presupuesto" aria-label="Eliminar presupuesto ${safeTitle}">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<polyline points="3 6 5 6 21 6"></polyline>
-							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						</svg>
+						${renderIconSvg("trash", { size: 16 })}
 					</button>
 				`;
 

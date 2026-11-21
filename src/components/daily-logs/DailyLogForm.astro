@@ -1,7 +1,7 @@
 ---
 // src/components/daily-logs/DailyLogForm.astro
 // HU-17: Formulario Táctil de Registro Diario de Obra (Clima en 1 Toque, Steppers de Personal y Compresión de Fotos).
-import { renderIconSvg } from '../../lib/icons.ts';
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="daily-log-form-card" class="log-form-card" aria-label="Formulario de reporte diario de obra">
@@ -9,13 +9,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 	<div class="form-header">
 		<div class="form-header-left">
 			<div class="form-icon-emblem">
-				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-					<polyline points="14 2 14 8 20 8"></polyline>
-					<line x1="16" y1="13" x2="8" y2="13"></line>
-					<line x1="16" y1="17" x2="8" y2="17"></line>
-					<polyline points="10 9 9 9 8 9"></polyline>
-				</svg>
+				<Fragment set:html={renderIconSvg('fileText', { size: 22 })} />
 			</div>
 			<div>
 				<h3 class="form-heading">Publicar Bitácora del Día</h3>
@@ -29,9 +23,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 			class="btn-demo-fill"
 			title="Rellenar formulario con datos de prueba realistas para pruebas rápidas"
 		>
-			<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-				<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-			</svg>
+			<Fragment set:html={renderIconSvg('sun', { size: 15 })} />
 			<span>Auto-Llenar Demo</span>
 		</button>
 	</div>
@@ -102,12 +94,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 			<div class="workers-steppers-card">
 				<div class="steppers-header">
 					<div class="steppers-title-left">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-							<circle cx="9" cy="7" r="4"></circle>
-							<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-							<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('users', { size: 18 })} />
 						<span class="steppers-title">Personal en Obra (Operate Mode):</span>
 					</div>
 
@@ -179,10 +166,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 			<div class="downtime-card">
 				<div class="downtime-header-row">
 					<div class="downtime-title-left">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<circle cx="12" cy="12" r="10"></circle>
-							<polyline points="12 6 12 12 8 14"></polyline>
-						</svg>
+						<Fragment set:html={renderIconSvg('clock', { size: 18 })} />
 						<span class="downtime-title">Horas de Suspensión por Clima / Fuerza Mayor</span>
 					</div>
 					<div class="downtime-hours-pill" id="downtime-hours-pill-display">
@@ -311,10 +295,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						class="btn-photo-trigger"
 						title="Tomar o seleccionar fotos con la cámara"
 					>
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-							<circle cx="12" cy="13" r="4"></circle>
-						</svg>
+						<Fragment set:html={renderIconSvg('camera', { size: 20 })} />
 						<span>Añadir Fotos de Hoy</span>
 					</button>
 
@@ -324,15 +305,94 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						class="btn-photo-demo"
 						title="Generar una foto técnica con sello de agua para prueba rápida"
 					>
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<polyline points="20 6 9 17 4 12"></polyline>
-						</svg>
+						<Fragment set:html={renderIconSvg('check', { size: 16 })} />
 						<span>Foto Demo Sello Obra</span>
 					</button>
 				</div>
 
 				<!-- Carrusel horizontal de fotos previsualizadas antes de publicar -->
 				<div id="photos-preview-strip" class="photos-preview-strip hidden"></div>
+			</div>
+		</div>
+
+		<!-- 4.5. Selector de Privacidad y Visibilidad con el Cliente (HU-18) -->
+		<div class="form-section">
+			<div class="privacy-selector-card" id="privacy-selector-card">
+				<div class="privacy-card-header">
+					<div class="privacy-title-box">
+						<span class="privacy-header-icon" set:html={renderIconSvg('lock', { size: 18 })}></span>
+						<div>
+							<span class="privacy-card-title">Privacidad y Destino de la Publicación (HU-18)</span>
+							<p class="privacy-card-subtitle">Define si este reporte técnico es compartido con el propietario en su portal o reservado para el equipo interno.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="privacy-options-grid" role="radiogroup" aria-label="Nivel de privacidad del reporte">
+					<!-- Opción 1: Visible para el Cliente (Default) -->
+					<button
+						id="btn-privacy-client"
+						type="button"
+						role="radio"
+						aria-checked="true"
+						class="privacy-choice-btn active client"
+						data-privacy="client"
+					>
+						<div class="choice-radio-indicator">
+							<span class="indicator-check" set:html={renderIconSvg('check', { size: 14 })}></span>
+						</div>
+						<div class="choice-content">
+							<div class="choice-title-line">
+								<span class="choice-icon" set:html={renderIconSvg('eye', { size: 18 })}></span>
+								<strong class="choice-title">Visible para el Cliente en su Portal</strong>
+								<span class="choice-pill-recommended">Recomendado para avances</span>
+							</div>
+							<p class="choice-desc">El cliente podrá consultar las fotos, notas de avance estético y progreso del día desde su enlace seguro.</p>
+						</div>
+					</button>
+
+					<!-- Opción 2: Solo Uso Interno (Confidencial) -->
+					<button
+						id="btn-privacy-internal"
+						type="button"
+						role="radio"
+						aria-checked="false"
+						class="privacy-choice-btn internal"
+						data-privacy="internal"
+					>
+						<div class="choice-radio-indicator">
+							<span class="indicator-check" set:html={renderIconSvg('check', { size: 14 })}></span>
+						</div>
+						<div class="choice-content">
+							<div class="choice-title-line">
+								<span class="choice-icon" set:html={renderIconSvg('lock', { size: 18 })}></span>
+								<strong class="choice-title">Solo Uso Interno del Equipo de Obra</strong>
+								<span class="choice-pill-confidential">Confidencial</span>
+							</div>
+							<p class="choice-desc">Oculto del portal del cliente. Ideal para registrar incidentes técnicos, atrasos de cuadrilla o discusiones con proveedores.</p>
+						</div>
+					</button>
+				</div>
+
+				<!-- Banner preventivo de detección inteligente de incidentes (Error Prevention) -->
+				<div id="incident-privacy-warning" class="incident-alert-banner hidden" role="alert">
+					<div class="alert-icon-wrap" set:html={renderIconSvg('alert', { size: 18 })}></div>
+					<div class="alert-text-col">
+						<strong class="alert-strong">Sugerencia de Confidencialidad Preventiva:</strong>
+						<span id="incident-privacy-warning-text" class="alert-span">Hemos detectado términos de posibles incidentes técnicos o retrasos en la nota. Te sugerimos mantener esta entrada como confidencial.</span>
+					</div>
+					<button
+						id="btn-switch-to-confidential"
+						type="button"
+						class="btn-switch-confidential-touch"
+					>
+						<span style="display: flex; align-items: center;" set:html={renderIconSvg('lock', { size: 14 })}></span>
+						<span>Cambiar a Solo Interno</span>
+					</button>
+				</div>
+
+				<!-- Campo oculto con valor para el formulario -->
+				<input type="hidden" id="log-visible-to-client" name="visible_to_client" value="true" />
 			</div>
 		</div>
 
@@ -348,10 +408,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 				type="submit"
 				class="btn-publish-log"
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<line x1="22" y1="2" x2="11" y2="13"></line>
-					<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-				</svg>
+				<Fragment set:html={renderIconSvg('send', { size: 18 })} />
 				<span>Publicar Bitácora del Día</span>
 			</button>
 		</div>
@@ -865,6 +922,16 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		border-radius: 9999px;
 	}
 
+	:global(.sync-chapter-title-box),
+	:global(.sync-chapter-chevron),
+	:global(.sync-chapter-folder-icon),
+	:global(.sync-chapter-title),
+	:global(.sync-chapter-header-right),
+	:global(.sync-chapter-count-pill),
+	:global(.sync-chapter-selected-badge) {
+		pointer-events: none;
+	}
+
 	:global(.sync-chapter-tasks-list) {
 		padding: 0.75rem;
 		display: flex;
@@ -873,8 +940,13 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		overflow: visible;
 	}
 
-	:global(.sync-chapter-tasks-list.collapsed) {
+	:global(.sync-chapter-tasks-list.collapsed),
+	:global(.sync-chapter-group.is-collapsed .sync-chapter-tasks-list) {
 		display: none !important;
+	}
+
+	:global(.sync-chapter-group.is-expanded .sync-chapter-tasks-list) {
+		display: flex !important;
 	}
 
 	:global(.task-sync-item-card) {
@@ -1348,6 +1420,250 @@ import { renderIconSvg } from '../../lib/icons.ts';
 		background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
 		transform: translateY(-1px);
 		box-shadow: 0 4px 10px rgba(249, 115, 22, 0.45);
+	}
+
+	/* 4.5. Selector de Privacidad HU-18 */
+	.privacy-selector-card {
+		background-color: #FFFFFF;
+		border: 1.5px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1.125rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		transition: all 0.15s ease;
+	}
+
+	.privacy-card-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.privacy-title-box {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+	}
+
+	.privacy-header-icon {
+		width: 32px;
+		height: 32px;
+		border-radius: 0.5rem;
+		background-color: #F1F5F9;
+		color: #475569;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.privacy-card-title {
+		font-size: 0.9375rem;
+		font-weight: 800;
+		color: #0F172A;
+		display: block;
+	}
+
+	.privacy-card-subtitle {
+		font-size: 0.75rem;
+		color: #64748B;
+		margin: 0.15rem 0 0 0;
+	}
+
+	.privacy-options-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	.privacy-choice-btn {
+		min-height: 56px;
+		padding: 0.875rem 1rem;
+		background-color: #F8FAFC;
+		border: 2px solid #E2E8F0;
+		border-radius: 0.75rem;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		text-align: left;
+		cursor: pointer;
+		user-select: none;
+		transition: all 0.15s ease;
+	}
+
+	.privacy-choice-btn:hover {
+		background-color: #FFFFFF;
+		border-color: #CBD5E1;
+	}
+
+	.privacy-choice-btn.active.client {
+		background-color: #ECFDF5;
+		border-color: #10B981;
+		box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+	}
+
+	.privacy-choice-btn.active.internal {
+		background-color: #FFFDF5;
+		border-color: #F59E0B;
+		box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12);
+	}
+
+	.choice-radio-indicator {
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		border: 2px solid #CBD5E1;
+		background-color: #FFFFFF;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		margin-top: 2px;
+		transition: all 0.15s ease;
+	}
+
+	.privacy-choice-btn.active.client .choice-radio-indicator {
+		border-color: #10B981;
+		background-color: #10B981;
+		color: #FFFFFF;
+	}
+
+	.privacy-choice-btn.active.internal .choice-radio-indicator {
+		border-color: #F59E0B;
+		background-color: #F59E0B;
+		color: #FFFFFF;
+	}
+
+	.indicator-check {
+		display: none;
+	}
+
+	.privacy-choice-btn.active .indicator-check {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.choice-content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.choice-title-line {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+
+	.choice-icon {
+		display: flex;
+		align-items: center;
+		color: #475569;
+		flex-shrink: 0;
+	}
+
+	.privacy-choice-btn.active.client .choice-icon {
+		color: #059669;
+	}
+
+	.privacy-choice-btn.active.internal .choice-icon {
+		color: #D97706;
+	}
+
+	.choice-title {
+		font-size: 0.875rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.choice-pill-recommended {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		background-color: #D1FAE5;
+		color: #065F46;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+	}
+
+	.choice-pill-confidential {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		background-color: #FEF3C7;
+		color: #92400E;
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+	}
+
+	.choice-desc {
+		font-size: 0.75rem;
+		color: #64748B;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	/* Banner Preventivo de Incidentes */
+	.incident-alert-banner {
+		background-color: #FFFBEB;
+		border: 1.5px solid #FDE68A;
+		border-radius: 0.625rem;
+		padding: 0.75rem 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.alert-icon-wrap {
+		color: #D97706;
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
+	.alert-text-col {
+		font-size: 0.8125rem;
+		color: #92400E;
+		line-height: 1.35;
+		flex: 1;
+	}
+
+	.alert-strong {
+		display: block;
+		font-weight: 800;
+		margin-bottom: 0.15rem;
+	}
+
+	.alert-span {
+		font-size: 0.75rem;
+		color: #B45309;
+	}
+
+	.btn-switch-confidential-touch {
+		min-height: 44px;
+		padding: 0 0.85rem;
+		background-color: #F59E0B;
+		color: #FFFFFF;
+		border: none;
+		border-radius: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 800;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		cursor: pointer;
+		white-space: nowrap;
+		flex-shrink: 0;
+		box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+		transition: all 0.15s ease;
+	}
+
+	.btn-switch-confidential-touch:hover {
+		background-color: #D97706;
 	}
 
 	.hidden {

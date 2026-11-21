@@ -19,9 +19,7 @@ import { renderIconSvg } from '../lib/icons';
 			<span id="role-user-name" class="role-user-name">Carlos Mendoza</span>
 			<div class="role-badge-row">
 				<span id="role-badge-pill" class="role-badge-pill">Admin</span>
-				<svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<polyline points="6 9 12 15 18 9"></polyline>
-				</svg>
+				<Fragment set:html={renderIconSvg('chevronDown', { size: 12 })} />
 			</div>
 		</div>
 	</button>
@@ -123,10 +121,7 @@ import { renderIconSvg } from '../lib/icons';
 		<!-- Footer del Dropdown con Acceso Directo a HU-14 -->
 		<div class="dropdown-footer">
 			<a href="/expenses/quick" id="btn-quick-expense-nav" class="btn-quick-expense-link">
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-					<circle cx="12" cy="13" r="4"></circle>
-				</svg>
+				<Fragment set:html={renderIconSvg('camera', { size: 16 })} />
 				<span>Ir a Registro de Gastos en 3 Toques (HU-14)</span>
 			</a>
 		</div>

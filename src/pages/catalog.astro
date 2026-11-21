@@ -5,6 +5,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Icon from '../components/Icon';
 import Toast from '../components/Toast.astro';
+import { renderIconSvg } from '../lib/icons';
 ---
 
 <Layout title="Catálogo Maestro de Insumos — ObraFlow">
@@ -36,10 +37,7 @@ import Toast from '../components/Toast.astro';
 						title="Crear nuevo insumo en el catálogo (Alt+I)"
 						aria-label="Crear nuevo insumo"
 					>
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<line x1="12" y1="5" x2="12" y2="19"></line>
-							<line x1="5" y1="12" x2="19" y2="12"></line>
-						</svg>
+						<Fragment set:html={renderIconSvg('plus', { size: 18 })} />
 						<span>Nuevo Insumo</span>
 						<kbd class="kbd-chip">Alt+I</kbd>
 					</button>
@@ -50,10 +48,7 @@ import Toast from '../components/Toast.astro';
 			<div class="catalog-controls-card">
 				<!-- Search Bar with Instant Debounce Search (< 100ms) -->
 				<div class="search-input-shell">
-					<svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-						<circle cx="11" cy="11" r="8"></circle>
-						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-					</svg>
+					<span class="search-icon"><Fragment set:html={renderIconSvg('search', { size: 18 })} /></span>
 					<input
 						type="text"
 						id="catalog-search-input"
@@ -69,10 +64,7 @@ import Toast from '../components/Toast.astro';
 						title="Limpiar búsqueda"
 						aria-label="Limpiar campo de búsqueda"
 					>
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<line x1="18" y1="6" x2="6" y2="18"></line>
-							<line x1="6" y1="6" x2="18" y2="18"></line>
-						</svg>
+						<Fragment set:html={renderIconSvg('x', { size: 16 })} />
 					</button>
 				</div>
 
@@ -165,10 +157,7 @@ import Toast from '../components/Toast.astro';
 				<!-- Empty State 1: Catálogo completamente vacío -->
 				<div id="catalog-empty-state" class="empty-state-box hidden">
 					<div class="empty-icon-wrap">
-						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-							<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('fileText', { size: 40 })} />
 					</div>
 					<h2 class="empty-heading">Tu catálogo maestro está vacío</h2>
 					<p class="empty-description">
@@ -176,9 +165,7 @@ import Toast from '../components/Toast.astro';
 					</p>
 					<div class="empty-actions">
 						<button type="button" id="btn-load-seed-catalog" class="btn-primary-action">
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-								<polyline points="20 6 9 17 4 12"></polyline>
-							</svg>
+							<Fragment set:html={renderIconSvg('check', { size: 18 })} />
 							<span>Cargar Plantilla Sugerida (21 partidas)</span>
 						</button>
 						<button type="button" id="btn-empty-create-item" class="btn-secondary-action">
@@ -190,11 +177,7 @@ import Toast from '../components/Toast.astro';
 				<!-- Empty State 2: Sin resultados de búsqueda -->
 				<div id="catalog-search-empty" class="empty-state-box search-empty-box hidden">
 					<div class="empty-icon-wrap icon-amber">
-						<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<circle cx="11" cy="11" r="8"></circle>
-							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-							<line x1="8" y1="11" x2="14" y2="11"></line>
-						</svg>
+						<Fragment set:html={renderIconSvg('search', { size: 36 })} />
 					</div>
 					<h2 class="empty-heading">Sin insumos coincidentes</h2>
 					<p id="search-empty-text" class="empty-description">
@@ -217,10 +200,7 @@ import Toast from '../components/Toast.astro';
 			<div class="modal-header">
 				<div class="title-wrap">
 					<div class="header-icon icon-emerald">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<line x1="12" y1="5" x2="12" y2="19"></line>
-							<line x1="5" y1="12" x2="19" y2="12"></line>
-						</svg>
+						<Fragment set:html={renderIconSvg('plus', { size: 20 })} />
 					</div>
 					<div>
 						<h2 id="create-modal-title" class="title-text">Nuevo Insumo al Catálogo</h2>
@@ -228,10 +208,7 @@ import Toast from '../components/Toast.astro';
 					</div>
 				</div>
 				<button id="close-create-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<line x1="18" y1="6" x2="6" y2="18"></line>
-						<line x1="6" y1="6" x2="18" y2="18"></line>
-					</svg>
+					<Fragment set:html={renderIconSvg('x', { size: 20 })} />
 				</button>
 			</div>
 
@@ -361,10 +338,7 @@ import Toast from '../components/Toast.astro';
 			<div class="modal-header">
 				<div class="title-wrap">
 					<div class="header-icon icon-blue">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-							<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('pencil', { size: 20 })} />
 					</div>
 					<div>
 						<h2 id="edit-modal-title" class="title-text">Editar Insumo</h2>
@@ -372,10 +346,7 @@ import Toast from '../components/Toast.astro';
 					</div>
 				</div>
 				<button id="close-edit-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<line x1="18" y1="6" x2="6" y2="18"></line>
-						<line x1="6" y1="6" x2="18" y2="18"></line>
-					</svg>
+					<Fragment set:html={renderIconSvg('x', { size: 20 })} />
 				</button>
 			</div>
 
@@ -438,10 +409,7 @@ import Toast from '../components/Toast.astro';
 
 				<div class="modal-footer-actions space-between">
 					<button type="button" id="btn-trigger-delete-from-edit" class="btn-delete-link" title="Eliminar este insumo del catálogo">
-						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<polyline points="3 6 5 6 21 6"></polyline>
-							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('trash', { size: 15 })} />
 						<span>Eliminar</span>
 					</button>
 
@@ -467,10 +435,7 @@ import Toast from '../components/Toast.astro';
 			<div class="modal-header">
 				<div class="title-wrap">
 					<div class="header-icon icon-red">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<polyline points="3 6 5 6 21 6"></polyline>
-							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('trash', { size: 20 })} />
 					</div>
 					<div>
 						<h2 id="delete-item-modal-title" class="title-text">¿Eliminar insumo del catálogo?</h2>
@@ -478,10 +443,7 @@ import Toast from '../components/Toast.astro';
 					</div>
 				</div>
 				<button id="close-delete-modal-btn" type="button" class="btn-close" aria-label="Cerrar modal">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<line x1="18" y1="6" x2="6" y2="18"></line>
-						<line x1="6" y1="6" x2="18" y2="18"></line>
-					</svg>
+					<Fragment set:html={renderIconSvg('x', { size: 20 })} />
 				</button>
 			</div>
 
@@ -1702,6 +1664,8 @@ import Toast from '../components/Toast.astro';
 </style>
 
 <script>
+	import { renderIconSvg } from '../lib/icons';
+	
 	// Complete Client-Side State, Predictive Fuzzy Search, and Inline Quick Edit Engine (HU-05)
 	import { DEFAULT_CATALOG_ITEMS, loadCatalog, saveCatalog, type CatalogCategory, type CatalogItem } from '../lib/catalog';
 
@@ -2010,26 +1974,17 @@ import Toast from '../components/Toast.astro';
 				<td class="td-price" data-item-id="${item.id}">
 					<div class="price-display-box" data-action="inline-edit" data-id="${item.id}" title="Hacer clic para editar costo unitario">
 						<span class="price-amount">${formatCurrency(item.unit_cost)}</span>
-						<svg class="price-edit-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-							<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-						</svg>
+						${renderIconSvg("pencil", { size: 13, className: 'price-edit-icon' })}
 					</div>
 				</td>
 				<td class="td-supplier">${supplierDisplay}</td>
 				<td class="td-actions">
 					<div class="actions-btn-group">
 						<button type="button" class="btn-table-action btn-table-edit" data-action="edit" data-id="${item.id}" title="Editar partida completa" aria-label="Editar ${escapeHtml(item.name)}">
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-								<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-							</svg>
+							${renderIconSvg("pencil", { size: 15 })}
 						</button>
 						<button type="button" class="btn-table-action btn-table-delete" data-action="delete" data-id="${item.id}" title="Eliminar partida" aria-label="Eliminar ${escapeHtml(item.name)}">
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<polyline points="3 6 5 6 21 6"></polyline>
-								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-							</svg>
+							${renderIconSvg("trash", { size: 15 })}
 						</button>
 					</div>
 				</td>
@@ -2083,7 +2038,7 @@ import Toast from '../components/Toast.astro';
 				<h3 class="card-name-title">${escapeHtml(item.name)}</h3>
 				${notesSnippet}
 
-				${supplierText ? `<div class="card-supplier-meta"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>${supplierText}</div>` : ''}
+				${supplierText ? `<div class="card-supplier-meta">${renderIconSvg("package", { size: 12 })}${supplierText}</div>` : ''}
 
 				<div class="card-bottom-row">
 					<div class="card-mobile-price-box" data-action="mobile-inline-edit" data-id="${item.id}">
@@ -2093,17 +2048,11 @@ import Toast from '../components/Toast.astro';
 
 					<div class="card-actions-row">
 						<button type="button" class="btn-card-mobile-action" data-action="edit" data-id="${item.id}" aria-label="Editar ${escapeHtml(item.name)}">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-								<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-								<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-							</svg>
+							${renderIconSvg("pencil", { size: 14 })}
 							<span>Editar</span>
 						</button>
 						<button type="button" class="btn-card-mobile-action btn-del" data-action="delete" data-id="${item.id}" aria-label="Eliminar ${escapeHtml(item.name)}">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<polyline points="3 6 5 6 21 6"></polyline>
-								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-							</svg>
+							${renderIconSvg("trash", { size: 14 })}
 						</button>
 					</div>
 				</div>

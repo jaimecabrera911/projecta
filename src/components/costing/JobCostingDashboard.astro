@@ -21,14 +21,13 @@ const { initialProjectId } = Astro.props;
 	<JobCostingHeader />
 
 	<div class="costing-content-body">
-		<!-- Semáforo Financiero Global y KPIs Clave -->
-		<JobCostingSummaryCards />
-
-		<!-- Matriz de Costos por Capítulos y Recibos -->
-		<JobCostingMatrix />
-
-		<!-- HU-15: Órdenes de Cambio y Adicionales Formalizados -->
-		<ChangeOrdersSection />
+		<div id="costing-no-project" class="costing-no-project hidden">
+			<p class="costing-no-project-title">No hay obra fijada</p>
+			<p class="costing-no-project-sub">Fija una obra desde el header o selecciónala aquí para ver su control de costos.</p>
+		</div>
+		<div id="costing-summary-cards"><JobCostingSummaryCards /></div>
+		<div id="costing-matrix"><JobCostingMatrix /></div>
+		<ChangeOrdersSection initialProjectId={initialProjectId} />
 	</div>
 
 	<!-- Modal de Inspección de Recibos de Campo en HD -->
@@ -50,10 +49,11 @@ const { initialProjectId } = Astro.props;
 		box-sizing: border-box;
 	}
 
-	.costing-content-body {
-		display: flex;
-		flex-direction: column;
-	}
+	.costing-content-body { display: flex; flex-direction: column; }
+	.costing-no-project { padding: 2rem; border: 1px dashed #CBD5E1; border-radius: 0.75rem; background: #F8FAFC; text-align: center; margin-bottom: 1rem; }
+	.costing-no-project-title { margin: 0 0 0.35rem; font-size: 1rem; font-weight: 700; color: #0F172A; }
+	.costing-no-project-sub { margin: 0; font-size: 0.875rem; color: #475569; }
+	.hidden { display: none !important; }
 
 	/* Estilos de Impresión / Exportar PDF */
 	@media print {
@@ -91,10 +91,7 @@ const { initialProjectId } = Astro.props;
 		type CostingChapter,
 		type ExpenseRecord
 	} from '../../lib/costing-store';
-	import {
-		getActiveProjectId,
-		setActiveProjectId
-	} from '../../lib/active-project-store';
+	import { clearActiveProjectId, getPinnedProjectId, setActiveProjectId } from '../../lib/active-project-store';
 	import { renderIconSvg } from '../../lib/icons';
 
 	// Formateador de moneda en pesos colombianos con Currency Integrity Rule
@@ -115,27 +112,17 @@ const { initialProjectId } = Astro.props;
 	function initDashboard() {
 		const container = document.getElementById('job-costing-dashboard');
 		if (!container) return;
-
-		// 1. Determinar ID de Proyecto inicial
-		const urlParams = new URLSearchParams(window.location.search);
-		const urlProjectId = urlParams.get('id') || container.getAttribute('data-initial-project') || getActiveProjectId();
-
+		const urlProjectId = new URLSearchParams(window.location.search).get('id') || container.getAttribute('data-initial-project');
 		const allProjects = loadAllProjects();
 		if (allProjects.length === 0) return;
-
-		const targetProject = urlProjectId
-			? allProjects.find((p) => p.project_id === urlProjectId) || allProjects[0]
-			: allProjects[0];
-
-		currentProject = targetProject;
-
-		// Expandir por defecto el capítulo con sobrecosto o alerta para visibilidad inmediata
-		const alertChapter = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
-		if (alertChapter) {
-			expandedChapters.add(alertChapter.chapter_id);
+		const pinnedId = getPinnedProjectId();
+		const targetProject = urlProjectId ? allProjects.find((p) => p.project_id === urlProjectId) : (pinnedId ? allProjects.find((p) => p.project_id === pinnedId) : null);
+		currentProject = targetProject || null;
+		if (currentProject) {
+			const alertChapter = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
+			if (alertChapter) expandedChapters.add(alertChapter.chapter_id);
 		}
-
-		populateProjectSelector(allProjects, currentProject.project_id);
+		populateProjectSelector(allProjects, currentProject?.project_id ?? '');
 		renderAll();
 		setupEventListeners();
 	}
@@ -144,7 +131,7 @@ const { initialProjectId } = Astro.props;
 		const selector = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
 		if (!selector) return;
 
-		selector.innerHTML = '';
+		selector.innerHTML = '<option value="">Sin obra fijada — selecciona una obra</option>';
 		projects.forEach((proj) => {
 			const opt = document.createElement('option');
 			opt.value = proj.project_id;
@@ -155,12 +142,28 @@ const { initialProjectId } = Astro.props;
 	}
 
 	function renderAll() {
-		if (!currentProject) return;
+		const noProject = document.getElementById('costing-no-project');
+		const summary = document.getElementById('costing-summary-cards');
+		const matrix = document.getElementById('costing-matrix');
+		const coSection = document.getElementById('costing-change-orders-section');
+		if (!currentProject) {
+			noProject?.classList.remove('hidden');
+			summary?.classList.add('hidden');
+			matrix?.classList.add('hidden');
+			coSection?.classList.add('hidden');
+			window.dispatchEvent(new CustomEvent('costing:project-changed', { detail: { projectId: null } }));
+			return;
+		}
+		noProject?.classList.add('hidden');
+		summary?.classList.remove('hidden');
+		matrix?.classList.remove('hidden');
+		coSection?.classList.remove('hidden');
 
 		renderHeader(currentProject);
 		renderSummaryCards(currentProject);
 		renderMatrix(currentProject);
 		populateModalChapterSelect(currentProject);
+		window.dispatchEvent(new CustomEvent('costing:project-changed', { detail: { projectId: currentProject.project_id } }));
 	}
 
 	function renderHeader(project: ProjectCosting) {
@@ -349,7 +352,7 @@ const { initialProjectId } = Astro.props;
 				<tr class="costing-row ${isExpanded ? 'is-expanded' : ''}" data-chapter-id="${chapter.chapter_id}">
 					<td class="costing-cell costing-cell-center th-expand">
 						<button type="button" class="btn-row-expand ${isExpanded ? 'rotated' : ''}" aria-label="Expandir capítulo" data-toggle-chapter="${chapter.chapter_id}">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+							${renderIconSvg("chevronRight", { size: 16 })}
 						</button>
 					</td>
 					<td class="costing-cell">
@@ -371,7 +374,7 @@ const { initialProjectId } = Astro.props;
 					<td class="costing-cell costing-cell-center">${statusPillHtml}</td>
 					<td class="costing-cell costing-cell-center">
 						<button type="button" class="btn-add-expense-inline" data-add-to-chapter="${chapter.chapter_id}" title="Registrar compra en este capítulo">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							${renderIconSvg("plus", { size: 14 })}
 							<span>+ Gasto</span>
 						</button>
 					</td>
@@ -385,11 +388,11 @@ const { initialProjectId } = Astro.props;
 						<td colspan="10" class="drilldown-container">
 							<div class="drilldown-header">
 								<div class="drilldown-title">
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+									${renderIconSvg("fileText", { size: 16 })}
 									<span>Auditoría de Recibos y Compras en Campo — ${escapeHtml(chapter.name)}</span>
 								</div>
 								<button type="button" class="btn-add-expense-inline" data-add-to-chapter="${chapter.chapter_id}">
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+									${renderIconSvg("plus", { size: 14 })}
 									<span>Registrar Factura</span>
 								</button>
 							</div>
@@ -467,30 +470,18 @@ const { initialProjectId } = Astro.props;
 		const projectSelector = document.getElementById('costing-project-selector') as HTMLSelectElement | null;
 		projectSelector?.addEventListener('change', (e) => {
 			const selectedId = (e.target as HTMLSelectElement).value;
+			if (!selectedId) { clearActiveProjectId(); currentProject = null; renderAll(); return; }
 			setActiveProjectId(selectedId);
 			const p = getProjectById(selectedId);
-			if (p) {
-				currentProject = p;
-				expandedChapters.clear();
-				const alertCh = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
-				if (alertCh) expandedChapters.add(alertCh.chapter_id);
-				renderAll();
-			}
+			if (p) { currentProject = p; expandedChapters.clear(); const alertCh = p.chapters.find((c) => c.status === 'danger' || c.status === 'warning'); if (alertCh) expandedChapters.add(alertCh.chapter_id); renderAll(); }
 		});
 
-		// Escuchar cambios de obra fijada desde el Header
 		window.addEventListener('obraflow:project-changed', (e: any) => {
-			const newId = e.detail?.projectId;
-			if (newId && currentProject?.project_id !== newId) {
+			const newId = e.detail?.projectId ?? null;
+			if (!newId) { currentProject = null; if (projectSelector) projectSelector.value = ''; renderAll(); return; }
+			if (currentProject?.project_id !== newId) {
 				const p = getProjectById(newId);
-				if (p) {
-					currentProject = p;
-					if (projectSelector) projectSelector.value = newId;
-					expandedChapters.clear();
-					const alertCh = currentProject.chapters.find((c) => c.status === 'danger' || c.status === 'warning');
-					if (alertCh) expandedChapters.add(alertCh.chapter_id);
-					renderAll();
-				}
+				if (p) { currentProject = p; if (projectSelector) projectSelector.value = newId; expandedChapters.clear(); const alertCh = p.chapters.find((c) => c.status === 'danger' || c.status === 'warning'); if (alertCh) expandedChapters.add(alertCh.chapter_id); renderAll(); }
 			}
 		});
 

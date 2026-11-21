@@ -62,7 +62,7 @@ export interface ProjectScheduleMetrics {
 	chapter_progress: ChapterProgress[];
 }
 
-export const STORAGE_KEY_SCHEDULE_TASKS = 'obraflow_schedule_tasks_v2';
+export const STORAGE_KEY_SCHEDULE_TASKS = 'obraflow_schedule_tasks_v3';
 
 /**
  * Retorna la fecha de hoy en formato YYYY-MM-DD.

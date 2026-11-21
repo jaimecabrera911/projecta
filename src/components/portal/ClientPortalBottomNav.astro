@@ -1,0 +1,165 @@
+---
+// src/components/portal/ClientPortalBottomNav.astro
+// HU-19: Barra de Navegación Móvil Inferior Fija (Thumb Zone, 3 Pestañas, Operate Mode).
+import { renderIconSvg } from '../../lib/icons.ts';
+---
+
+<nav id="client-portal-bottom-nav" class="portal-bottom-nav" aria-label="Navegación principal del portal del cliente">
+	<div class="bottom-nav-inner" role="tablist">
+		<!-- Pestaña 1: Finanzas y Saldo -->
+		<button
+			id="btn-nav-finances"
+			type="button"
+			role="tab"
+			aria-selected="true"
+			aria-controls="tab-finances-panel"
+			class="nav-tab-btn active"
+			data-tab="finances"
+		>
+			<div class="nav-icon-wrap" set:html={renderIconSvg('creditCard', { size: 20 })}></div>
+			<span class="nav-label">Finanzas</span>
+			<span class="active-indicator" aria-hidden="true"></span>
+		</button>
+
+		<!-- Pestaña 2: Documentos y Órdenes de Cambio -->
+		<button
+			id="btn-nav-documents"
+			type="button"
+			role="tab"
+			aria-selected="false"
+			aria-controls="tab-documents-panel"
+			class="nav-tab-btn"
+			data-tab="documents"
+		>
+			<div class="nav-icon-wrap" set:html={renderIconSvg('fileText', { size: 20 })}></div>
+			<span class="nav-label">Documentos</span>
+			<span id="nav-pending-dot" class="pending-notification-dot hidden" aria-label="Firma pendiente" title="Tienes un documento pendiente de firma"></span>
+			<span class="active-indicator" aria-hidden="true"></span>
+		</button>
+
+		<!-- Pestaña 3: Avance y Fotos de Obra -->
+		<button
+			id="btn-nav-progress"
+			type="button"
+			role="tab"
+			aria-selected="false"
+			aria-controls="tab-progress-panel"
+			class="nav-tab-btn"
+			data-tab="progress"
+		>
+			<div class="nav-icon-wrap" set:html={renderIconSvg('camera', { size: 20 })}></div>
+			<span class="nav-label">Avance</span>
+			<span class="active-indicator" aria-hidden="true"></span>
+		</button>
+	</div>
+</nav>
+
+<style>
+	.portal-bottom-nav {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: #0F172A;
+		border-top: 1.5px solid #1E293B;
+		z-index: 500;
+		box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.2);
+		padding: 0.25rem 0.5rem calc(0.25rem + env(safe-area-inset-bottom, 0px));
+	}
+
+	.bottom-nav-inner {
+		max-width: 600px;
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+	}
+
+	.nav-tab-btn {
+		min-height: 52px;
+		height: 52px;
+		background: transparent;
+		border: none;
+		border-radius: 0.625rem;
+		color: #94A3B8;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.2rem;
+		cursor: pointer;
+		position: relative;
+		user-select: none;
+		transition: all 0.15s ease;
+		padding: 0.25rem;
+	}
+
+	.nav-tab-btn:hover {
+		color: #CBD5E1;
+		background-color: rgba(255, 255, 255, 0.05);
+	}
+
+	.nav-tab-btn.active {
+		color: #F97316;
+		background-color: rgba(249, 115, 22, 0.08);
+	}
+
+	.nav-icon-wrap {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
+		transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.nav-tab-btn.active .nav-icon-wrap {
+		transform: translateY(-1px) scale(1.08);
+	}
+
+	.nav-label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+
+	.active-indicator {
+		position: absolute;
+		top: 2px;
+		width: 24px;
+		height: 3px;
+		background-color: transparent;
+		border-radius: 9999px;
+		transition: background-color 0.2s ease;
+	}
+
+	.nav-tab-btn.active .active-indicator {
+		background-color: #F97316;
+	}
+
+	.pending-notification-dot {
+		position: absolute;
+		top: 6px;
+		right: calc(50% - 14px);
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: #EF4444;
+		border: 1.5px solid #0F172A;
+		animation: pulse-dot 1.8s infinite;
+	}
+
+	.pending-notification-dot.hidden {
+		display: none !important;
+	}
+
+	@keyframes pulse-dot {
+		0%, 100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		50% {
+			transform: scale(1.3);
+			opacity: 0.8;
+		}
+	}
+</style>

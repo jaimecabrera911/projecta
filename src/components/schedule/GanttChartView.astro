@@ -1,7 +1,7 @@
 ---
 // src/components/schedule/GanttChartView.astro
 // HU-16: Vista de Diagrama de Gantt interactivo con Frappe Gantt (Drag & Drop, Duración, Avance y Detalle).
-import { renderIconSvg } from '../../lib/icons.ts';
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="schedule-gantt-view" class="gantt-view-container hidden" aria-label="Diagrama de Gantt interactivo de obra">
@@ -50,9 +50,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						<option value="all">Todos los Capítulos</option>
 					</select>
 					<div class="select-chevron-mini" aria-hidden="true">
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<polyline points="6 9 12 15 18 9"></polyline>
-						</svg>
+						<Fragment set:html={renderIconSvg('chevronDown', { size: 14 })} />
 					</div>
 				</div>
 			</div>
@@ -65,9 +63,7 @@ import { renderIconSvg } from '../../lib/icons.ts';
 						<option value="all">Todos los Responsables</option>
 					</select>
 					<div class="select-chevron-mini" aria-hidden="true">
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-							<polyline points="6 9 12 15 18 9"></polyline>
-						</svg>
+						<Fragment set:html={renderIconSvg('chevronDown', { size: 14 })} />
 					</div>
 				</div>
 			</div>

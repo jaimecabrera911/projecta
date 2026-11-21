@@ -2,24 +2,19 @@
 // src/pages/proposals/view.astro
 // HU-09: Vista previa WYSIWYG + PDF comercial al cliente (sin costos internos ni márgenes).
 import Layout from '../../layouts/Layout.astro';
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <Layout title="Propuesta Comercial — ObraFlow" hasSidebar={false}>
 	<div class="proposal-shell">
 		<div class="ps-toolbar" id="ps-toolbar">
 			<a id="ps-back" class="ps-btn ps-btn-ghost" href="/budgets">
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<polyline points="15 18 9 12 15 6"></polyline>
-				</svg>
+				<Fragment set:html={renderIconSvg('chevronLeft', { size: 16 })} />
 				<span>Volver</span>
 			</a>
 			<div class="ps-toolbar-title">Vista previa comercial</div>
 			<button id="ps-print" type="button" class="ps-btn ps-btn-primary">
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<polyline points="6 9 6 2 18 2 18 9"></polyline>
-					<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-					<rect x="6" y="14" width="12" height="8"></rect>
-				</svg>
+				<Fragment set:html={renderIconSvg('printer', { size: 16 })} />
 				<span>Descargar PDF comercial</span>
 			</button>
 		</div>
@@ -76,7 +71,7 @@ import Layout from '../../layouts/Layout.astro';
 
 			<div id="ps-sign-success" class="ps-sign-success hidden">
 				<div class="ps-success-icon" aria-hidden="true">
-					<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+					<Fragment set:html={renderIconSvg('check', { size: 28 })} />
 				</div>
 				<h3>Contrato firmado y aprobado</h3>
 				<p id="ps-success-meta" class="ps-success-meta"></p>
@@ -609,6 +604,8 @@ import Layout from '../../layouts/Layout.astro';
 </style>
 
 <script>
+	import { renderIconSvg } from '../../lib/icons';
+	
 	import { findBudget } from '../../lib/budget-store';
 	import { formatMoney } from '../../lib/budget-math';
 	import {
@@ -752,11 +749,7 @@ import Layout from '../../layouts/Layout.astro';
 			<header class="ps-header">
 				<div class="ps-brand">
 					<div class="ps-logo" aria-hidden="true">
-						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M2 20h20"></path>
-							<path d="m5 20 5-15h4l5 15"></path>
-							<path d="M9 13h6"></path>
-						</svg>
+						${renderIconSvg("building", { size: 22 })}
 					</div>
 					<div>
 						<p class="ps-company">${escapeHtml(PROPOSAL_COMPANY.name)}</p>

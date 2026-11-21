@@ -5,16 +5,107 @@ import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div id="daily-logs-feed-container" class="daily-feed-wrapper" aria-label="Muro de publicaciones de bitácora">
+	<!-- Barra de Filtros de Privacidad y Simulación (HU-18) -->
+	<div class="feed-privacy-toolbar" id="feed-privacy-toolbar">
+		<div class="privacy-filters-left">
+			<span class="toolbar-label">
+				<span style="display: flex; align-items: center;" set:html={renderIconSvg('filter', { size: 14 })}></span>
+				<span>Filtrar Muro:</span>
+			</span>
+			<div class="privacy-chips-group" role="tablist" aria-label="Filtro de privacidad de bitácoras">
+				<button
+					type="button"
+					role="tab"
+					aria-selected="true"
+					class="feed-filter-chip active"
+					id="filter-chip-all"
+					data-filter="all"
+				>
+					<span>Todas</span>
+					<span class="chip-count" id="chip-count-all">0</span>
+				</button>
+				<button
+					type="button"
+					role="tab"
+					aria-selected="false"
+					class="feed-filter-chip client"
+					id="filter-chip-client"
+					data-filter="client"
+				>
+					<span style="display: flex; align-items: center;" set:html={renderIconSvg('eye', { size: 14 })}></span>
+					<span>Públicas Cliente</span>
+					<span class="chip-count" id="chip-count-client">0</span>
+				</button>
+				<button
+					type="button"
+					role="tab"
+					aria-selected="false"
+					class="feed-filter-chip internal"
+					id="filter-chip-internal"
+					data-filter="internal"
+				>
+					<span style="display: flex; align-items: center;" set:html={renderIconSvg('lock', { size: 14 })}></span>
+					<span>Confidenciales</span>
+					<span class="chip-count" id="chip-count-internal">0</span>
+				</button>
+			</div>
+		</div>
+
+		<div class="privacy-simulation-right">
+			<button
+				type="button"
+				id="btn-simulate-client-portal"
+				class="btn-simulate-client"
+				title="Simular exactamente la vista que tendrá el cliente en su portal web (HU-19)"
+			>
+				<span style="display: flex; align-items: center;" set:html={renderIconSvg('eye', { size: 15 })}></span>
+				<span id="simulate-client-btn-text">Ver como Cliente</span>
+			</button>
+			<a
+				href="/portal/portal_restrepo_001"
+				target="_blank"
+				rel="noopener noreferrer"
+				id="btn-open-real-portal"
+				class="btn-open-real-portal"
+				title="Abrir el Portal Web Real del Cliente (Magic Link) en una pestaña nueva"
+			>
+				<span style="display: flex; align-items: center;" set:html={renderIconSvg('externalLink', { size: 15 })}></span>
+				<span>Portal Web Real ↗</span>
+			</a>
+		</div>
+	</div>
+
+	<!-- Banner informativo cuando el modo de simulación cliente está activo -->
+	<div id="client-simulation-banner" class="client-simulation-notice hidden" role="status">
+		<div class="sim-notice-left">
+			<span class="sim-notice-icon" set:html={renderIconSvg('eye', { size: 20 })}></span>
+			<div>
+				<strong class="sim-notice-title">Modo Simulación: Vista del Portal del Cliente Activa (HU-18 / HU-19)</strong>
+				<p class="sim-notice-desc">Estás visualizando únicamente las entradas con <code>visible_to_client = true</code>. Las notas técnicas y fotos confidenciales están completamente bloqueadas de esta vista.</p>
+			</div>
+		</div>
+		<div class="sim-notice-actions">
+			<a
+				href="/portal/portal_restrepo_001"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="btn-notice-open-portal"
+			>
+				Abrir Portal Web Real ↗
+			</a>
+			<button type="button" id="btn-exit-simulation" class="btn-exit-sim">
+				Salir de Vista Cliente
+			</button>
+		</div>
+	</div>
+
 	<!-- Feed Stream (Inyectado dinámicamente) -->
 	<div id="daily-logs-stream" class="feed-cards-stream"></div>
 
 	<!-- Estado Vacío -->
 	<div id="daily-logs-empty-state" class="feed-empty-notice hidden">
 		<div class="empty-icon-wrap" aria-hidden="true">
-			<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-				<circle cx="12" cy="13" r="3"></circle>
-			</svg>
+			<Fragment set:html={renderIconSvg('camera', { size: 36 })} />
 		</div>
 		<h4 class="empty-title">Aún no hay publicaciones en la bitácora de esta obra</h4>
 		<p class="empty-desc">Publica el primer reporte de la jornada utilizando el formulario superior con el estado del clima y fotos de avance.</p>
@@ -37,7 +128,251 @@ import { renderIconSvg } from '../../lib/icons';
 		width: 100%;
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 1.25rem;
+	}
+
+	/* Barra de Herramientas de Privacidad HU-18 */
+	.feed-privacy-toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 1rem;
+		background-color: #FFFFFF;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.75rem;
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		flex-wrap: wrap;
+	}
+
+	.privacy-filters-left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.toolbar-label {
+		font-size: 0.75rem;
+		font-weight: 800;
+		color: #64748B;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.privacy-chips-group {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+
+	.feed-filter-chip {
+		min-height: 38px;
+		padding: 0.35rem 0.75rem;
+		border-radius: 9999px;
+		border: 1px solid #CBD5E1;
+		background-color: #F8FAFC;
+		color: #475569;
+		font-size: 0.75rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		cursor: pointer;
+		user-select: none;
+		transition: all 0.15s ease;
+	}
+
+	.feed-filter-chip:hover {
+		background-color: #F1F5F9;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.feed-filter-chip.active {
+		background-color: #0F172A;
+		color: #FFFFFF;
+		border-color: #0F172A;
+	}
+
+	.feed-filter-chip.active.client {
+		background-color: #059669;
+		border-color: #059669;
+		color: #FFFFFF;
+	}
+
+	.feed-filter-chip.active.internal {
+		background-color: #D97706;
+		border-color: #D97706;
+		color: #FFFFFF;
+	}
+
+	.chip-count {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+		background-color: rgba(0, 0, 0, 0.08);
+	}
+
+	.feed-filter-chip.active .chip-count {
+		background-color: rgba(255, 255, 255, 0.25);
+		color: #FFFFFF;
+	}
+
+	.privacy-simulation-right {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.btn-open-real-portal {
+		min-height: 38px;
+		padding: 0.35rem 0.85rem;
+		border-radius: 0.5rem;
+		border: 1.5px solid #0F172A;
+		background-color: #0F172A;
+		color: #F8FAFC;
+		font-size: 0.75rem;
+		font-weight: 800;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-open-real-portal:hover {
+		background-color: #1E293B;
+		color: #FFFFFF;
+		box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+	}
+
+	.sim-notice-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.btn-notice-open-portal {
+		min-height: 38px;
+		padding: 0 0.85rem;
+		border-radius: 0.5rem;
+		border: 1px solid #059669;
+		background-color: #059669;
+		color: #FFFFFF;
+		font-size: 0.75rem;
+		font-weight: 800;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	.btn-notice-open-portal:hover {
+		background-color: #047857;
+	}
+
+	.btn-simulate-client {
+		min-height: 38px;
+		padding: 0.35rem 0.85rem;
+		border-radius: 0.5rem;
+		border: 1.5px solid #10B981;
+		background-color: #ECFDF5;
+		color: #047857;
+		font-size: 0.75rem;
+		font-weight: 800;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-simulate-client:hover {
+		background-color: #D1FAE5;
+		border-color: #059669;
+	}
+
+	.btn-simulate-client.active-sim {
+		background-color: #10B981;
+		color: #FFFFFF;
+	}
+
+	/* Banner Informativo de Simulación */
+	.client-simulation-notice {
+		background-color: #ECFDF5;
+		border: 1.5px solid #10B981;
+		border-radius: 0.75rem;
+		padding: 0.875rem 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.sim-notice-left {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.sim-notice-icon {
+		color: #059669;
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+		margin-top: 2px;
+	}
+
+	.sim-notice-title {
+		font-size: 0.875rem;
+		font-weight: 800;
+		color: #065F46;
+		display: block;
+	}
+
+	.sim-notice-desc {
+		font-size: 0.75rem;
+		color: #047857;
+		margin: 0.2rem 0 0 0;
+		line-height: 1.4;
+	}
+
+	.sim-notice-desc code {
+		font-family: monospace;
+		background-color: #D1FAE5;
+		padding: 0.1rem 0.3rem;
+		border-radius: 3px;
+	}
+
+	.btn-exit-sim {
+		min-height: 38px;
+		padding: 0 0.85rem;
+		border-radius: 0.5rem;
+		border: 1px solid #059669;
+		background-color: #FFFFFF;
+		color: #065F46;
+		font-size: 0.75rem;
+		font-weight: 800;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s ease;
+	}
+
+	.btn-exit-sim:hover {
+		background-color: #D1FAE5;
 	}
 
 	.feed-cards-stream {
@@ -57,9 +392,18 @@ import { renderIconSvg } from '../../lib/icons';
 		transition: box-shadow 0.15s ease, border-color 0.15s ease;
 	}
 
+	:global(.daily-log-card.confidential-card) {
+		background-color: #FFFDF9;
+		border: 1.5px solid #FDE68A;
+	}
+
 	:global(.daily-log-card:hover) {
 		border-color: #CBD5E1;
 		box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+	}
+
+	:global(.daily-log-card.confidential-card:hover) {
+		border-color: #F59E0B;
 	}
 
 	:global(.log-card-header) {
@@ -139,6 +483,63 @@ import { renderIconSvg } from '../../lib/icons';
 		color: #0F172A;
 		padding: 0.2rem 0.6rem;
 		border-radius: 9999px;
+	}
+
+	:global(.privacy-badge) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+		font-weight: 800;
+		padding: 0.2rem 0.65rem;
+		border-radius: 9999px;
+	}
+
+	:global(.privacy-badge.client) {
+		background-color: #ECFDF5;
+		color: #047857;
+		border: 1px solid #A7F3D0;
+	}
+
+	:global(.privacy-badge.internal) {
+		background-color: #FEF3C7;
+		color: #B45309;
+		border: 1px solid #FCD34D;
+	}
+
+	:global(.btn-toggle-card-privacy) {
+		min-height: 36px;
+		padding: 0 0.65rem;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background-color: #FFFFFF;
+		color: #475569;
+		font-size: 0.75rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		cursor: pointer;
+		user-select: none;
+		transition: all 0.15s ease;
+	}
+
+	:global(.btn-toggle-card-privacy:hover) {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	:global(.btn-toggle-card-privacy.to-client:hover) {
+		background-color: #ECFDF5;
+		border-color: #10B981;
+		color: #047857;
+	}
+
+	:global(.btn-toggle-card-privacy.to-internal:hover) {
+		background-color: #FFFBEB;
+		border-color: #F59E0B;
+		color: #B45309;
 	}
 
 	:global(.log-header-actions) {

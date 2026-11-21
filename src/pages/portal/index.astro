@@ -1,0 +1,22 @@
+---
+// src/pages/portal/index.astro
+// HU-19: Portal Web Consolidado del Cliente (Fallback con query param ?token= o demo).
+import Layout from '../../layouts/Layout.astro';
+import ClientPortalWorkspace from '../../components/portal/ClientPortalWorkspace.astro';
+import Toast from '../../components/Toast.astro';
+---
+
+<Layout title="Portal de Obra del Cliente — ObraFlow" hasSidebar={false}>
+	<main id="portal-page-main-fallback" class="portal-page-root">
+		<ClientPortalWorkspace initialToken="portal_restrepo_001" />
+		<Toast />
+	</main>
+</Layout>
+
+<style>
+	.portal-page-root {
+		min-height: 100vh;
+		background-color: #0F172A;
+		color: #F8FAFC;
+	}
+</style>

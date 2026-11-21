@@ -132,4 +132,17 @@ console.log('  - Estado de orden: approved');
 console.log('  - Nuevo valor contractual: $15,500 (+ $500)');
 console.log('  - Nuevo presupuesto vigente de costo: $11,350 (+ $350)');
 console.log('  - Saldo contractual incrementado');
+// 5. Aislamiento estricto por proyecto
+import { getChangeOrdersByProject } from './change-order-store.ts';
+
+const ordersProj1 = getChangeOrdersByProject('proj_andina_001');
+const ordersProj2 = getChangeOrdersByProject('proj_andina_002');
+
+assert.ok(ordersProj1.length > 0, 'Debe haber órdenes para el proyecto 1');
+assert.ok(ordersProj2.length > 0, 'Debe haber órdenes para el proyecto 2');
+assert.ok(ordersProj1.every((o) => o.project_id === 'proj_andina_001'), 'Todas las órdenes deben ser estrictamente de proj_andina_001');
+assert.ok(ordersProj2.every((o) => o.project_id === 'proj_andina_002'), 'Todas las órdenes deben ser estrictamente de proj_andina_002');
+assert.equal(ordersProj1.some((o) => o.project_id === 'proj_andina_002'), false, 'Las órdenes de proj_andina_002 no deben aparecer en proj_andina_001');
+console.log('✓ Aislamiento multi-proyecto de órdenes de cambio verificado.');
+
 console.log('Todos los tests de HU-15 pasaron exitosamente.');

@@ -1,6 +1,7 @@
 ---
 // src/components/costing/JobCostingHeader.astro
 // HU-13: Cabecera ejecutiva con selector de proyectos y acciones rápidas de obra.
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <header id="job-costing-header" class="costing-header">
@@ -16,11 +17,7 @@
 		<div class="costing-title-row">
 			<div class="costing-title-group">
 				<div class="project-avatar" id="project-avatar-icon" aria-hidden="true">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M2 20h20"></path>
-						<path d="m5 20 5-15h4l5 15"></path>
-						<path d="M9 13h6"></path>
-					</svg>
+					<Fragment set:html={renderIconSvg('building', { size: 24 })} />
 				</div>
 				<div>
 					<div class="project-heading-wrap">
@@ -29,11 +26,11 @@
 					</div>
 					<div class="project-meta-details">
 						<span class="meta-item" id="costing-client-name">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+							<Fragment set:html={renderIconSvg('user', { size: 14 })} />
 							<span>Cliente: ...</span>
 						</span>
 						<span class="meta-item" id="costing-project-address">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+							<Fragment set:html={renderIconSvg('mapPin', { size: 14 })} />
 							<span>Ubicación: ...</span>
 						</span>
 					</div>
@@ -58,10 +55,7 @@
 					title="Restablecer datos de demo a valores de fábrica"
 					aria-label="Restablecer datos demo"
 				>
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-						<path d="M3 3v5h5"></path>
-					</svg>
+					<Fragment set:html={renderIconSvg('refresh', { size: 16 })} />
 					<span class="btn-text-desktop">Reset Demo</span>
 				</button>
 
@@ -73,11 +67,7 @@
 					title="Imprimir o exportar matriz financiera a PDF"
 					aria-label="Exportar informe de costos"
 				>
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-						<polyline points="6 9 6 2 18 2 18 9"></polyline>
-						<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-						<rect x="6" y="14" width="12" height="8"></rect>
-					</svg>
+					<Fragment set:html={renderIconSvg('printer', { size: 16 })} />
 					<span class="btn-text-desktop">Exportar PDF</span>
 				</button>
 
@@ -89,10 +79,7 @@
 					title="Registrar factura o recibo de compra en obra"
 					aria-label="Registrar nuevo gasto de obra"
 				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<line x1="12" y1="5" x2="12" y2="19"></line>
-						<line x1="5" y1="12" x2="19" y2="12"></line>
-					</svg>
+					<Fragment set:html={renderIconSvg('plus', { size: 18 })} />
 					<span>Registrar Gasto</span>
 				</button>
 
@@ -104,13 +91,8 @@
 					title="Cotizar trabajo adicional y enviar enlace de firma (HU-15)"
 					aria-label="Nueva orden de cambio"
 				>
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-						<polyline points="14 2 14 8 20 8"></polyline>
-						<line x1="12" y1="18" x2="12" y2="12"></line>
-						<line x1="9" y1="15" x2="15" y2="15"></line>
-					</svg>
-					<span class="btn-text-desktop">+ Orden de Cambio</span>
+					<Fragment set:html={renderIconSvg('fileDownload', { size: 16 })} />
+					<span class="btn-text-desktop">Orden de Cambio</span>
 				</button>
 			</div>
 		</div>

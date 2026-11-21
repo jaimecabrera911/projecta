@@ -52,11 +52,7 @@ import { renderIconSvg } from '../../lib/icons';
 			<div class="project-selection-block">
 				<label for="quick-project-select" class="project-select-label">
 					<div class="project-label-left">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M2 20h20"></path>
-							<path d="m5 20 5-15h4l5 15"></path>
-							<path d="M9 13h6"></path>
-						</svg>
+						<Fragment set:html={renderIconSvg('building', { size: 18 })} />
 						<span>Obra / Proyecto de Destino *</span>
 					</div>
 					<span id="project-client-hint" class="project-client-hint">Cargando obra...</span>
@@ -91,10 +87,7 @@ import { renderIconSvg } from '../../lib/icons';
 					
 					<div id="camera-prompt-view" class="camera-prompt">
 						<div class="camera-icon-bubble" aria-hidden="true">
-							<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-								<circle cx="12" cy="13" r="4"></circle>
-							</svg>
+							<Fragment set:html={renderIconSvg('camera', { size: 32 })} />
 						</div>
 						<div class="prompt-text-group">
 							<strong class="prompt-main">Toca aquí para tomar foto del recibo</strong>
@@ -108,7 +101,7 @@ import { renderIconSvg } from '../../lib/icons';
 						<div class="preview-overlay-info">
 							<span id="preview-filename-badge" class="preview-badge">Recibo listo</span>
 							<button id="btn-retake-photo" type="button" class="btn-retake" title="Tomar otra foto">
-								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+								<Fragment set:html={renderIconSvg('refresh', { size: 14 })} />
 								<span>Cambiar foto</span>
 							</button>
 						</div>
@@ -188,11 +181,7 @@ import { renderIconSvg } from '../../lib/icons';
 			<!-- BOTÓN DE GUARDADO EN 1 TOQUE FINAL (Thumb Zone) -->
 			<div class="submit-action-zone">
 				<button id="btn-submit-quick-expense" type="submit" class="btn-save-expense">
-					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-						<polyline points="17 21 17 13 7 13 7 21"></polyline>
-						<polyline points="7 3 7 8 15 8"></polyline>
-					</svg>
+					<Fragment set:html={renderIconSvg('check', { size: 22 })} />
 					<span id="btn-save-text">Guardar Gasto e Imputar</span>
 				</button>
 			</div>
@@ -204,10 +193,7 @@ import { renderIconSvg } from '../../lib/icons';
 		<div class="history-header-row">
 			<div class="history-title-group">
 				<div class="history-icon-bubble" aria-hidden="true">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-						<circle cx="12" cy="12" r="10"></circle>
-						<polyline points="12 6 12 12 16 14"></polyline>
-					</svg>
+					<Fragment set:html={renderIconSvg('clock', { size: 18 })} />
 				</div>
 				<div>
 					<h3 class="history-title">Registro de Gastos de Campo (Hoy)</h3>
@@ -216,9 +202,7 @@ import { renderIconSvg } from '../../lib/icons';
 			</div>
 
 			<button id="btn-force-sync" type="button" class="btn-sync-now hidden">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-					<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-				</svg>
+				<Fragment set:html={renderIconSvg('refresh', { size: 14 })} />
 				<span>Sincronizar Pendientes</span>
 			</button>
 		</div>
@@ -1011,10 +995,7 @@ import { renderIconSvg } from '../../lib/icons';
 	} from '../../lib/offline-expense-store';
 	import { loadAllProjects, generateReceiptSvg, type ProjectCosting } from '../../lib/costing-store';
 	import { getActiveRoleConfig } from '../../lib/role-store';
-	import {
-		getActiveProjectId,
-		setActiveProjectId
-	} from '../../lib/active-project-store';
+	import { clearActiveProjectId, getPinnedProjectId, setActiveProjectId } from '../../lib/active-project-store';
 	import { renderIconSvg } from '../../lib/icons';
 
 	const formatCOP = (val: number): string => {
@@ -1028,7 +1009,7 @@ import { renderIconSvg } from '../../lib/icons';
 	let selectedChapterId = '';
 	let currentPhotoDataUrl = '';
 	let currentPhotoSizeKb = 0;
-	let activeProjectId = 'proj_andina_001';
+	let activeProjectId: string | null = 'proj_andina_001';
 	let cachedProjects: ProjectCosting[] = [];
 
 	function initQuickExpense() {
@@ -1039,23 +1020,15 @@ import { renderIconSvg } from '../../lib/icons';
 		cachedProjects = loadAllProjects();
 		if (cachedProjects.length === 0) return;
 
-		// Revisar si viene projectId en la URL (?projectId=... o ?id=...)
 		const urlParams = new URLSearchParams(window.location.search);
 		const requestedId = urlParams.get('projectId') || urlParams.get('id');
-		if (requestedId && cachedProjects.some((p) => p.project_id === requestedId)) {
-			activeProjectId = requestedId;
-		} else {
-			activeProjectId = getActiveProjectId();
-		}
+		if (requestedId && cachedProjects.some((p) => p.project_id === requestedId)) activeProjectId = requestedId;
+		else activeProjectId = getPinnedProjectId();
 
-		const currentProject = cachedProjects.find((p) => p.project_id === activeProjectId) || cachedProjects[0];
-
-		// 2. Poblar selector de obras y actualizar hint
-		populateProjectSelector(cachedProjects, activeProjectId);
-		updateProjectHint(currentProject);
-
-		// 3. Renderizar chips de capítulos para la obra seleccionada
-		renderChapterChips(currentProject);
+		const currentProject = activeProjectId ? cachedProjects.find((p) => p.project_id === activeProjectId) || null : null;
+		populateProjectSelector(cachedProjects, activeProjectId || '');
+		updateProjectHint(currentProject || undefined);
+		renderChapterChips(currentProject || undefined);
 
 		// 4. Actualizar estado de red e interfaz inicial
 		updateNetworkStatusUI();
@@ -1067,8 +1040,7 @@ import { renderIconSvg } from '../../lib/icons';
 	function populateProjectSelector(projects: ProjectCosting[], selectedId: string) {
 		const select = document.getElementById('quick-project-select') as HTMLSelectElement | null;
 		if (!select) return;
-
-		select.innerHTML = '';
+		select.innerHTML = '<option value="">Sin obra fijada — selecciona una obra</option>';
 		projects.forEach((proj) => {
 			const opt = document.createElement('option');
 			opt.value = proj.project_id;
@@ -1081,19 +1053,15 @@ import { renderIconSvg } from '../../lib/icons';
 	function updateProjectHint(project?: ProjectCosting) {
 		const hint = document.getElementById('project-client-hint');
 		if (!hint) return;
-		if (project) {
-			hint.textContent = `Cliente: ${project.client_name} · ${project.chapters.length} Capítulos`;
-		} else {
-			hint.textContent = 'Obra no seleccionada';
-		}
+		hint.textContent = project ? `Cliente: ${project.client_name} • ${project.address}` : 'No hay obra fijada. Selecciona un proyecto para asociar gastos.';
 	}
 
-	function renderChapterChips(project: ProjectCosting) {
+	function renderChapterChips(project?: ProjectCosting | null) {
 		const grid = document.getElementById('chapter-chips-grid');
 		if (!grid) return;
-
 		grid.innerHTML = '';
 		selectedChapterId = '';
+		if (!project) { grid.innerHTML = '<p class="section-label" style="grid-column:1/-1;">Fija o selecciona una obra para registrar gastos.</p>'; return; }
 
 		project.chapters.forEach((chapter, index) => {
 			const chip = document.createElement('button');
@@ -1181,7 +1149,7 @@ import { renderIconSvg } from '../../lib/icons';
 		const feed = document.getElementById('expenses-feed-list');
 		if (!feed) return;
 
-		const expenses = loadAllOfflineExpenses();
+		const expenses = loadAllOfflineExpenses().filter((exp) => !activeProjectId || exp.project_id === activeProjectId);
 
 		if (expenses.length === 0) {
 			feed.innerHTML = `<div class="feed-empty-msg">No hay gastos registrados hoy en este dispositivo. Toca el botón de cámara para empezar.</div>`;
@@ -1233,33 +1201,22 @@ import { renderIconSvg } from '../../lib/icons';
 		const compressionTag = document.getElementById('compression-feedback');
 		const compressionSize = document.getElementById('compressed-size-text');
 
-		// 0. Selector de Obra / Proyecto de Destino
 		projectSelect?.addEventListener('change', () => {
-			activeProjectId = projectSelect.value;
-			setActiveProjectId(activeProjectId);
-			const newProj = cachedProjects.find((p) => p.project_id === activeProjectId);
-			if (newProj) {
-				updateProjectHint(newProj);
-				renderChapterChips(newProj);
-				try {
-					const url = new URL(window.location.href);
-					url.searchParams.set('projectId', activeProjectId);
-					window.history.replaceState({}, '', url.toString());
-				} catch (e) {}
-			}
+			const val = projectSelect.value;
+			if (!val) { clearActiveProjectId(); activeProjectId = null; updateProjectHint(undefined); renderChapterChips(null); renderExpensesFeed(); return; }
+			activeProjectId = val; setActiveProjectId(val);
+			const newProj = cachedProjects.find((p) => p.project_id === val);
+			updateProjectHint(newProj || undefined); renderChapterChips(newProj || null);
+			try { const url = new URL(window.location.href); url.searchParams.set('projectId', val); window.history.replaceState({}, '', url.toString()); } catch {}
+			renderExpensesFeed();
 		});
-
-		// Escuchar cambios de obra fijada desde el Header
 		window.addEventListener('obraflow:project-changed', (e: any) => {
-			const newId = e.detail?.projectId;
-			if (newId && newId !== activeProjectId) {
+			const newId = e.detail?.projectId ?? null;
+			if (newId !== activeProjectId) {
 				activeProjectId = newId;
-				if (projectSelect) projectSelect.value = newId;
-				const newProj = cachedProjects.find((p) => p.project_id === activeProjectId);
-				if (newProj) {
-					updateProjectHint(newProj);
-					renderChapterChips(newProj);
-				}
+				if (projectSelect) projectSelect.value = newId || '';
+				const newProj = newId ? cachedProjects.find((p) => p.project_id === newId) : null;
+				updateProjectHint(newProj || undefined); renderChapterChips(newProj || null); renderExpensesFeed();
 			}
 		});
 
@@ -1374,6 +1331,10 @@ import { renderIconSvg } from '../../lib/icons';
 				currentPhotoDataUrl ||
 				generateReceiptSvg(vendor, amount, concept, new Date().toISOString().split('T')[0]);
 
+			if (!activeProjectId) {
+				showToast('Selecciona una obra antes de registrar el gasto.');
+				return;
+			}
 			const roleConfig = getActiveRoleConfig();
 
 			const result = recordQuickExpense({
@@ -1387,11 +1348,10 @@ import { renderIconSvg } from '../../lib/icons';
 				registered_by: `${roleConfig.name} (${roleConfig.badgeText})`
 			});
 
-			// Resetear formulario para el siguiente gasto rápido
 			form.reset();
-			if (projectSelect) projectSelect.value = activeProjectId;
-			const curProj = cachedProjects.find((p) => p.project_id === activeProjectId);
-			if (curProj) renderChapterChips(curProj);
+			if (projectSelect) projectSelect.value = activeProjectId || '';
+			const curProj = activeProjectId ? cachedProjects.find((p) => p.project_id === activeProjectId) : null;
+			renderChapterChips(curProj || null);
 
 			if (amountPreview) amountPreview.textContent = '$ 0 COP';
 			currentPhotoDataUrl = '';

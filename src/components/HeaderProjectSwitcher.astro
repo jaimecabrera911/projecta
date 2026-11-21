@@ -1,58 +1,65 @@
 ---
 // src/components/HeaderProjectSwitcher.astro
-// Selector interactivo de Obra Activa / Fijada en el Header (Operate Mode & Impeccable).
-// Permite al residente o contratista fijar una obra en ejecución para que se mantenga activa en todos los módulos.
-import { renderIconSvg } from '../lib/icons.ts';
+// Selector de Obra Fijada: abre modal con buscador y permite fijar/desfijar.
+import { renderIconSvg } from '../lib/icons';
 ---
-
-<div id="header-project-switcher" class="header-project-container">
-	<!-- Botón Disparador del Selector de Obra Fijada -->
-	<button
-		id="btn-header-project-trigger"
-		type="button"
-		class="btn-project-trigger"
-		aria-haspopup="true"
-		aria-expanded="false"
-		aria-label="Cambiar obra fijada activa para la plataforma"
-		title="Fijar obra activa para toda la plataforma"
-	>
-		<div class="project-pin-badge" id="header-project-pin-badge" aria-hidden="true">
-			<span class="pin-icon" set:html={renderIconSvg('pin', { size: 16 })}></span>
-		</div>
-		<div class="project-text-cluster">
-			<div class="project-kicker-row">
-				<span class="project-kicker">Obra Fijada</span>
-				<span class="project-status-dot" aria-hidden="true" title="Obra activa en ejecución"></span>
-			</div>
-			<div class="project-title-row">
-				<span id="header-project-title" class="project-title">Cargando obra...</span>
-				<svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<polyline points="6 9 12 15 18 9"></polyline>
-				</svg>
-			</div>
-		</div>
-	</button>
-
-	<!-- Menú Desplegable con las Obras Disponibles -->
-	<div id="header-project-dropdown" class="project-dropdown-menu hidden" role="menu" aria-label="Lista de obras disponibles para fijar">
-		<div class="dropdown-header">
-			<div class="header-tag-row">
-				<span class="dropdown-kicker">Fijar Proyecto Activo</span>
-				<span class="dropdown-badge-info">Aplica a todos los módulos</span>
-			</div>
-			<h4 class="dropdown-title">Seleccionar Obra en Ejecución</h4>
-			<p class="dropdown-subtitle">La obra que fijes aquí permanecerá activa automáticamente en Bitácora, Cronograma, Control de Costos y Gastos de Campo.</p>
-		</div>
-
-		<div class="project-options-list" id="header-project-options-list" role="none">
-			<!-- Opciones renderizadas dinámicamente vía cliente -->
-		</div>
-
-		<div class="dropdown-footer">
-			<span class="dropdown-hint" set:html={`${renderIconSvg('bulb', { size: 14 })} No tendrás que cambiar de obra al navegar entre vistas.`}></span>
-		</div>
-	</div>
-</div>
+ 
+ <div id="header-project-switcher" class="header-project-container">
+ 	<button
+ 		id="btn-header-project-trigger"
+ 		type="button"
+ 		class="btn-project-trigger"
+ 		aria-haspopup="dialog"
+ 		aria-expanded="false"
+ 		aria-label="Fijar obra activa para la plataforma"
+ 		title="Fijar obra activa para toda la plataforma"
+ 	>
+ 		<div class="project-pin-badge" id="header-project-pin-badge" aria-hidden="true">
+ 			<span class="pin-icon" set:html={renderIconSvg('pin', { size: 16 })}></span>
+ 		</div>
+ 		<div class="project-text-cluster">
+ 			<div class="project-kicker-row">
+ 				<span class="project-kicker">Obra Fijada</span>
+ 				<span id="header-project-status-dot" class="project-status-dot hidden" aria-hidden="true" title="Obra activa en ejecución"></span>
+ 			</div>
+ 			<div class="project-title-row">
+ 				<span id="header-project-title" class="project-title">Sin obra fijada</span>
+ 				<span class="chevron-icon"><Fragment set:html={renderIconSvg('chevronDown', { size: 12 })} /></span>
+ 			</div>
+ 		</div>
+ 	</button>
+ 
+ 	<div id="header-project-modal" class="project-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+ 		<div class="project-modal-card">
+ 			<div class="project-modal-header">
+ 				<div>
+ 					<p class="dropdown-kicker">Obra activa</p>
+ 					<h4 id="project-modal-title" class="dropdown-title">Fijar obra en ejecución</h4>
+ 					<p class="dropdown-subtitle">Busca y selecciona una obra. Si no eliges ninguna, no se fijará nada.</p>
+ 				</div>
+ 				<button type="button" id="btn-close-project-modal" class="btn-close-modal" aria-label="Cerrar selector de obra">
+ 					<Fragment set:html={renderIconSvg('x', { size: 18 })} />
+ 				</button>
+ 			</div>
+ 
+ 			<div class="project-modal-tools">
+ 				<label class="search-wrap" for="project-search-input">
+ 					<span class="search-icon" aria-hidden="true"><Fragment set:html={renderIconSvg('search', { size: 16 })} /></span>
+ 					<input id="project-search-input" type="search" class="search-input" placeholder="Buscar por obra, cliente o dirección..." autocomplete="off" />
+ 				</label>
+ 				<button type="button" id="btn-unpin-project" class="btn-unpin">
+ 					<Fragment set:html={renderIconSvg('pinnedOff', { size: 16 })} />
+ 					<span>No fijar ninguna</span>
+ 				</button>
+ 			</div>
+ 
+ 			<div class="project-options-list" id="header-project-options-list"></div>
+ 			<div class="dropdown-footer">
+ 				<span class="dropdown-hint" set:html={`${renderIconSvg('bulb', { size: 14 })} La obra fijada se mantiene activa en todos los módulos.`}></span>
+ 			</div>
+ 		</div>
+ 	</div>
+ </div>
 
 <style>
 	.header-project-container {
@@ -160,91 +167,25 @@ import { renderIconSvg } from '../lib/icons.ts';
 		color: #F97316;
 	}
 
-	/* Dropdown Menú */
-	.project-dropdown-menu {
-		position: absolute;
-		top: calc(100% + 8px);
-		left: 0;
-		z-index: 100;
-		min-width: 330px;
-		max-width: 400px;
-		background-color: #0F172A;
-		border: 1.5px solid #334155;
-		border-radius: 0.75rem;
-		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-		overflow: hidden;
-		animation: dropdownFadeIn 0.15s ease-out forwards;
-	}
-
-	.project-dropdown-menu.hidden {
-		display: none !important;
-	}
-
-	@keyframes dropdownFadeIn {
-		from {
-			opacity: 0;
-			transform: translateY(-6px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	.dropdown-header {
-		padding: 0.875rem 1rem;
-		background-color: #1E293B;
-		border-bottom: 1px solid #334155;
-	}
-
-	.header-tag-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
-		margin-bottom: 0.35rem;
-	}
-
-	.dropdown-kicker {
-		font-size: 0.6875rem;
-		font-weight: 800;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: #F97316;
-	}
-
-	.dropdown-badge-info {
-		font-size: 0.625rem;
-		font-weight: 700;
-		background-color: #0F172A;
-		color: #38BDF8;
-		border: 1px solid #0284C7;
-		padding: 0.15rem 0.45rem;
-		border-radius: 9999px;
-	}
-
-	.dropdown-title {
-		font-size: 0.9375rem;
-		font-weight: 800;
-		color: #FFFFFF;
-		margin: 0 0 0.25rem 0;
-	}
-
-	.dropdown-subtitle {
-		font-size: 0.6875rem;
-		color: #94A3B8;
-		margin: 0;
-		line-height: 1.4;
-	}
-
-	.project-options-list {
-		padding: 0.5rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-		max-height: 320px;
-		overflow-y: auto;
-	}
+	/* Modal */
+	.project-modal-backdrop { position: fixed; inset: 0; z-index: 120; background: rgba(15, 23, 42, 0.68); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+	.project-modal-backdrop.hidden { display: none !important; }
+	.project-modal-card { width: min(720px, 100%); max-height: min(80vh, 720px); background: #0F172A; border: 1px solid #334155; border-radius: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,.45); display: flex; flex-direction: column; overflow: hidden; }
+	.project-modal-header { padding: 1rem 1.25rem; background: #1E293B; border-bottom: 1px solid #334155; display: flex; gap: 1rem; justify-content: space-between; align-items: flex-start; }
+	.btn-close-modal { width: 48px; height: 48px; border-radius: 0.625rem; border: 1px solid #475569; background: #0F172A; color: #E2E8F0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+	.btn-close-modal:hover { border-color: #F97316; color: #F97316; }
+	.project-modal-tools { padding: 1rem 1.25rem; display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; border-bottom: 1px solid #1E293B; }
+	.search-wrap { position: relative; display: block; }
+	.search-icon { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: #94A3B8; display: inline-flex; }
+	.search-input { width: 100%; min-height: 48px; border-radius: 0.625rem; border: 1px solid #334155; background: #1E293B; color: #F8FAFC; padding: 0.625rem 0.875rem 0.625rem 2.5rem; font: 500 0.875rem var(--font-sans); }
+	.search-input:focus { outline: 2px solid #F97316; outline-offset: 1px; border-color: #F97316; }
+	.btn-unpin { min-height: 48px; padding: 0.625rem 0.875rem; border-radius: 0.625rem; border: 1px solid #475569; background: #111827; color: #E2E8F0; font: 700 0.8125rem var(--font-sans); display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; white-space: nowrap; }
+	.btn-unpin:hover { border-color: #F97316; color: #FDBA74; }
+	.btn-unpin.active { border-color: #F97316; background: rgba(249,115,22,.12); color: #FDBA74; }
+	.dropdown-kicker { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #F97316; margin: 0; }
+	.dropdown-title { font-size: 1.125rem; font-weight: 800; color: #FFFFFF; margin: 0.2rem 0 0.25rem 0; }
+	.dropdown-subtitle { font-size: 0.8125rem; color: #94A3B8; margin: 0; line-height: 1.45; }
+	.project-options-list { padding: 0.75rem 1.25rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
 
 	:global(.project-option-item) {
 		width: 100%;
@@ -359,168 +300,102 @@ import { renderIconSvg } from '../lib/icons.ts';
 		display: block;
 	}
 
+	.hidden { display: none !important; }
 	@media (max-width: 768px) {
-		.btn-project-trigger {
-			max-width: 200px;
-			padding: 0.25rem 0.5rem;
-		}
-
-		.project-title {
-			max-width: 110px;
-		}
-
-		.project-dropdown-menu {
-			min-width: 290px;
-			max-width: calc(100vw - 2rem);
-			left: auto;
-			right: 0;
-		}
+		.btn-project-trigger { max-width: 180px; padding: 0.25rem 0.5rem; }
+		.project-title { max-width: 96px; }
+		.project-modal-tools { grid-template-columns: 1fr; }
+		.btn-unpin { width: 100%; justify-content: center; }
+	}
+	@media (max-width: 480px) {
+		.btn-project-trigger { max-width: 48px; padding: 0; justify-content: center; }
+		.project-text-cluster { display: none; }
+		.project-pin-badge { width: 48px; height: 48px; min-width: 48px; border: 0; background: transparent; }
+		.project-modal-card { max-height: calc(100vh - 1rem); }
 	}
 </style>
 
-<script>
-	// Controlador reactivo de Obra Fijada en Header
-	import {
-		getActiveProjectId,
-		setActiveProjectId,
-		getAvailableProjects
-	} from '../lib/active-project-store.ts';
-	import { renderIconSvg } from '../lib/icons.ts';
+	<script>
+	import { renderIconSvg } from '../lib/icons';
+	import { STORAGE_KEY_ACTIVE_PROJECT, clearActiveProjectId, getAvailableProjects, setActiveProjectId } from '../lib/active-project-store.ts';
 
 	function initHeaderProjectSwitcher() {
-		const container = document.getElementById('header-project-switcher');
-		const triggerBtn = document.getElementById('btn-header-project-trigger');
-		const dropdown = document.getElementById('header-project-dropdown');
+		const triggerBtn = document.getElementById('btn-header-project-trigger') as HTMLButtonElement | null;
+		const modal = document.getElementById('header-project-modal');
+		const closeBtn = document.getElementById('btn-close-project-modal');
 		const titleEl = document.getElementById('header-project-title');
+		const statusDot = document.getElementById('header-project-status-dot');
 		const optionsList = document.getElementById('header-project-options-list');
-		if (!container || !triggerBtn || !dropdown || !titleEl || !optionsList) return;
+		const searchInput = document.getElementById('project-search-input') as HTMLInputElement | null;
+		const unpinBtn = document.getElementById('btn-unpin-project') as HTMLButtonElement | null;
+		if (!triggerBtn || !modal || !closeBtn || !titleEl || !optionsList || !searchInput || !unpinBtn) return;
 
 		const projects = getAvailableProjects();
+		const getPinnedId = () => localStorage.getItem(STORAGE_KEY_ACTIVE_PROJECT);
 
 		const renderHeader = () => {
-			const currentId = getActiveProjectId();
-			const currentProject = projects.find((p) => p.project_id === currentId) || projects[0];
-			if (currentProject) {
-				titleEl.textContent = currentProject.title;
-				titleEl.setAttribute('title', currentProject.title);
-			}
+			const currentId = getPinnedId();
+			const current = projects.find((p) => p.project_id === currentId);
+			titleEl.textContent = current ? current.title : 'Sin obra fijada';
+			titleEl.setAttribute('title', current ? current.title : 'No hay obra fijada');
+			statusDot?.classList.toggle('hidden', !current);
 		};
 
-		const renderDropdownOptions = () => {
-			const currentId = getActiveProjectId();
-			let html = '';
-
-			projects.forEach((proj) => {
-				const isSelected = proj.project_id === currentId;
-				const formattedPrice = new Intl.NumberFormat('es-CO', {
-					style: 'currency',
-					currency: 'COP',
-					maximumFractionDigits: 0
-				}).format(proj.target_sale_price || 0);
-
-				html += `
-					<button
-						type="button"
-						class="project-option-item ${isSelected ? 'active' : ''}"
-						data-project-id="${proj.project_id}"
-						role="menuitem"
-						title="${isSelected ? 'Obra actualmente fijada' : 'Toca para fijar esta obra'}"
-					>
-						<div class="option-pin-indicator">
-							${isSelected ? renderIconSvg('pin', { size: 16, color: '#F97316' }) : renderIconSvg('building', { size: 16, color: '#94A3B8' })}
-						</div>
+		const renderOptions = () => {
+			const q = searchInput.value.trim().toLowerCase();
+			const currentId = getPinnedId();
+			unpinBtn.classList.toggle('active', !currentId);
+			const filtered = projects.filter((p) => !q || [p.title, p.client_name, p.address].join(' ').toLowerCase().includes(q));
+			if (filtered.length === 0) {
+				optionsList.innerHTML = `<p class="dropdown-subtitle" style="padding:0.75rem 0;">No hay obras que coincidan con la búsqueda.</p>`;
+				return;
+			}
+			optionsList.innerHTML = filtered.map((proj) => {
+				const selected = proj.project_id === currentId;
+				const price = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(proj.target_sale_price || 0);
+				return `
+					<button type="button" class="project-option-item ${selected ? 'active' : ''}" data-project-id="${proj.project_id}">
+						<div class="option-pin-indicator">${selected ? renderIconSvg('pin', { size: 16, color: '#F97316' }) : renderIconSvg('building', { size: 16, color: '#94A3B8' })}</div>
 						<div class="option-details">
 							<div class="option-title-line">
 								<span class="option-project-name">${escapeHtml(proj.title)}</span>
-								${isSelected ? `<span class="badge-active-pinned" style="display: inline-flex; align-items: center; gap: 3px;">${renderIconSvg('check', { size: 12 })} Fijada</span>` : ''}
+								${selected ? `<span class="badge-active-pinned" style="display:inline-flex;align-items:center;gap:3px;">${renderIconSvg('check', { size: 12 })} Fijada</span>` : ''}
 							</div>
-							<div class="option-meta-line">
-								<span style="display: inline-flex; align-items: center; gap: 4px;">${renderIconSvg('user', { size: 12 })} ${escapeHtml(proj.client_name)}</span>
-								<span style="display: inline-flex; align-items: center; gap: 4px;">• ${renderIconSvg('mapPin', { size: 12 })} ${escapeHtml(proj.address)}</span>
-							</div>
-							<div class="option-submeta-line">
-								<span>Presupuesto Vigente: <strong>${formattedPrice}</strong></span>
-							</div>
+							<div class="option-meta-line"><span style="display:inline-flex;align-items:center;gap:4px;">${renderIconSvg('user', { size: 12 })} ${escapeHtml(proj.client_name)}</span><span style="display:inline-flex;align-items:center;gap:4px;">• ${renderIconSvg('mapPin', { size: 12 })} ${escapeHtml(proj.address)}</span></div>
+							<div class="option-submeta-line"><span>Presupuesto Vigente: <strong>${price}</strong></span></div>
 						</div>
-					</button>
-				`;
-			});
-
-			optionsList.innerHTML = html;
-
+					</button>`;
+			}).join('');
 			optionsList.querySelectorAll<HTMLButtonElement>('.project-option-item').forEach((btn) => {
 				btn.addEventListener('click', () => {
 					const pid = btn.dataset.projectId;
-					if (pid) {
-						setActiveProjectId(pid);
-						renderHeader();
-						closeDropdown();
-						const p = projects.find((item) => item.project_id === pid);
-						if (p) {
-							const toastFn = (window as any).showToast;
-							if (typeof toastFn === 'function') {
-								toastFn(`Obra fijada: ${p.title}. Activa para todas las vistas.`);
-							}
-						}
-					}
+					if (!pid) return;
+					setActiveProjectId(pid);
+					renderHeader();
+					closeModal();
+					const p = projects.find((item) => item.project_id === pid);
+					if (p) (window as any).showToast?.(`Obra fijada: ${p.title}. Activa para todas las vistas.`);
 				});
 			});
 		};
 
-		const toggleDropdown = () => {
-			const isHidden = dropdown.classList.contains('hidden');
-			if (isHidden) {
-				renderDropdownOptions();
-				dropdown.classList.remove('hidden');
-				triggerBtn.setAttribute('aria-expanded', 'true');
-			} else {
-				closeDropdown();
-			}
-		};
+		const openModal = () => { renderOptions(); modal.classList.remove('hidden'); triggerBtn.setAttribute('aria-expanded', 'true'); searchInput.focus(); };
+		const closeModal = () => { modal.classList.add('hidden'); triggerBtn.setAttribute('aria-expanded', 'false'); searchInput.value = ''; };
 
-		const closeDropdown = () => {
-			dropdown.classList.add('hidden');
-			triggerBtn.setAttribute('aria-expanded', 'false');
-		};
-
-		triggerBtn.addEventListener('click', (e) => {
-			e.stopPropagation();
-			toggleDropdown();
-		});
-
-		document.addEventListener('click', (e) => {
-			if (!container.contains(e.target as Node)) {
-				closeDropdown();
-			}
-		});
-
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
-				closeDropdown();
-				triggerBtn.focus();
-			}
-		});
-
-		// Sincronización si otra vista cambia el proyecto
-		window.addEventListener('obraflow:project-changed', () => {
-			renderHeader();
-		});
-
+		triggerBtn.addEventListener('click', openModal);
+		closeBtn.addEventListener('click', closeModal);
+		modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+		searchInput.addEventListener('input', renderOptions);
+		unpinBtn.addEventListener('click', () => { clearActiveProjectId(); renderHeader(); closeModal(); (window as any).showToast?.('No hay obra fijada. Selecciona una cuando la necesites.'); });
+		document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) { closeModal(); triggerBtn.focus(); } });
+		window.addEventListener('obraflow:project-changed', renderHeader);
 		renderHeader();
 	}
 
 	function escapeHtml(str: string): string {
-		return str
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#039;');
+		return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 	}
 
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initHeaderProjectSwitcher);
-	} else {
-		initHeaderProjectSwitcher();
-	}
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHeaderProjectSwitcher);
+	else initHeaderProjectSwitcher();
 </script>

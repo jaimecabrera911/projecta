@@ -1,6 +1,7 @@
 ---
 // src/components/costing/CreateChangeOrderModal.astro
 // HU-15: Modal Ergonómico para Cotizar y Crear Órdenes de Cambio (Adicionales de Obra).
+import { renderIconSvg } from '../../lib/icons';
 ---
 
 <div
@@ -14,17 +15,11 @@
 		<!-- Encabezado del Modal -->
 		<div class="co-modal-header">
 			<div class="co-title-cluster">
-				<div class="co-icon-bubble" aria-hidden="true">
-					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-						<polyline points="14 2 14 8 20 8"></polyline>
-						<line x1="12" y1="18" x2="12" y2="12"></line>
-						<line x1="9" y1="15" x2="15" y2="15"></line>
-					</svg>
-				</div>
+				<div class="co-icon-bubble" aria-hidden="true" set:html={renderIconSvg('fileDownload', { size: 22 })}></div>
 				<div>
 					<span class="co-kicker">Blindaje Financiero · HU-15</span>
 					<h2 id="co-modal-title" class="co-modal-title">Nueva Orden de Cambio (Adicional)</h2>
+					<p class="co-modal-project-badge" id="co-modal-project-badge"></p>
 				</div>
 			</div>
 
@@ -35,10 +30,7 @@
 				aria-label="Cerrar modal de orden de cambio"
 				title="Cerrar modal"
 			>
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<line x1="18" y1="6" x2="6" y2="18"></line>
-					<line x1="6" y1="6" x2="18" y2="18"></line>
-				</svg>
+				<Fragment set:html={renderIconSvg('x', { size: 20 })} />
 			</button>
 		</div>
 
@@ -183,10 +175,7 @@
 				</button>
 
 				<button id="btn-submit-co" type="submit" class="btn-co-primary">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-						<line x1="22" y1="2" x2="11" y2="13"></line>
-						<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-					</svg>
+					<Fragment set:html={renderIconSvg('send', { size: 20 })} />
 					<span>Crear y Enviar a Firma</span>
 				</button>
 			</div>
@@ -553,6 +542,13 @@
 		to { opacity: 1; }
 	}
 
+	.co-modal-project-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #059669;
+		margin: 0.2rem 0 0 0;
+	}
+
 	@media (max-width: 540px) {
 		.co-pricing-grid {
 			grid-template-columns: 1fr;
@@ -571,6 +567,7 @@
 <script>
 	import { createChangeOrder } from '../../lib/change-order-store';
 	import { loadAllProjects, type ProjectCosting } from '../../lib/costing-store';
+	import { getActiveProjectId, getPinnedProjectId } from '../../lib/active-project-store';
 
 	const formatCOP = (val: number): string => {
 		return new Intl.NumberFormat('es-CO', {
@@ -721,13 +718,18 @@
 
 		// Listener para abrir el modal desde cualquier botón de la interfaz
 		window.addEventListener('open-create-change-order-modal', (e: any) => {
-			const targetProjectId = e.detail?.projectId;
+			const targetProjectId = e.detail?.projectId || getPinnedProjectId() || getActiveProjectId();
 			const allProjects = loadAllProjects();
 			const project = allProjects.find((p) => p.project_id === targetProjectId) || allProjects[0];
 
 			if (project) {
 				const projIdInput = document.getElementById('co-project-id') as HTMLInputElement | null;
 				if (projIdInput) projIdInput.value = project.project_id;
+
+				const badge = document.getElementById('co-modal-project-badge');
+				if (badge) {
+					badge.textContent = `Asociada a: ${project.title} (${project.client_name})`;
+				}
 
 				const chapterSelect = document.getElementById('co-chapter-select') as HTMLSelectElement | null;
 				if (chapterSelect) {

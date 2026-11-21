@@ -347,7 +347,7 @@ export function getInitialDemoChangeOrders(): ChangeOrder[] {
 			id: 'co_demo_003',
 			code: 'OC-001',
 			project_id: 'proj_andina_002',
-			chapter_id: 'chap_02_02',
+			chapter_id: 'chap_02_1',
 			title: 'Refuerzo de insonorización acústica con doble panel de yeso en sala de juntas',
 			justification: 'Requerimiento de confidencialidad para sala de conferencias de la gerencia médica.',
 			cost_amount: 850000,

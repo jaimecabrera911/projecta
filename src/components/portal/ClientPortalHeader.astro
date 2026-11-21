@@ -1,0 +1,219 @@
+---
+// src/components/portal/ClientPortalHeader.astro
+// HU-19: Encabezado del Portal Web del Cliente con Identidad del Contratista y Acciones de Contacto.
+import { renderIconSvg } from '../../lib/icons.ts';
+---
+
+<header id="client-portal-header" class="portal-header-wrapper" aria-label="Cabecera del portal del cliente">
+	<div class="portal-header-inner">
+		<!-- Marca del Contratista y ObraFlow -->
+		<div class="portal-brand-block">
+			<div class="brand-emblem-box" aria-hidden="true">
+				<span set:html={renderIconSvg('building', { size: 22 })}></span>
+			</div>
+			<div class="brand-text-col">
+				<div class="company-badge-line">
+					<span id="portal-contractor-name" class="company-name">Construcciones Andina S.A.S.</span>
+					<span class="verified-pill" style="display: inline-flex; align-items: center; gap: 3px;">
+						<span set:html={renderIconSvg('check', { size: 10 })}></span>
+						<span>Verificado</span>
+					</span>
+				</div>
+				<h1 id="portal-project-title" class="project-title">Remodelación Penthouse El Poblado</h1>
+				<div class="project-sub-meta">
+					<span id="portal-client-greeting" class="client-name">Propietario: Dr. Andrés Restrepo</span>
+					<span class="meta-dot">•</span>
+					<span id="portal-status-label" class="status-pill">En Ejecución • Semana 3</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Acciones Rápidas del Cliente: WhatsApp, Copiar Enlace y Llamar -->
+		<div class="portal-header-actions">
+			<button
+				id="btn-copy-portal-link"
+				type="button"
+				class="btn-action-portal"
+				title="Copiar enlace privado del portal"
+				aria-label="Copiar enlace del portal al portapapeles"
+			>
+				<span class="action-icon" set:html={renderIconSvg('copy', { size: 16 })}></span>
+				<span class="action-label">Copiar Link</span>
+			</button>
+
+			<a
+				id="link-whatsapp-contractor"
+				href="https://wa.me/573002154890"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="btn-action-portal whatsapp"
+				title="Escribir al residente de obra por WhatsApp"
+				aria-label="Contactar al contratista por WhatsApp"
+			>
+				<span class="action-icon" set:html={renderIconSvg('whatsapp', { size: 16 })}></span>
+				<span class="action-label">WhatsApp</span>
+			</a>
+		</div>
+	</div>
+</header>
+
+<style>
+	.portal-header-wrapper {
+		background-color: #0F172A;
+		color: #F8FAFC;
+		border-bottom: 1.5px solid #1E293B;
+		padding: 1.25rem 1rem;
+		box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+		width: 100%;
+	}
+
+	.portal-header-inner {
+		max-width: 900px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.25rem;
+		flex-wrap: wrap;
+	}
+
+	.portal-brand-block {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		min-width: 280px;
+		flex: 1;
+	}
+
+	.brand-emblem-box {
+		width: 48px;
+		height: 48px;
+		border-radius: 0.75rem;
+		background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+		border: 1px solid #475569;
+		color: #F97316;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	}
+
+	.brand-text-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+	}
+
+	.company-badge-line {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.company-name {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #94A3B8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.verified-pill {
+		font-size: 0.625rem;
+		font-weight: 800;
+		background-color: rgba(16, 185, 129, 0.15);
+		color: #34D399;
+		border: 1px solid rgba(52, 211, 153, 0.3);
+		padding: 0.1rem 0.45rem;
+		border-radius: 9999px;
+	}
+
+	.project-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #F8FAFC;
+		margin: 0;
+		letter-spacing: -0.01em;
+		line-height: 1.3;
+	}
+
+	.project-sub-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.75rem;
+		color: #CBD5E1;
+		flex-wrap: wrap;
+	}
+
+	.client-name {
+		font-weight: 600;
+	}
+
+	.meta-dot {
+		color: #64748B;
+	}
+
+	.status-pill {
+		color: #FDBA74;
+		font-weight: 700;
+	}
+
+	.portal-header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.btn-action-portal {
+		min-height: 48px;
+		padding: 0 0.875rem;
+		border-radius: 0.625rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		cursor: pointer;
+		text-decoration: none;
+		border: 1px solid #334155;
+		background-color: #1E293B;
+		color: #F8FAFC;
+		transition: all 0.15s ease;
+		user-select: none;
+	}
+
+	.btn-action-portal:hover {
+		background-color: #334155;
+		border-color: #64748B;
+		color: #FFFFFF;
+	}
+
+	.btn-action-portal.whatsapp {
+		background: linear-gradient(135deg, #059669 0%, #047857 100%);
+		border-color: #10B981;
+		color: #FFFFFF;
+	}
+
+	.btn-action-portal.whatsapp:hover {
+		background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+	}
+
+	@media (max-width: 600px) {
+		.portal-header-inner {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.portal-header-actions {
+			justify-content: flex-start;
+		}
+
+		.btn-action-portal {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+</style>

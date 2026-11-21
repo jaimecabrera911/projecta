@@ -124,13 +124,31 @@ export function generateDailyLogPdfHtml(entry: DailyLogEntry, projectTitle: stri
 		/* Ficha Técnica del Proyecto */
 		.project-meta-grid {
 			display: grid;
-			grid-template-columns: 2fr 1fr 1fr;
+			grid-template-columns: 2fr 1fr 1fr 1.5fr;
 			gap: 8px;
 			background-color: #F8FAFC;
 			border: 1px solid #E2E8F0;
 			border-radius: 6px;
 			padding: 10px 14px;
 			margin-bottom: 14px;
+		}
+		.privacy-banner {
+			padding: 6px 12px;
+			border-radius: 4px;
+			font-size: 8pt;
+			margin-bottom: 12px;
+			font-weight: 700;
+			letter-spacing: 0.3px;
+		}
+		.privacy-banner.confidential {
+			background-color: #FEF3C7;
+			border: 1px solid #F59E0B;
+			color: #92400E;
+		}
+		.privacy-banner.client-shared {
+			background-color: #ECFDF5;
+			border: 1px solid #10B981;
+			color: #065F46;
 		}
 		.meta-item {
 			display: flex;
@@ -366,6 +384,17 @@ export function generateDailyLogPdfHtml(entry: DailyLogEntry, projectTitle: stri
 			</div>
 		</header>
 
+		<!-- Distintivo de Privacidad HU-18 -->
+		${entry.visible_to_client === false ? `
+			<div class="privacy-banner confidential">
+				&#9888; DOCUMENTO DE USO INTERNO CONFIDENCIAL &mdash; PROHIBIDA SU DISTRIBUCIÓN AL CLIENTE O TERCEROS (Incidencia o nota técnica interna).
+			</div>
+		` : `
+			<div class="privacy-banner client-shared">
+				&#10003; DOCUMENTO AUTORIZADO PARA EL CLIENTE &mdash; Copia oficial autorizada para consulta en el portal web del cliente.
+			</div>
+		`}
+
 		<!-- Datos del Proyecto -->
 		<div class="project-meta-grid">
 			<div class="meta-item">
@@ -379,6 +408,12 @@ export function generateDailyLogPdfHtml(entry: DailyLogEntry, projectTitle: stri
 			<div class="meta-item">
 				<span class="meta-label">Condición Climática</span>
 				<span class="meta-value">${escapeHtml(weatherLabel)}</span>
+			</div>
+			<div class="meta-item">
+				<span class="meta-label">Privacidad / Destino</span>
+				<span class="meta-value" style="color: ${entry.visible_to_client === false ? '#B45309' : '#047857'}; font-weight: 800;">
+					${entry.visible_to_client === false ? 'Solo Equipo Interno' : 'Visible para Cliente'}
+				</span>
 			</div>
 		</div>
 
