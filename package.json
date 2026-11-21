@@ -10,7 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check:budget": "node --experimental-strip-types src/lib/budget-math.test.ts"
+    "check:budget": "node --experimental-strip-types src/lib/budget-math.test.ts && node --experimental-strip-types src/lib/budget-templates.test.ts"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.9",

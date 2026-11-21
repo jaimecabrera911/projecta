@@ -1,8 +1,8 @@
 // src/lib/budget-store.ts
 // Persistencia local de HU-06. Los capítulos anidan sus partidas para simplificar el editor;
 // al persistir se mantiene el contrato de campos de budgets / budget_chapters / budget_items.
-import { calcLine, calcTotals, type BudgetTotals } from './budget-math';
-import { loadCatalog } from './catalog';
+import { calcLine, calcTotals, type BudgetTotals } from './budget-math.ts';
+import { loadCatalog } from './catalog.ts';
 
 export type BudgetCategory = 'material' | 'labor' | 'subcontract' | 'equipment';
 export type BudgetStatus = 'draft' | 'sent' | 'approved' | 'frozen';

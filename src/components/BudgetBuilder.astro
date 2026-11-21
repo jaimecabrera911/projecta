@@ -32,6 +32,14 @@ import { renderIconSvg } from '../lib/icons';
 					<Fragment set:html={renderIconSvg('link', { size: 15 })} />
 					<span>Copiar enlace de seguimiento</span>
 				</button>
+				<button id="btn-save-as-template" type="button" class="breadcrumb-share" title="Guardar este presupuesto como plantilla reutilizable">
+					<Fragment set:html={renderIconSvg('folder', { size: 15 })} />
+					<span>Guardar Plantilla</span>
+				</button>
+				<button id="btn-builder-duplicate-template" type="button" class="breadcrumb-share hidden" title="Duplicar esta plantilla de presupuesto">
+					<Fragment set:html={renderIconSvg('copy', { size: 15 })} />
+					<span>Duplicar Plantilla</span>
+				</button>
 			</div>
 		</nav>
 
@@ -265,11 +273,102 @@ import { renderIconSvg } from '../lib/icons';
 			</p>
 			<div class="empty-actions">
 				<button id="btn-empty-add-chapter" type="button" class="btn-primary">+ Crear primer capítulo</button>
+				<button id="btn-empty-use-template" type="button" class="btn-ghost" style="border-color: #0F172A; color: #0F172A; font-weight: 700;">
+					<Fragment set:html={renderIconSvg('folder', { size: 16 })} />
+					<span>Cargar desde plantilla</span>
+				</button>
 				<a href="/catalog" class="btn-ghost">Revisar catálogo de insumos</a>
 			</div>
 		</div>
 
 		<div id="budget-chapters-list" class="budget-chapters-list"></div>
+	</div>
+
+	<!-- Modal Guardar como Plantilla en Constructor -->
+	<div id="modal-builder-save-template" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="builder-save-template-title">
+		<div id="builder-save-template-scrim" class="dup-scrim"></div>
+		<div class="dup-card">
+			<div class="dup-head">
+				<div>
+					<h2 id="builder-save-template-title" class="dup-title">Guardar como Plantilla</h2>
+					<p class="dup-subtitle">Guarda todos los capítulos y partidas de este presupuesto para reutilizarlos en futuros proyectos.</p>
+				</div>
+				<button id="builder-save-template-close" type="button" class="dup-close" aria-label="Cerrar modal">
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
+				</button>
+			</div>
+
+			<form id="builder-save-template-form" class="dup-form" novalidate>
+				<label for="builder-template-name" class="dup-field">
+					<span>Nombre de la plantilla *</span>
+					<input id="builder-template-name" type="text" maxlength="90" required minlength="3" autocomplete="off" placeholder="Ej. Remodelación Baño Completo Estándar" />
+				</label>
+
+				<label for="builder-template-desc" class="dup-field">
+					<span>Descripción o alcance</span>
+					<input id="builder-template-desc" type="text" maxlength="160" autocomplete="off" placeholder="Ej. Incluye demolición, redes, enchapes y aparatos" />
+				</label>
+
+				<div class="dup-grid-2">
+					<label for="builder-template-category" class="dup-field">
+						<span>Categoría</span>
+						<select id="builder-template-category">
+							<option value="Baños">Baños</option>
+							<option value="Cocinas">Cocinas</option>
+							<option value="Pintura y Acabados">Pintura y Acabados</option>
+							<option value="Obra Gris">Obra Gris</option>
+							<option value="Estructura">Estructura</option>
+							<option value="General" selected>General</option>
+						</select>
+					</label>
+
+					<label for="builder-template-margin" class="dup-field">
+						<span>Margen por defecto (%)</span>
+						<input id="builder-template-margin" type="number" min="0" max="500" step="1" inputmode="decimal" value="30" />
+					</label>
+				</div>
+
+				<div class="dup-actions">
+					<button type="button" id="builder-save-template-cancel" class="dup-btn-ghost">Cancelar</button>
+					<button type="submit" class="dup-btn-primary">Guardar Plantilla</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Modal Cargar desde Plantilla en Constructor -->
+	<div id="modal-builder-load-template" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="builder-load-template-title">
+		<div id="builder-load-template-scrim" class="dup-scrim"></div>
+		<div class="dup-card">
+			<div class="dup-head">
+				<div>
+					<h2 id="builder-load-template-title" class="dup-title">Cargar desde Plantilla</h2>
+					<p class="dup-subtitle">Selecciona una plantilla para importar sus capítulos y partidas a este presupuesto.</p>
+				</div>
+				<button id="builder-load-template-close" type="button" class="dup-close" aria-label="Cerrar modal">
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
+				</button>
+			</div>
+
+			<form id="builder-load-template-form" class="dup-form" novalidate>
+				<label for="builder-load-template-select" class="dup-field">
+					<span>Selecciona la plantilla</span>
+					<select id="builder-load-template-select">
+						<!-- Poblado dinámicamente -->
+					</select>
+				</label>
+
+				<label class="dup-check" for="builder-load-sync-prices">
+					<input id="builder-load-sync-prices" type="checkbox" checked />
+					<span>Actualizar precios con el catálogo maestro vigente</span>
+				</label>
+
+				<div class="dup-actions">
+					<button type="button" id="builder-load-template-cancel" class="dup-btn-ghost">Cancelar</button>
+					<button type="submit" class="dup-btn-primary">Importar Capítulos</button>
+				</div>
+			</form>
+		</div>
 	</div>
 
 	<BudgetTotalsBar />
@@ -509,6 +608,7 @@ import { renderIconSvg } from '../lib/icons';
 	.status-sent { background-color: #E0F2FE; color: #075985; border: 1px solid #BAE6FD; }
 	.status-approved { background-color: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
 	.status-frozen { background-color: #DBEAFE; color: #1D4ED8; border: 1px solid #93C5FD; }
+	.status-template { background-color: #F1F5F9; color: #1E293B; border: 1.5px solid #CBD5E1; }
 
 	.frozen-banner {
 		margin: 0 1rem;
@@ -2414,6 +2514,181 @@ import { renderIconSvg } from '../lib/icons';
 			padding: 1.25rem 1.5rem 2.5rem;
 		}
 	}
+	/* Modal styles para plantillas */
+	.dup-modal {
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+	}
+
+	.dup-scrim {
+		position: absolute;
+		inset: 0;
+		background: rgba(15, 23, 42, 0.6);
+		backdrop-filter: blur(2px);
+	}
+
+	.dup-card {
+		position: relative;
+		width: 100%;
+		max-width: 32rem;
+		background: #FFFFFF;
+		border-radius: 0.875rem;
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		z-index: 10000;
+	}
+
+	.dup-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.dup-title {
+		font-size: 1.125rem;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.dup-subtitle {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin-top: 0.25rem;
+	}
+
+	.dup-close {
+		width: 36px;
+		height: 36px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.375rem;
+		border: 1px solid #E2E8F0;
+		background: transparent;
+		color: #64748B;
+		cursor: pointer;
+	}
+
+	.dup-close:hover {
+		background: #F1F5F9;
+		color: #0F172A;
+	}
+
+	.dup-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.dup-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.dup-field span {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #334155;
+	}
+
+	.dup-field input,
+	.dup-field select {
+		min-height: 44px;
+		padding: 0.5rem 0.75rem;
+		border: 1.5px solid #CBD5E1;
+		border-radius: 0.5rem;
+		font-family: var(--font-sans);
+		font-size: 0.875rem;
+		color: #0F172A;
+		background: #FFFFFF;
+		outline: none;
+	}
+
+	.dup-field input:focus,
+	.dup-field select:focus {
+		border-color: #F97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+	}
+
+	.dup-grid-2 {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	@media (max-width: 500px) {
+		.dup-grid-2 {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.dup-check {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.625rem;
+		padding: 0.625rem 0.75rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #334155;
+		cursor: pointer;
+	}
+
+	.dup-check input {
+		width: 20px;
+		height: 20px;
+		accent-color: #F97316;
+		flex-shrink: 0;
+	}
+
+	.dup-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid #F1F5F9;
+	}
+
+	.dup-btn-ghost,
+	.dup-btn-primary {
+		min-height: 44px;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.dup-btn-ghost {
+		background: #FFFFFF;
+		border: 1px solid #CBD5E1;
+		color: #334155;
+	}
+
+	.dup-btn-primary {
+		background: #F97316;
+		border: 1px solid #F97316;
+		color: #FFFFFF;
+	}
+
+	.dup-btn-primary:hover {
+		background: #EA580C;
+	}
 </style>
 
 <script>
@@ -2421,6 +2696,15 @@ import { renderIconSvg } from '../lib/icons';
 	
 	import { calcLine, calcTax, calcTotals, formatMoney } from '../lib/budget-math';
 	import { loadCatalog, type CatalogItem } from '../lib/catalog';
+	import {
+		loadBudgetTemplates,
+		createTemplateFromBudget,
+		findBudgetTemplate,
+		updateBudgetTemplate,
+		deleteBudgetTemplate,
+		duplicateBudgetTemplate,
+		type BudgetTemplate
+	} from '../lib/budget-templates';
 	import {
 		allItems,
 		applyGlobalMargin,
@@ -2443,14 +2727,48 @@ import { renderIconSvg } from '../lib/icons';
 		equipment: { label: 'Equipo', className: 'cat-equipment' }
 	};
 
-	const budget = findBudget(new URLSearchParams(window.location.search).get('id'));
+	const urlParams = new URLSearchParams(window.location.search);
+	const budgetId = urlParams.get('id');
+	const templateId = urlParams.get('templateId');
 
-	if (!budget) {
+	let workingBudget: Budget | null = null;
+	let isTemplateMode = false;
+	let activeTemplate: BudgetTemplate | null = null;
+
+	if (templateId) {
+		activeTemplate = findBudgetTemplate(templateId);
+		if (activeTemplate) {
+			isTemplateMode = true;
+			workingBudget = {
+				id: activeTemplate.id,
+				title: activeTemplate.name,
+				lead_id: undefined,
+				client_name: undefined,
+				version: 1,
+				status: 'draft',
+				tax_scheme: activeTemplate.tax_scheme || 'iva',
+				vat_percentage: activeTemplate.vat_percentage ?? 19,
+				admin_percentage: activeTemplate.admin_percentage ?? 10,
+				contingency_percentage: activeTemplate.contingency_percentage ?? 3,
+				utility_percentage: activeTemplate.utility_percentage ?? 5,
+				global_margin_percentage: activeTemplate.default_margin_percentage ?? 30,
+				seller_commission_percentage: activeTemplate.seller_commission_percentage ?? 0,
+				seller_name: undefined,
+				chapters: activeTemplate.chapters,
+				created_at: activeTemplate.created_at,
+				updated_at: activeTemplate.updated_at
+			};
+		}
+	} else if (budgetId) {
+		workingBudget = findBudget(budgetId);
+	}
+
+	if (!workingBudget) {
 		document.getElementById('budget-builder-content')?.classList.add('hidden');
 		document.getElementById('budget-not-found')?.classList.remove('hidden');
 		document.getElementById('budget-totals-bar')?.classList.add('hidden');
 	} else {
-		initBuilder(budget);
+		initBuilder(workingBudget, isTemplateMode, activeTemplate);
 
 		// HU-08: feedback tras duplicar una plantilla.
 		const dupParams = new URLSearchParams(window.location.search);
@@ -2470,7 +2788,7 @@ import { renderIconSvg } from '../lib/icons';
 		}
 	}
 
-	function initBuilder(currentBudget: Budget) {
+	function initBuilder(currentBudget: Budget, isTemplateMode = false, activeTemplate: BudgetTemplate | null = null) {
 		const catalog: CatalogItem[] = loadCatalog();
 
 		const titleInput = document.getElementById('budget-title-input') as HTMLInputElement | null;
@@ -2555,8 +2873,25 @@ import { renderIconSvg } from '../lib/icons';
 			if (saveText) saveText.textContent = 'Guardado local';
 		}
 
+		function persistData(budget: Budget) {
+			if (isTemplateMode && activeTemplate) {
+				activeTemplate.name = budget.title;
+				activeTemplate.default_margin_percentage = budget.global_margin_percentage;
+				activeTemplate.tax_scheme = budget.tax_scheme;
+				activeTemplate.vat_percentage = budget.vat_percentage;
+				activeTemplate.admin_percentage = budget.admin_percentage;
+				activeTemplate.contingency_percentage = budget.contingency_percentage;
+				activeTemplate.utility_percentage = budget.utility_percentage;
+				activeTemplate.seller_commission_percentage = budget.seller_commission_percentage;
+				activeTemplate.chapters = budget.chapters;
+				updateBudgetTemplate(activeTemplate);
+			} else {
+				persistBudget(budget);
+			}
+		}
+
 		function saveNow() {
-			persistBudget(currentBudget);
+			persistData(currentBudget);
 			markSaved();
 		}
 
@@ -3147,6 +3482,11 @@ import { renderIconSvg } from '../lib/icons';
 		});
 
 		confirmDeleteBudgetBtn?.addEventListener('click', () => {
+			if (isTemplateMode && activeTemplate) {
+				deleteBudgetTemplate(activeTemplate.id);
+				window.location.href = '/budgets?tab=templates';
+				return;
+			}
 			deleteBudget(currentBudget.id);
 			window.location.href = '/budgets';
 		});
@@ -3163,13 +3503,13 @@ import { renderIconSvg } from '../lib/icons';
 
 			const maxOrder = currentBudget.chapters.reduce((max, chapter) => Math.max(max, chapter.order_index), 0);
 			const chapter: BudgetChapter = {
-				id: uid('bch'),
+				id: uid(isTemplateMode ? 'bch_tpl' : 'bch'),
 				order_index: maxOrder + 1,
 				name,
 				items: []
 			};
 			currentBudget.chapters.push(chapter);
-			persistBudget(currentBudget);
+			persistData(currentBudget);
 			closeChapterForm();
 			renderChapters();
 			showToast('Capítulo creado', `“${name}” está listo para recibir partidas.`);
@@ -3201,7 +3541,7 @@ import { renderIconSvg } from '../lib/icons';
 			}
 			const safeMargin = Math.max(0, Math.min(500, margin));
 			applyGlobalMargin(currentBudget, safeMargin);
-			persistBudget(currentBudget);
+			persistData(currentBudget);
 			renderChapters();
 			renderSummary();
 			renderTax();
@@ -3238,7 +3578,7 @@ import { renderIconSvg } from '../lib/icons';
 				const temp = current.order_index;
 				current.order_index = other.order_index;
 				other.order_index = temp;
-				persistBudget(currentBudget);
+				persistData(currentBudget);
 				renderChapters();
 				return;
 			}
@@ -3260,7 +3600,7 @@ import { renderIconSvg } from '../lib/icons';
 				if (!chapter) return;
 				currentBudget.chapters = currentBudget.chapters.filter((entry) => entry.id !== chapterId);
 				confirmDeleteChapterId = null;
-				persistBudget(currentBudget);
+				persistData(currentBudget);
 				renderChapters();
 				showToast('Capítulo eliminado', `“${chapter.name}” y sus partidas se quitaron del presupuesto.`);
 				return;
@@ -3344,7 +3684,7 @@ import { renderIconSvg } from '../lib/icons';
 				const chapter = findChapter(chapterId);
 				if (!catalogItem || !chapter) return;
 				const item: BudgetItem = {
-					id: uid('bit'),
+					id: uid(isTemplateMode ? 'bit_tpl' : 'bit'),
 					chapter_id: chapter.id,
 					catalog_item_id: catalogItem.id,
 					description: catalogItem.name,
@@ -3359,7 +3699,7 @@ import { renderIconSvg } from '../lib/icons';
 				catalogSearchQuery = '';
 				catalogSelectedCategory = 'all';
 				catalogSelectedSupplier = 'all';
-				persistBudget(currentBudget);
+				persistData(currentBudget);
 				renderChapters();
 				document.getElementById(`budget-item-${item.id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 				showToast('Partida añadida', `“${catalogItem.name}” se agregó a ${chapter.name}.`);
@@ -3394,7 +3734,7 @@ import { renderIconSvg } from '../lib/icons';
 				const found = findItem(itemId);
 				if (!found) return;
 				found.chapter.items = found.chapter.items.filter((entry) => entry.id !== itemId);
-				persistBudget(currentBudget);
+				persistData(currentBudget);
 				renderChapters();
 				showToast('Partida eliminada', `“${found.item.description}” se quitó del presupuesto.`);
 			}
@@ -3481,7 +3821,7 @@ import { renderIconSvg } from '../lib/icons';
 				}
 
 				const item: BudgetItem = {
-					id: uid('bit'),
+					id: uid(isTemplateMode ? 'bit_tpl' : 'bit'),
 					chapter_id: chapter.id,
 					description,
 					category,
@@ -3492,7 +3832,7 @@ import { renderIconSvg } from '../lib/icons';
 				};
 				chapter.items.push(item);
 				openCustomChapterId = null;
-				persistBudget(currentBudget);
+				persistData(currentBudget);
 				renderChapters();
 				document.getElementById(`budget-item-${item.id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 				showToast('Partida creada', `“${description}” se agregó a ${chapter.name}.`);
@@ -3521,11 +3861,49 @@ import { renderIconSvg } from '../lib/icons';
 				found.item.unit_cost_internal = cost;
 				found.item.margin_percentage = margin;
 				editingItemId = null;
-				persistBudget(currentBudget);
+				persistData(currentBudget);
 				renderChapters();
 				showToast('Partida actualizada', `“${description}” quedó guardada.`);
 			}
 		});
+
+		if (isTemplateMode) {
+			const backBtn = document.getElementById('btn-back-to-budgets') as HTMLAnchorElement | null;
+			if (backBtn) {
+				backBtn.href = '/budgets?tab=templates';
+				const backSpan = backBtn.querySelector('span');
+				if (backSpan) backSpan.textContent = 'Plantillas';
+			}
+			const titleLabel = document.querySelector('label[for="budget-title-input"]');
+			if (titleLabel) titleLabel.textContent = 'Nombre de la plantilla';
+
+			const deleteConfirmText = document.querySelector('.delete-confirm-text');
+			if (deleteConfirmText) deleteConfirmText.textContent = '¿Eliminar esta plantilla?';
+
+			const emptyTitle = document.querySelector('.budget-empty-state .empty-title');
+			if (emptyTitle) emptyTitle.textContent = 'Esta plantilla aún no tiene capítulos';
+			const emptyText = document.querySelector('.budget-empty-state .empty-text');
+			if (emptyText) emptyText.textContent = 'Añade los capítulos y partidas maestras que conformarán esta plantilla para cotizar obras rápidamente.';
+			document.getElementById('btn-empty-use-template')?.classList.add('hidden');
+
+			document.getElementById('btn-preview-proposal')?.classList.add('hidden');
+			document.getElementById('btn-share-proposal')?.classList.add('hidden');
+			document.getElementById('btn-save-as-template')?.classList.add('hidden');
+
+			const btnBuilderDuplicateTemplate = document.getElementById('btn-builder-duplicate-template');
+			if (btnBuilderDuplicateTemplate) {
+				btnBuilderDuplicateTemplate.classList.remove('hidden');
+				btnBuilderDuplicateTemplate.addEventListener('click', () => {
+					if (activeTemplate) {
+						const dup = duplicateBudgetTemplate({
+							sourceId: activeTemplate.id,
+							name: `Copia de ${activeTemplate.name}`
+						});
+						window.location.href = `/budgets/editor?templateId=${encodeURIComponent(dup.id)}`;
+					}
+				});
+			}
+		}
 
 		const statusChip = document.getElementById('budget-status-chip');
 		const frozenBanner = document.getElementById('budget-frozen-banner');
@@ -3536,7 +3914,15 @@ import { renderIconSvg } from '../lib/icons';
 			frozen: { label: 'Congelado', cls: 'status-frozen' }
 		} as const;
 		const st = statusMeta[currentBudget.status] ?? statusMeta.draft;
-		if (statusChip) { statusChip.textContent = st.label; statusChip.className = `status-chip ${st.cls}`; }
+		if (statusChip) {
+			if (isTemplateMode) {
+				statusChip.textContent = 'Borrador Plantilla';
+				statusChip.className = 'status-chip status-template';
+			} else {
+				statusChip.textContent = st.label;
+				statusChip.className = `status-chip ${st.cls}`;
+			}
+		}
 		const frozen = currentBudget.status === 'frozen';
 		frozenBanner?.classList.toggle('hidden', !frozen);
 		const frozenMsg = 'Este presupuesto ha sido firmado contractualmente y no puede editarse. Para modificaciones debes crear una Orden de Cambio.';
@@ -3544,11 +3930,15 @@ import { renderIconSvg } from '../lib/icons';
 
 		// Initial paint
 		if (titleInput) titleInput.value = currentBudget.title;
-		if (breadcrumbTitle) breadcrumbTitle.textContent = currentBudget.title || 'Constructor';
+		if (breadcrumbTitle) {
+			breadcrumbTitle.textContent = isTemplateMode
+				? (currentBudget.title || 'Plantilla')
+				: (currentBudget.title || 'Constructor');
+		}
 		if (clientLine) {
-			clientLine.textContent = currentBudget.client_name
-				? `Cliente: ${currentBudget.client_name}`
-				: 'Sin cliente asignado';
+			clientLine.textContent = isTemplateMode
+				? `Plantilla Maestra · Categoría: ${activeTemplate?.category || 'General'}`
+				: (currentBudget.client_name ? `Cliente: ${currentBudget.client_name}` : 'Sin cliente asignado');
 		}
 		if (globalMarginInput) globalMarginInput.value = String(currentBudget.global_margin_percentage);
 		if (commissionInput) {
@@ -3591,6 +3981,148 @@ import { renderIconSvg } from '../lib/icons';
 				showToast('Enlace de seguimiento copiado', 'Compártelo por WhatsApp para registrar cuándo abren la propuesta.');
 			} catch (_) {
 				showToast('No se pudo copiar el enlace', 'Copia el enlace manualmente desde la barra del navegador.');
+			}
+		});
+
+		// --- HU-Plantillas: Guardar presupuesto como plantilla reutilizable ---
+		const saveAsTemplateBtn = document.getElementById('btn-save-as-template');
+		const saveTemplateModal = document.getElementById('modal-builder-save-template');
+		const saveTemplateForm = document.getElementById('builder-save-template-form') as HTMLFormElement | null;
+		const saveTemplateClose = document.getElementById('builder-save-template-close');
+		const saveTemplateCancel = document.getElementById('builder-save-template-cancel');
+		const saveTemplateScrim = document.getElementById('builder-save-template-scrim');
+		const saveTemplateNameInput = document.getElementById('builder-template-name') as HTMLInputElement | null;
+		const saveTemplateDescInput = document.getElementById('builder-template-desc') as HTMLInputElement | null;
+		const saveTemplateCatSelect = document.getElementById('builder-template-category') as HTMLSelectElement | null;
+		const saveTemplateMarginInput = document.getElementById('builder-template-margin') as HTMLInputElement | null;
+
+		function closeSaveTemplateModal() {
+			saveTemplateModal?.classList.add('hidden');
+		}
+
+		saveAsTemplateBtn?.addEventListener('click', () => {
+			if (currentBudget.chapters.length === 0 || allItems(currentBudget).length === 0) {
+				showToast('Presupuesto vacío', 'Agrega al menos una partida antes de guardarlo como plantilla.', 'warning');
+				return;
+			}
+			if (saveTemplateNameInput) saveTemplateNameInput.value = currentBudget.title || 'Plantilla de Presupuesto';
+			if (saveTemplateMarginInput) saveTemplateMarginInput.value = String(currentBudget.global_margin_percentage ?? 30);
+			if (saveTemplateDescInput) saveTemplateDescInput.value = '';
+			saveTemplateModal?.classList.remove('hidden');
+			saveTemplateNameInput?.focus();
+		});
+
+		saveTemplateClose?.addEventListener('click', closeSaveTemplateModal);
+		saveTemplateCancel?.addEventListener('click', closeSaveTemplateModal);
+		saveTemplateScrim?.addEventListener('click', closeSaveTemplateModal);
+
+		saveTemplateForm?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const name = (saveTemplateNameInput?.value ?? '').trim();
+			if (name.length < 3) {
+				showToast('Nombre requerido', 'El nombre de la plantilla debe tener al menos 3 caracteres.', 'warning');
+				return;
+			}
+			const description = (saveTemplateDescInput?.value ?? '').trim();
+			const category = (saveTemplateCatSelect?.value ?? 'General').trim();
+			const margin = parseFloat(saveTemplateMarginInput?.value ?? '30') || 30;
+
+			createTemplateFromBudget(currentBudget, {
+				name,
+				description,
+				category,
+				defaultMarginPercentage: margin
+			});
+			closeSaveTemplateModal();
+			showToast('Plantilla guardada', `“${name}” se guardó como plantilla reutilizable.`);
+		});
+
+		// --- HU-Plantillas: Importar plantilla en presupuesto vacío o en curso ---
+		const emptyUseTemplateBtn = document.getElementById('btn-empty-use-template');
+		const loadTemplateModal = document.getElementById('modal-builder-load-template');
+		const loadTemplateForm = document.getElementById('builder-load-template-form') as HTMLFormElement | null;
+		const loadTemplateClose = document.getElementById('builder-load-template-close');
+		const loadTemplateCancel = document.getElementById('builder-load-template-cancel');
+		const loadTemplateScrim = document.getElementById('builder-load-template-scrim');
+		const loadTemplateSelect = document.getElementById('builder-load-template-select') as HTMLSelectElement | null;
+		const loadSyncPricesCheck = document.getElementById('builder-load-sync-prices') as HTMLInputElement | null;
+
+		function closeLoadTemplateModal() {
+			loadTemplateModal?.classList.add('hidden');
+		}
+
+		function populateLoadTemplateSelect() {
+			if (!loadTemplateSelect) return;
+			const templates = loadBudgetTemplates();
+			if (templates.length === 0) {
+				loadTemplateSelect.innerHTML = '<option value="">No hay plantillas disponibles</option>';
+				return;
+			}
+			loadTemplateSelect.innerHTML = templates.map((t) => {
+				const totalItems = t.chapters.reduce((sum, ch) => sum + ch.items.length, 0);
+				return `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)} (${t.chapters.length} cap · ${totalItems} part)</option>`;
+			}).join('');
+		}
+
+		emptyUseTemplateBtn?.addEventListener('click', () => {
+			if (guardFrozen()) return;
+			populateLoadTemplateSelect();
+			loadTemplateModal?.classList.remove('hidden');
+		});
+
+		loadTemplateClose?.addEventListener('click', closeLoadTemplateModal);
+		loadTemplateCancel?.addEventListener('click', closeLoadTemplateModal);
+		loadTemplateScrim?.addEventListener('click', closeLoadTemplateModal);
+
+		loadTemplateForm?.addEventListener('submit', (e) => {
+			e.preventDefault();
+			if (guardFrozen()) return;
+			const templateId = loadTemplateSelect?.value;
+			if (!templateId) return;
+			const template = findBudgetTemplate(templateId);
+			if (!template) {
+				showToast('Error', 'No se encontró la plantilla seleccionada.', 'warning');
+				return;
+			}
+
+			const syncPrices = loadSyncPricesCheck ? loadSyncPricesCheck.checked : true;
+			const catalogMap = syncPrices ? new Map(loadCatalog().map((it) => [it.id, it])) : null;
+
+			const newChapters: BudgetChapter[] = template.chapters.map((ch, chIdx) => {
+				const chapterId = uid('bch');
+				return {
+					id: chapterId,
+					name: ch.name,
+					order_index: currentBudget.chapters.length + chIdx,
+					items: ch.items.map((it) => {
+						const catalogItem = it.catalog_item_id && catalogMap ? catalogMap.get(it.catalog_item_id) : undefined;
+						return {
+							id: uid('bit'),
+							chapter_id: chapterId,
+							catalog_item_id: it.catalog_item_id,
+							description: it.description,
+							category: it.category,
+							unit: it.unit,
+							quantity: it.quantity,
+							unit_cost_internal: catalogItem ? catalogItem.unit_cost : it.unit_cost_internal,
+							margin_percentage: it.margin_percentage ?? template.default_margin_percentage ?? currentBudget.global_margin_percentage
+						};
+					})
+				};
+			});
+
+			currentBudget.chapters = [...currentBudget.chapters, ...newChapters];
+			persistData(currentBudget);
+			closeLoadTemplateModal();
+			renderChapters();
+			pushTotals();
+			showToast('Plantilla importada', `Se importaron ${newChapters.length} capítulos desde “${template.name}”.`);
+		});
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				closeSaveTemplateModal();
+				closeLoadTemplateModal();
 			}
 		});
 

@@ -12,6 +12,18 @@ import { renderIconSvg } from '../lib/icons';
 			<p class="list-subtitle">
 				Arma cada propuesta por capítulos, controla el costo directo y el margen antes de enviarla al cliente.
 			</p>
+			<div id="budget-main-tabs" class="budget-main-tabs" role="tablist" aria-label="Secciones de presupuestos">
+				<button type="button" id="tab-budgets" class="tab-btn active" role="tab" aria-selected="true" data-tab="budgets">
+					<Fragment set:html={renderIconSvg('fileText', { size: 16 })} />
+					<span>Presupuestos</span>
+					<span id="badge-budgets-count" class="tab-counter">0</span>
+				</button>
+				<button type="button" id="tab-templates" class="tab-btn" role="tab" aria-selected="false" data-tab="templates">
+					<Fragment set:html={renderIconSvg('folder', { size: 16 })} />
+					<span>Plantillas de Presupuesto</span>
+					<span id="badge-templates-count" class="tab-counter">0</span>
+				</button>
+			</div>
 			<p id="budget-list-summary" class="list-summary">Cargando presupuestos...</p>
 		</div>
 
@@ -45,6 +57,11 @@ import { renderIconSvg } from '../lib/icons';
 				<Fragment set:html={renderIconSvg('plus', { size: 17 })} />
 				<span>Nuevo Presupuesto</span>
 			</button>
+
+			<button id="btn-new-template" type="button" class="btn-new-budget hidden">
+				<Fragment set:html={renderIconSvg('plus', { size: 17 })} />
+				<span>Nueva Plantilla</span>
+			</button>
 		</div>
 	</div>
 
@@ -60,6 +77,13 @@ import { renderIconSvg } from '../lib/icons';
 		</div>
 
 		<div class="create-panel-grid">
+			<label for="new-budget-template-select" class="create-field create-field-wide">
+				<span>Partir de una plantilla reutilizable (opcional)</span>
+				<select id="new-budget-template-select" name="template_id">
+					<option value="">En blanco (diseñar capítulos desde cero)</option>
+				</select>
+			</label>
+
 			<label for="new-budget-title" class="create-field create-field-wide">
 				<span>Nombre del presupuesto *</span>
 				<input id="new-budget-title" name="title" type="text" maxlength="90" required minlength="3"
@@ -96,13 +120,24 @@ import { renderIconSvg } from '../lib/icons';
 
 	<div id="budget-cards" class="budget-cards"></div>
 
-	<!-- HU-08: Modal de duplicación como plantilla -->
+	<!-- Sección de Plantillas Reutilizables -->
+	<div id="template-section" class="template-section hidden" aria-label="Biblioteca de plantillas de presupuesto">
+		<div class="template-section-head">
+			<div>
+				<h2 class="template-section-title">Biblioteca de Plantillas</h2>
+				<p class="template-section-desc">Estructuras prediseñadas con capítulos y partidas para presupuestar sin empezar desde cero.</p>
+			</div>
+		</div>
+		<div id="template-cards" class="template-cards"></div>
+	</div>
+
+	<!-- HU-08: Modal de duplicación de presupuesto existente -->
 	<div id="dup-budget-modal" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="dup-modal-title">
 		<div id="dup-modal-scrim" class="dup-scrim"></div>
 		<div class="dup-card">
 			<div class="dup-head">
 				<div>
-					<h2 id="dup-modal-title" class="dup-title">Duplicar como plantilla</h2>
+					<h2 id="dup-modal-title" class="dup-title">Duplicar presupuesto</h2>
 					<p class="dup-subtitle">Crea una copia editable y asígnala a un cliente.</p>
 				</div>
 				<button id="dup-close" type="button" class="dup-close" aria-label="Cerrar modal de duplicación">
@@ -127,11 +162,254 @@ import { renderIconSvg } from '../lib/icons';
 					<input id="dup-sync-prices" type="checkbox" />
 					<span>Copiar costos unitarios vigentes del catálogo maestro</span>
 				</label>
-				<p class="dup-note">Si los insumos cambiaron de precio, marca esta casilla para actualizar los costos; de lo contrario se mantienen los originales de la plantilla.</p>
+				<p class="dup-note">Si los insumos cambiaron de precio, marca esta casilla para actualizar los costos; de lo contrario se mantienen los originales de la copia.</p>
 
 				<div class="dup-actions">
 					<button type="button" id="dup-cancel" class="dup-btn-ghost">Cancelar</button>
 					<button type="submit" class="dup-btn-primary">Duplicar Presupuesto</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Modal para Guardar Presupuesto como Plantilla Reutilizable -->
+	<div id="save-template-modal" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="save-template-modal-title">
+		<div id="save-template-scrim" class="dup-scrim"></div>
+		<div class="dup-card">
+			<div class="dup-head">
+				<div>
+					<h2 id="save-template-modal-title" class="dup-title">Guardar como Plantilla</h2>
+					<p class="dup-subtitle">Guarda la estructura de capítulos y partidas para reutilizarla en nuevos proyectos.</p>
+				</div>
+				<button id="save-template-close" type="button" class="dup-close" aria-label="Cerrar modal de plantilla">
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
+				</button>
+			</div>
+
+			<form id="save-template-form" class="dup-form" novalidate>
+				<input type="hidden" id="save-template-source-id" />
+
+				<label for="save-template-name" class="dup-field">
+					<span>Nombre de la plantilla *</span>
+					<input id="save-template-name" type="text" maxlength="90" required minlength="3" autocomplete="off" placeholder="Ej. Remodelación Baño Estándar (3.5 m²)" />
+				</label>
+
+				<label for="save-template-desc" class="dup-field">
+					<span>Descripción o alcance de la plantilla</span>
+					<input id="save-template-desc" type="text" maxlength="160" autocomplete="off" placeholder="Ej. Demolición, redes hidrosanitarias, enchape y montaje de aparatos" />
+				</label>
+
+				<div class="dup-grid-2">
+					<label for="save-template-category" class="dup-field">
+						<span>Categoría</span>
+						<select id="save-template-category">
+							<option value="Baños">Baños</option>
+							<option value="Cocinas">Cocinas</option>
+							<option value="Pintura y Acabados">Pintura y Acabados</option>
+							<option value="Obra Gris">Obra Gris</option>
+							<option value="Estructura">Estructura</option>
+							<option value="General" selected>General</option>
+						</select>
+					</label>
+
+					<label for="save-template-margin" class="dup-field">
+						<span>Margen sugerido (%)</span>
+						<input id="save-template-margin" type="number" min="0" max="500" step="1" inputmode="decimal" value="30" />
+					</label>
+				</div>
+
+				<div class="dup-grid-2">
+					<label for="save-template-tax-scheme" class="dup-field">
+						<span>Esquema fiscal</span>
+						<select id="save-template-tax-scheme">
+							<option value="iva" selected>Régimen General IVA</option>
+							<option value="aiu">Esquema AIU de Obra</option>
+						</select>
+					</label>
+
+					<label for="save-template-commission" class="dup-field">
+						<span>Comisión comercial (%)</span>
+						<input id="save-template-commission" type="number" min="0" max="100" step="0.5" inputmode="decimal" value="0" />
+					</label>
+				</div>
+
+				<div class="dup-actions">
+					<button type="button" id="save-template-cancel" class="dup-btn-ghost">Cancelar</button>
+					<button type="submit" class="dup-btn-primary">Guardar en Biblioteca</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Modal para Crear Nueva Plantilla desde Cero -->
+	<div id="create-new-template-modal" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="create-new-template-title">
+		<div id="create-new-template-scrim" class="dup-scrim"></div>
+		<div class="dup-card">
+			<div class="dup-head">
+				<div>
+					<h2 id="create-new-template-title" class="dup-title">Nueva Plantilla de Presupuesto</h2>
+					<p class="dup-subtitle">Define las bases de la plantilla y personaliza sus capítulos, partidas e impuestos en el constructor.</p>
+				</div>
+				<button id="create-new-template-close" type="button" class="dup-close" aria-label="Cerrar modal">
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
+				</button>
+			</div>
+
+			<form id="create-new-template-form" class="dup-form" novalidate>
+				<label for="cnt-name" class="dup-field">
+					<span>Nombre de la plantilla *</span>
+					<input id="cnt-name" type="text" maxlength="90" required minlength="3" autocomplete="off" placeholder="Ej. Remodelación Baño Completo" />
+				</label>
+
+				<label for="cnt-desc" class="dup-field">
+					<span>Descripción o alcance</span>
+					<input id="cnt-desc" type="text" maxlength="160" autocomplete="off" placeholder="Ej. Incluye demolición, enchape cerámico y grifería" />
+				</label>
+
+				<div class="dup-grid-2">
+					<label for="cnt-category" class="dup-field">
+						<span>Categoría</span>
+						<select id="cnt-category">
+							<option value="Baños">Baños</option>
+							<option value="Cocinas">Cocinas</option>
+							<option value="Pintura y Acabados">Pintura y Acabados</option>
+							<option value="Obra Gris">Obra Gris</option>
+							<option value="Estructura">Estructura</option>
+							<option value="General" selected>General</option>
+						</select>
+					</label>
+
+					<label for="cnt-margin" class="dup-field">
+						<span>Margen por defecto (%)</span>
+						<input id="cnt-margin" type="number" min="0" max="500" step="1" inputmode="decimal" value="30" />
+					</label>
+				</div>
+
+				<div class="dup-grid-2">
+					<label for="cnt-tax-scheme" class="dup-field">
+						<span>Esquema fiscal</span>
+						<select id="cnt-tax-scheme">
+							<option value="iva" selected>Régimen General IVA (19%)</option>
+							<option value="aiu">Esquema AIU de Obra</option>
+						</select>
+					</label>
+
+					<label for="cnt-commission" class="dup-field">
+						<span>Comisión comercial (%)</span>
+						<input id="cnt-commission" type="number" min="0" max="100" step="0.5" inputmode="decimal" value="0" />
+					</label>
+				</div>
+
+				<div class="dup-actions">
+					<button type="button" id="create-new-template-cancel" class="dup-btn-ghost">Cancelar</button>
+					<button type="submit" class="dup-btn-primary">Crear y Abrir Constructor</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Modal para Crear Presupuesto a partir de Plantilla -->
+	<div id="use-template-modal" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="use-template-modal-title">
+		<div id="use-template-scrim" class="dup-scrim"></div>
+		<div class="dup-card">
+			<div class="dup-head">
+				<div>
+					<h2 id="use-template-modal-title" class="dup-title">Nuevo Presupuesto desde Plantilla</h2>
+					<p id="use-template-modal-subtitle" class="dup-subtitle">Crea un presupuesto con todos los capítulos y partidas precargados.</p>
+				</div>
+				<button id="use-template-close" type="button" class="dup-close" aria-label="Cerrar modal">
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
+				</button>
+			</div>
+
+			<form id="use-template-form" class="dup-form" novalidate>
+				<input type="hidden" id="use-template-id" />
+
+				<label for="use-template-title" class="dup-field">
+					<span>Nombre del nuevo presupuesto *</span>
+					<input id="use-template-title" type="text" maxlength="90" required minlength="3" autocomplete="off" placeholder="Ej. Remodelación Baño — Apto 301" />
+				</label>
+
+				<label for="use-template-lead" class="dup-field">
+					<span>Asociar a cliente / oportunidad</span>
+					<select id="use-template-lead">
+						<option value="">Sin cliente asignado</option>
+					</select>
+				</label>
+
+				<label for="use-template-margin" class="dup-field">
+					<span>Margen global (%)</span>
+					<input id="use-template-margin" type="number" min="0" max="500" step="1" inputmode="decimal" value="30" />
+				</label>
+
+				<label class="dup-check" for="use-template-sync-prices">
+					<input id="use-template-sync-prices" type="checkbox" checked />
+					<span>Actualizar costos unitarios con el catálogo maestro vigente</span>
+				</label>
+				<p class="dup-note">Actualiza los precios de materiales e insumos al valor más reciente configurado en tu catálogo maestro.</p>
+
+				<div class="dup-actions">
+					<button type="button" id="use-template-cancel" class="dup-btn-ghost">Cancelar</button>
+					<button type="submit" class="dup-btn-primary">Crear y Abrir Presupuesto</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Modal para Duplicar Plantilla -->
+	<div id="dup-template-modal" class="dup-modal hidden" role="dialog" aria-modal="true" aria-labelledby="dup-template-title">
+		<div id="dup-template-scrim" class="dup-scrim"></div>
+		<div class="dup-card">
+			<div class="dup-head">
+				<div>
+					<h2 id="dup-template-title" class="dup-title">Duplicar Plantilla</h2>
+					<p class="dup-subtitle">Crea una copia editable para personalizar capítulos, partidas o márgenes.</p>
+				</div>
+				<button id="dup-template-close" type="button" class="dup-close" aria-label="Cerrar modal">
+					<Fragment set:html={renderIconSvg('x', { size: 17 })} />
+				</button>
+			</div>
+
+			<form id="dup-template-form" class="dup-form" novalidate>
+				<input type="hidden" id="dup-template-source-id" />
+
+				<label for="dup-tpl-name" class="dup-field">
+					<span>Nombre de la nueva plantilla *</span>
+					<input id="dup-tpl-name" type="text" maxlength="90" required minlength="3" autocomplete="off" />
+				</label>
+
+				<label for="dup-tpl-desc" class="dup-field">
+					<span>Descripción o alcance</span>
+					<input id="dup-tpl-desc" type="text" maxlength="160" autocomplete="off" />
+				</label>
+
+				<div class="dup-grid-2">
+					<label for="dup-tpl-category" class="dup-field">
+						<span>Categoría</span>
+						<select id="dup-tpl-category">
+							<option value="Baños">Baños</option>
+							<option value="Cocinas">Cocinas</option>
+							<option value="Pintura y Acabados">Pintura y Acabados</option>
+							<option value="Obra Gris">Obra Gris</option>
+							<option value="Estructura">Estructura</option>
+							<option value="General" selected>General</option>
+						</select>
+					</label>
+
+					<label for="dup-tpl-margin" class="dup-field">
+						<span>Margen sugerido (%)</span>
+						<input id="dup-tpl-margin" type="number" min="0" max="500" step="1" inputmode="decimal" value="30" />
+					</label>
+				</div>
+
+				<label class="dup-check" for="dup-tpl-sync-prices">
+					<input id="dup-tpl-sync-prices" type="checkbox" checked />
+					<span>Actualizar costos con precios vigentes del catálogo</span>
+				</label>
+
+				<div class="dup-actions">
+					<button type="button" id="dup-template-cancel" class="dup-btn-ghost">Cancelar</button>
+					<button type="submit" class="dup-btn-primary">Duplicar Plantilla</button>
 				</div>
 			</form>
 		</div>
@@ -1037,6 +1315,338 @@ import { renderIconSvg } from '../lib/icons';
 		outline: 2px solid #F97316;
 		outline-offset: 2px;
 	}
+
+	.dup-grid-2 {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	@media (max-width: 500px) {
+		.dup-grid-2 {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* Tabs de cabecera */
+	.budget-main-tabs {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem;
+		background-color: #F1F5F9;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.625rem;
+		margin-top: 0.75rem;
+		width: fit-content;
+	}
+
+	.tab-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 40px;
+		padding: 0.375rem 0.875rem;
+		border-radius: 0.5rem;
+		border: none;
+		background: transparent;
+		color: #64748B;
+		font-family: var(--font-sans);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.tab-btn:hover {
+		color: #0F172A;
+	}
+
+	.tab-btn.active {
+		background-color: #FFFFFF;
+		color: #0F172A;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+	}
+
+	.tab-counter {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.25rem;
+		height: 1.25rem;
+		padding: 0 0.375rem;
+		border-radius: 9999px;
+		background-color: #E2E8F0;
+		color: #334155;
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 700;
+	}
+
+	.tab-btn.active .tab-counter {
+		background-color: #0F172A;
+		color: #FFFFFF;
+	}
+
+	/* Sección de Plantillas */
+	.template-section {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.template-section-head {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		padding-bottom: 0.25rem;
+	}
+
+	.template-section-title {
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: #0F172A;
+		letter-spacing: -0.02em;
+	}
+
+	.template-section-desc {
+		font-size: 0.8125rem;
+		color: #64748B;
+		margin-top: 0.25rem;
+	}
+
+	.template-cards {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.template-cards {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (min-width: 1100px) {
+		.template-cards {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.template-card {
+		background-color: #FFFFFF;
+		border: 1.5px solid #E2E8F0;
+		border-radius: 0.875rem;
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+		transition: all 0.15s ease;
+	}
+
+	.template-card:hover {
+		border-color: #CBD5E1;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+	}
+
+	.template-card-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.template-category-badge {
+		font-size: 0.6875rem;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.375rem;
+		background-color: #EFF6FF;
+		color: #1D4ED8;
+		border: 1px solid #BFDBFE;
+	}
+
+	.template-builtin-badge {
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 0.15rem 0.45rem;
+		border-radius: 9999px;
+		background-color: #FEF3C7;
+		color: #92400E;
+		border: 1px solid #FDE68A;
+	}
+
+	.template-card-title {
+		font-size: 1.0625rem;
+		font-weight: 800;
+		color: #0F172A;
+		line-height: 1.3;
+	}
+
+	.template-card-desc {
+		font-size: 0.8125rem;
+		color: #64748B;
+		line-height: 1.45;
+		flex: 1;
+	}
+
+	.template-card-stats {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background-color: #F8FAFC;
+		border: 1px solid #E2E8F0;
+		border-radius: 0.5rem;
+		font-size: 0.75rem;
+		color: #334155;
+		font-family: var(--font-mono);
+	}
+
+	.template-card-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: auto;
+	}
+
+	.btn-use-template {
+		flex: 1;
+		min-height: 48px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid #F97316;
+		background-color: #F97316;
+		color: #FFFFFF;
+		font-family: var(--font-sans);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.btn-use-template:hover {
+		background-color: #EA580C;
+		border-color: #EA580C;
+	}
+
+	.btn-delete-template {
+		width: 48px;
+		height: 48px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background: #FFFFFF;
+		color: #64748B;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.btn-delete-template:hover {
+		background-color: #FEF2F2;
+		border-color: #FECACA;
+		color: #DC2626;
+	}
+
+	.btn-dup-template {
+		width: 48px;
+		height: 48px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background: #FFFFFF;
+		color: #475569;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		flex-shrink: 0;
+	}
+
+	.btn-dup-template:hover {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+		color: #0F172A;
+	}
+
+	.btn-dup-template:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.btn-edit-template {
+		min-height: 48px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.5rem;
+		border: 1px solid #CBD5E1;
+		background: #FFFFFF;
+		color: #0F172A;
+		font-family: var(--font-sans);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		white-space: nowrap;
+	}
+
+	.btn-edit-template:hover {
+		background-color: #F8FAFC;
+		border-color: #94A3B8;
+	}
+
+	.btn-edit-template:focus-visible {
+		outline: 2px solid #F97316;
+		outline-offset: 2px;
+	}
+
+	.template-tax-badge {
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 0.15rem 0.45rem;
+		border-radius: 9999px;
+		background-color: #F1F5F9;
+		color: #475569;
+		border: 1px solid #E2E8F0;
+	}
+
+	.template-empty {
+		grid-column: 1 / -1;
+		background: #FFFFFF;
+		border: 1px dashed #CBD5E1;
+		border-radius: 0.875rem;
+		padding: 2.5rem 1rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.template-empty-text {
+		font-size: 0.875rem;
+		color: #64748B;
+	}
 </style>
 
 <script>
@@ -1044,6 +1654,18 @@ import { renderIconSvg } from '../lib/icons';
 	
 	import { calcTax, calcTotals, formatMoney } from '../lib/budget-math';
 	import { createBudget, deleteBudget, duplicateBudget, loadBudgets, persistBudget, type Budget } from '../lib/budget-store';
+	import {
+		loadBudgetTemplates,
+		createBudgetTemplate,
+		createTemplateFromBudget,
+		createBudgetFromTemplate,
+		deleteBudgetTemplate,
+		updateBudgetTemplate,
+		duplicateBudgetTemplate,
+		DEFAULT_BUDGET_TEMPLATES,
+		saveBudgetTemplates,
+		type BudgetTemplate
+	} from '../lib/budget-templates';
 
 	interface LeadOption {
 		id: string;
@@ -1056,12 +1678,23 @@ import { renderIconSvg } from '../lib/icons';
 	const summaryEl = document.getElementById('budget-list-summary');
 	const createPanel = document.getElementById('budget-create-form') as HTMLFormElement | null;
 	const newBudgetBtn = document.getElementById('btn-new-budget');
+	const newTemplateBtn = document.getElementById('btn-new-template');
 	const emptyCreateBtn = document.getElementById('btn-empty-create-budget');
 	const closeCreateBtn = document.getElementById('btn-close-create-budget');
 	const cancelCreateBtn = document.getElementById('btn-cancel-create-budget');
 	const titleInput = document.getElementById('new-budget-title') as HTMLInputElement | null;
 	const leadSelect = document.getElementById('new-budget-lead') as HTMLSelectElement | null;
 	const marginInput = document.getElementById('new-budget-margin') as HTMLInputElement | null;
+	const templateSelect = document.getElementById('new-budget-template-select') as HTMLSelectElement | null;
+
+	// Tabs
+	const tabBudgetsBtn = document.getElementById('tab-budgets');
+	const tabTemplatesBtn = document.getElementById('tab-templates');
+	const badgeBudgetsCount = document.getElementById('badge-budgets-count');
+	const badgeTemplatesCount = document.getElementById('badge-templates-count');
+	const viewToggleContainer = document.getElementById('budget-view-toggle');
+	const templateSection = document.getElementById('template-section');
+	const templateCardsContainer = document.getElementById('template-cards');
 
 	// HU-08: modal de duplicación
 	const dupModal = document.getElementById('dup-budget-modal');
@@ -1073,9 +1706,64 @@ import { renderIconSvg } from '../lib/icons';
 	const dupLeadSelect = document.getElementById('dup-lead-select') as HTMLSelectElement | null;
 	const dupSyncInput = document.getElementById('dup-sync-prices') as HTMLInputElement | null;
 
+	// Modal para guardar como plantilla
+	const saveTemplateModal = document.getElementById('save-template-modal');
+	const saveTemplateScrim = document.getElementById('save-template-scrim');
+	const saveTemplateClose = document.getElementById('save-template-close');
+	const saveTemplateCancel = document.getElementById('save-template-cancel');
+	const saveTemplateForm = document.getElementById('save-template-form') as HTMLFormElement | null;
+	const saveTemplateSourceId = document.getElementById('save-template-source-id') as HTMLInputElement | null;
+	const saveTemplateName = document.getElementById('save-template-name') as HTMLInputElement | null;
+	const saveTemplateDesc = document.getElementById('save-template-desc') as HTMLInputElement | null;
+	const saveTemplateCategory = document.getElementById('save-template-category') as HTMLSelectElement | null;
+	const saveTemplateMargin = document.getElementById('save-template-margin') as HTMLInputElement | null;
+	const saveTemplateTaxScheme = document.getElementById('save-template-tax-scheme') as HTMLSelectElement | null;
+	const saveTemplateCommission = document.getElementById('save-template-commission') as HTMLInputElement | null;
+
+	// Modal para crear nueva plantilla desde cero
+	const createNewTemplateModal = document.getElementById('create-new-template-modal');
+	const createNewTemplateScrim = document.getElementById('create-new-template-scrim');
+	const createNewTemplateClose = document.getElementById('create-new-template-close');
+	const createNewTemplateCancel = document.getElementById('create-new-template-cancel');
+	const createNewTemplateForm = document.getElementById('create-new-template-form') as HTMLFormElement | null;
+	const cntName = document.getElementById('cnt-name') as HTMLInputElement | null;
+	const cntDesc = document.getElementById('cnt-desc') as HTMLInputElement | null;
+	const cntCategory = document.getElementById('cnt-category') as HTMLSelectElement | null;
+	const cntMargin = document.getElementById('cnt-margin') as HTMLInputElement | null;
+	const cntTaxScheme = document.getElementById('cnt-tax-scheme') as HTMLSelectElement | null;
+	const cntCommission = document.getElementById('cnt-commission') as HTMLInputElement | null;
+
+	// Modal para usar plantilla
+	const useTemplateModal = document.getElementById('use-template-modal');
+	const useTemplateScrim = document.getElementById('use-template-scrim');
+	const useTemplateClose = document.getElementById('use-template-close');
+	const useTemplateCancel = document.getElementById('use-template-cancel');
+	const useTemplateForm = document.getElementById('use-template-form') as HTMLFormElement | null;
+	const useTemplateIdInput = document.getElementById('use-template-id') as HTMLInputElement | null;
+	const useTemplateTitle = document.getElementById('use-template-title') as HTMLInputElement | null;
+	const useTemplateLead = document.getElementById('use-template-lead') as HTMLSelectElement | null;
+	const useTemplateMargin = document.getElementById('use-template-margin') as HTMLInputElement | null;
+	const useTemplateSyncPrices = document.getElementById('use-template-sync-prices') as HTMLInputElement | null;
+	const useTemplateSubtitle = document.getElementById('use-template-modal-subtitle');
+
+	// Modal para duplicar plantilla
+	const dupTemplateModal = document.getElementById('dup-template-modal');
+	const dupTemplateScrim = document.getElementById('dup-template-scrim');
+	const dupTemplateClose = document.getElementById('dup-template-close');
+	const dupTemplateCancel = document.getElementById('dup-template-cancel');
+	const dupTemplateForm = document.getElementById('dup-template-form') as HTMLFormElement | null;
+	const dupTemplateSourceId = document.getElementById('dup-template-source-id') as HTMLInputElement | null;
+	const dupTplName = document.getElementById('dup-tpl-name') as HTMLInputElement | null;
+	const dupTplDesc = document.getElementById('dup-tpl-desc') as HTMLInputElement | null;
+	const dupTplCategory = document.getElementById('dup-tpl-category') as HTMLSelectElement | null;
+	const dupTplMargin = document.getElementById('dup-tpl-margin') as HTMLInputElement | null;
+	const dupTplSyncPrices = document.getElementById('dup-tpl-sync-prices') as HTMLInputElement | null;
+
 	let budgets: Budget[] = loadBudgets();
+	let templates: BudgetTemplate[] = loadBudgetTemplates();
 	let confirmDeleteId: string | null = null;
 	let duplicatingBudgetId: string | null = null;
+	let currentTab: 'budgets' | 'templates' = 'budgets';
 
 	// Vista del listado: 'cards' | 'list' (persistida en el dispositivo)
 	const BUDGET_VIEW_KEY = 'obraflow_budgets_view';
@@ -1119,7 +1807,28 @@ import { renderIconSvg } from '../lib/icons';
 
 	function populateLeadSelect() {
 		fillLeadSelect(leadSelect);
+		fillLeadSelect(useTemplateLead);
+		fillLeadSelect(dupLeadSelect);
 	}
+
+	function populateTemplateSelect() {
+		if (!templateSelect) return;
+		templates = loadBudgetTemplates();
+		templateSelect.innerHTML = '<option value="">En blanco (diseñar capítulos desde cero)</option>' +
+			templates.map((tpl) => {
+				const itemsCount = tpl.chapters.reduce((sum, ch) => sum + ch.items.length, 0);
+				return `<option value="${escapeHtml(tpl.id)}" data-margin="${tpl.default_margin_percentage}" data-name="${escapeHtml(tpl.name)}">${escapeHtml(tpl.name)} (${tpl.chapters.length} cap / ${itemsCount} part)</option>`;
+			}).join('');
+	}
+
+	templateSelect?.addEventListener('change', () => {
+		const selectedOption = templateSelect.selectedOptions[0];
+		if (!selectedOption || !selectedOption.value) return;
+		const defaultMargin = selectedOption.dataset.margin;
+		const defaultName = selectedOption.dataset.name;
+		if (defaultMargin && marginInput) marginInput.value = defaultMargin;
+		if (defaultName && titleInput && !titleInput.value) titleInput.value = defaultName;
+	});
 
 	function statusMeta(status: Budget['status']): { label: string; className: string } {
 		if (status === 'sent') return { label: 'Enviado', className: 'status-sent' };
@@ -1151,19 +1860,30 @@ import { renderIconSvg } from '../lib/icons';
 
 	function render() {
 		budgets = loadBudgets();
+		templates = loadBudgetTemplates();
+
+		if (badgeBudgetsCount) badgeBudgetsCount.textContent = String(budgets.length);
+		if (badgeTemplatesCount) badgeTemplatesCount.textContent = String(templates.length);
+
 		const totalSale = budgets.reduce((sum, budget) => {
 			return sum + budgetTax(budget).grandTotal;
 		}, 0);
 
 		if (summaryEl) {
-			summaryEl.textContent = budgets.length === 0
-				? 'Sin presupuestos guardados en este dispositivo.'
-				: `${budgets.length} ${budgets.length === 1 ? 'presupuesto' : 'presupuestos'} · ${formatMoney(totalSale)} en propuestas`;
+			if (currentTab === 'budgets') {
+				summaryEl.textContent = budgets.length === 0
+					? 'Sin presupuestos guardados en este dispositivo.'
+					: `${budgets.length} ${budgets.length === 1 ? 'presupuesto' : 'presupuestos'} · ${formatMoney(totalSale)} en propuestas`;
+			} else {
+				summaryEl.textContent = `${templates.length} ${templates.length === 1 ? 'plantilla disponible' : 'plantillas disponibles'} para cotizaciones rápidas`;
+			}
 		}
 
 		if (!cardsContainer) return;
-		emptyState?.classList.toggle('hidden', budgets.length > 0);
-		cardsContainer.classList.toggle('hidden', budgets.length === 0);
+		if (currentTab === 'budgets') {
+			emptyState?.classList.toggle('hidden', budgets.length > 0);
+			cardsContainer.classList.toggle('hidden', budgets.length === 0);
+		}
 
 		const isList = viewMode === 'list';
 		cardsContainer.classList.toggle('view-list', isList);
@@ -1191,8 +1911,14 @@ import { renderIconSvg } from '../lib/icons';
 					`;
 				}
 
+				const saveTemplateButton = `
+					<button type="button" class="card-icon-btn" data-action="save-budget-as-template" title="Guardar como plantilla reutilizable" aria-label="Guardar ${safeTitle} como plantilla">
+						${renderIconSvg("folder", { size: 16 })}
+					</button>
+				`;
+
 				const duplicateButton = `
-					<button type="button" class="card-icon-btn" data-action="duplicate-budget" title="Duplicar como plantilla" aria-label="Duplicar presupuesto ${safeTitle}">
+					<button type="button" class="card-icon-btn" data-action="duplicate-budget" title="Duplicar presupuesto" aria-label="Duplicar presupuesto ${safeTitle}">
 						${renderIconSvg("copy", { size: 16 })}
 					</button>
 				`;
@@ -1203,7 +1929,7 @@ import { renderIconSvg } from '../lib/icons';
 					</button>
 				`;
 
-				const cardActions = `<div class="card-icon-actions">${duplicateButton}${deleteButton}</div>`;
+				const cardActions = `<div class="card-icon-actions">${saveTemplateButton}${duplicateButton}${deleteButton}</div>`;
 
 				if (isList) {
 					return `
@@ -1268,10 +1994,156 @@ import { renderIconSvg } from '../lib/icons';
 			.join('');
 	}
 
+	function renderTemplates() {
+		templates = loadBudgetTemplates();
+		if (badgeTemplatesCount) badgeTemplatesCount.textContent = String(templates.length);
+		if (!templateCardsContainer) return;
+
+		if (templates.length === 0) {
+			templateCardsContainer.innerHTML = `
+				<div class="template-empty">
+					<p class="template-empty-text">No hay plantillas guardadas en este dispositivo.</p>
+					<button type="button" id="btn-restore-default-templates" class="btn-primary">Restaurar plantillas sugeridas</button>
+				</div>
+			`;
+			const restoreBtn = document.getElementById('btn-restore-default-templates');
+			restoreBtn?.addEventListener('click', () => {
+				saveBudgetTemplates(DEFAULT_BUDGET_TEMPLATES);
+				renderTemplates();
+				populateTemplateSelect();
+				window.dispatchEvent(new CustomEvent('show-toast', {
+					detail: { title: 'Plantillas restauradas', message: 'Se cargaron las 3 plantillas de presupuesto sugeridas.', type: 'success' }
+				}));
+			});
+			return;
+		}
+
+		templateCardsContainer.innerHTML = templates.map((tpl) => {
+			const totalItems = tpl.chapters.reduce((sum, ch) => sum + ch.items.length, 0);
+			const safeName = escapeHtml(tpl.name);
+			const safeDesc = escapeHtml(tpl.description || 'Estructura reutilizable de presupuesto lista para usar.');
+			const safeCategory = escapeHtml(tpl.category || 'General');
+			const taxBadgeText = tpl.tax_scheme === 'aiu' ? 'Esquema AIU' : `IVA ${tpl.vat_percentage ?? 19}%`;
+			const commissionText = tpl.seller_commission_percentage ? ` · Comisión <strong>${tpl.seller_commission_percentage}%</strong>` : '';
+
+			return `
+				<article class="template-card" id="template-card-${tpl.id}" data-template-id="${tpl.id}">
+					<div class="template-card-top">
+						<div style="display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap;">
+							<span class="template-category-badge">${safeCategory}</span>
+							<span class="template-tax-badge">${taxBadgeText}</span>
+						</div>
+						${tpl.is_builtin ? '<span class="template-builtin-badge">Sugerida</span>' : ''}
+					</div>
+					<h3 class="template-card-title">${safeName}</h3>
+					<p class="template-card-desc">${safeDesc}</p>
+					<div class="template-card-stats">
+						<span><strong>${tpl.chapters.length}</strong> cap.</span>
+						<span>·</span>
+						<span><strong>${totalItems}</strong> part.</span>
+						<span>·</span>
+						<span>Margen <strong>${tpl.default_margin_percentage}%</strong></span>
+						${commissionText}
+					</div>
+					<div class="template-card-actions">
+						<button type="button" class="btn-use-template" data-action="use-template" data-template-id="${tpl.id}">
+							${renderIconSvg('plus', { size: 15 })}
+							<span>Usar Plantilla</span>
+						</button>
+						<a href="/budgets/editor?templateId=${encodeURIComponent(tpl.id)}" class="btn-edit-template" title="Editar capítulos, partidas, impuestos y comisiones de esta plantilla">
+							${renderIconSvg('edit', { size: 15 })}
+							<span>Editar</span>
+						</a>
+						<button type="button" class="btn-dup-template" data-action="duplicate-template" data-template-id="${tpl.id}" title="Duplicar plantilla" aria-label="Duplicar plantilla ${safeName}">
+							${renderIconSvg('copy', { size: 16 })}
+						</button>
+						${!tpl.is_builtin ? `
+							<button type="button" class="btn-delete-template" data-action="delete-template" data-template-id="${tpl.id}" title="Eliminar plantilla" aria-label="Eliminar plantilla ${safeName}">
+								${renderIconSvg('trash', { size: 16 })}
+							</button>
+						` : ''}
+					</div>
+				</article>
+			`;
+		}).join('');
+	}
+
+	function switchTab(tab: 'budgets' | 'templates') {
+		currentTab = tab;
+		const isBudgets = tab === 'budgets';
+		tabBudgetsBtn?.classList.toggle('active', isBudgets);
+		tabBudgetsBtn?.setAttribute('aria-selected', String(isBudgets));
+		tabTemplatesBtn?.classList.toggle('active', !isBudgets);
+		tabTemplatesBtn?.setAttribute('aria-selected', String(!isBudgets));
+
+		viewToggleContainer?.classList.toggle('hidden', !isBudgets);
+		newBudgetBtn?.classList.toggle('hidden', !isBudgets);
+		newTemplateBtn?.classList.toggle('hidden', isBudgets);
+
+		templateSection?.classList.toggle('hidden', isBudgets);
+		cardsContainer?.classList.toggle('hidden', !isBudgets || budgets.length === 0);
+		emptyState?.classList.toggle('hidden', !isBudgets || budgets.length > 0);
+
+		if (isBudgets) {
+			render();
+		} else {
+			renderTemplates();
+		}
+	}
+
+	function openCreateNewTemplateModal() {
+		createNewTemplateModal?.classList.remove('hidden');
+		setTimeout(() => cntName?.focus(), 40);
+	}
+
+	function closeCreateNewTemplateModal() {
+		createNewTemplateModal?.classList.add('hidden');
+		createNewTemplateForm?.reset();
+		if (cntMargin) cntMargin.value = '30';
+		if (cntCommission) cntCommission.value = '0';
+	}
+
+	tabBudgetsBtn?.addEventListener('click', () => switchTab('budgets'));
+	tabTemplatesBtn?.addEventListener('click', () => switchTab('templates'));
+	newTemplateBtn?.addEventListener('click', openCreateNewTemplateModal);
+	createNewTemplateClose?.addEventListener('click', closeCreateNewTemplateModal);
+	createNewTemplateCancel?.addEventListener('click', closeCreateNewTemplateModal);
+	createNewTemplateScrim?.addEventListener('click', closeCreateNewTemplateModal);
+
+	createNewTemplateForm?.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const name = cntName?.value.trim() ?? '';
+		if (name.length < 3) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: { title: 'Nombre requerido', message: 'Escribe un nombre de al menos 3 caracteres.', type: 'warning' }
+			}));
+			cntName?.focus();
+			return;
+		}
+
+		const description = cntDesc?.value.trim() || undefined;
+		const category = cntCategory?.value || 'General';
+		const margin = parseFloat(cntMargin?.value ?? '30') || 30;
+		const taxScheme = (cntTaxScheme?.value === 'aiu' ? 'aiu' : 'iva') as 'iva' | 'aiu';
+		const commission = parseFloat(cntCommission?.value ?? '0') || 0;
+
+		const newTpl = createBudgetTemplate({
+			name,
+			description,
+			category,
+			default_margin_percentage: margin,
+			tax_scheme: taxScheme,
+			seller_commission_percentage: commission
+		});
+
+		window.location.href = `/budgets/editor?templateId=${encodeURIComponent(newTpl.id)}`;
+	});
+
 	function openCreatePanel() {
 		createPanel?.classList.remove('hidden');
 		newBudgetBtn?.classList.add('hidden');
 		populateLeadSelect();
+		populateTemplateSelect();
 		titleInput?.focus();
 	}
 
@@ -1301,6 +2173,21 @@ import { renderIconSvg } from '../lib/icons';
 		const leadId = leadSelect?.value || undefined;
 		const selectedLead = leadId ? loadLeadOptions().find((lead) => lead.id === leadId) : undefined;
 		const margin = Math.max(0, Math.min(500, parseFloat(marginInput?.value ?? '30') || 30));
+		const templateId = templateSelect?.value;
+
+		if (templateId) {
+			const budget = createBudgetFromTemplate({
+				templateId,
+				title,
+				lead_id: leadId,
+				client_name: selectedLead?.client_name,
+				global_margin_percentage: margin,
+				syncCatalogPrices: true
+			});
+			persistBudget(budget);
+			window.location.href = `/budgets/editor?id=${encodeURIComponent(budget.id)}`;
+			return;
+		}
 
 		const budget = createBudget({
 			title,
@@ -1320,6 +2207,12 @@ import { renderIconSvg } from '../lib/icons';
 		const action = target.dataset.action;
 		const card = target.closest<HTMLElement>('[data-budget-id]');
 		const budgetId = card?.dataset.budgetId ?? '';
+
+		if (action === 'save-budget-as-template') {
+			const source = budgets.find((b) => b.id === budgetId);
+			if (source) openSaveTemplateModal(source);
+			return;
+		}
 
 		if (action === 'duplicate-budget') {
 			openDuplicateModal(budgetId);
@@ -1349,6 +2242,33 @@ import { renderIconSvg } from '../lib/icons';
 		}
 	});
 
+	templateCardsContainer?.addEventListener('click', (event) => {
+		const target = (event.target as HTMLElement).closest<HTMLElement>('[data-action]');
+		if (!target) return;
+
+		const action = target.dataset.action;
+		const templateId = target.dataset.templateId ?? '';
+
+		if (action === 'use-template') {
+			openUseTemplateModal(templateId);
+			return;
+		}
+
+		if (action === 'duplicate-template') {
+			openDuplicateTemplateModal(templateId);
+			return;
+		}
+
+		if (action === 'delete-template') {
+			deleteBudgetTemplate(templateId);
+			renderTemplates();
+			populateTemplateSelect();
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: { title: 'Plantilla eliminada', message: 'La plantilla personalizada se quitó de la biblioteca.', type: 'success' }
+			}));
+		}
+	});
+
 	const cardsViewBtn = document.getElementById('budget-view-cards');
 	const listViewBtn = document.getElementById('budget-view-list');
 
@@ -1372,7 +2292,7 @@ import { renderIconSvg } from '../lib/icons';
 	cardsViewBtn?.addEventListener('click', () => setView('cards'));
 	listViewBtn?.addEventListener('click', () => setView('list'));
 
-	// HU-08: duplicar presupuesto como plantilla
+	// HU-08: duplicar presupuesto como copia
 	function openDuplicateModal(budgetId: string) {
 		const source = budgets.find((entry) => entry.id === budgetId);
 		if (!source) return;
@@ -1422,16 +2342,210 @@ import { renderIconSvg } from '../lib/icons';
 		window.location.href = `/budgets/editor?id=${encodeURIComponent(clone.id)}&duplicated=1`;
 	});
 
+	// Modal Guardar como Plantilla
+	function openSaveTemplateModal(source: Budget) {
+		if (saveTemplateSourceId) saveTemplateSourceId.value = source.id;
+		if (saveTemplateName) saveTemplateName.value = `Plantilla: ${source.title}`;
+		if (saveTemplateDesc) saveTemplateDesc.value = `Estructura de ${source.chapters.length} capítulos y ${source.chapters.flatMap(c => c.items).length} partidas.`;
+		if (saveTemplateMargin) saveTemplateMargin.value = String(source.global_margin_percentage);
+		if (saveTemplateTaxScheme) saveTemplateTaxScheme.value = source.tax_scheme || 'iva';
+		if (saveTemplateCommission) saveTemplateCommission.value = String(source.seller_commission_percentage ?? 0);
+		saveTemplateModal?.classList.remove('hidden');
+		setTimeout(() => saveTemplateName?.focus(), 40);
+	}
+
+	function closeSaveTemplateModal() {
+		saveTemplateModal?.classList.add('hidden');
+		saveTemplateForm?.reset();
+	}
+
+	saveTemplateClose?.addEventListener('click', closeSaveTemplateModal);
+	saveTemplateCancel?.addEventListener('click', closeSaveTemplateModal);
+	saveTemplateScrim?.addEventListener('click', closeSaveTemplateModal);
+
+	saveTemplateForm?.addEventListener('submit', (event) => {
+		event.preventDefault();
+		const sourceId = saveTemplateSourceId?.value;
+		const source = budgets.find((b) => b.id === sourceId);
+		if (!source) return;
+
+		const name = saveTemplateName?.value.trim() ?? '';
+		if (name.length < 3) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: { title: 'Nombre requerido', message: 'Escribe un nombre para la plantilla de al menos 3 caracteres.', type: 'warning' }
+			}));
+			saveTemplateName?.focus();
+			return;
+		}
+
+		const desc = saveTemplateDesc?.value.trim() || undefined;
+		const category = saveTemplateCategory?.value || 'General';
+		const margin = parseFloat(saveTemplateMargin?.value ?? '30') || 30;
+		const taxScheme = (saveTemplateTaxScheme?.value === 'aiu' ? 'aiu' : 'iva') as 'iva' | 'aiu';
+		const commission = parseFloat(saveTemplateCommission?.value ?? '0') || 0;
+
+		const newTpl = createTemplateFromBudget(source, {
+			name,
+			description: desc,
+			category,
+			defaultMarginPercentage: margin
+		});
+		newTpl.tax_scheme = taxScheme;
+		newTpl.seller_commission_percentage = commission;
+		updateBudgetTemplate(newTpl);
+
+		closeSaveTemplateModal();
+		renderTemplates();
+		populateTemplateSelect();
+		window.dispatchEvent(new CustomEvent('show-toast', {
+			detail: { title: 'Plantilla guardada', message: `“${newTpl.name}” está lista en tu biblioteca de plantillas.`, type: 'success' }
+		}));
+	});
+
+	// Modal Usar Plantilla
+	function openUseTemplateModal(templateId: string) {
+		const tpl = templates.find((t) => t.id === templateId);
+		if (!tpl) return;
+
+		if (useTemplateIdInput) useTemplateIdInput.value = tpl.id;
+		if (useTemplateTitle) useTemplateTitle.value = `${tpl.name} — Obra`;
+		if (useTemplateMargin) useTemplateMargin.value = String(tpl.default_margin_percentage);
+		if (useTemplateSubtitle) useTemplateSubtitle.textContent = `Plantilla: ${tpl.name} (${tpl.chapters.length} capítulos).`;
+		fillLeadSelect(useTemplateLead);
+		if (useTemplateSyncPrices) useTemplateSyncPrices.checked = true;
+
+		useTemplateModal?.classList.remove('hidden');
+		setTimeout(() => useTemplateTitle?.focus(), 40);
+	}
+
+	function closeUseTemplateModal() {
+		useTemplateModal?.classList.add('hidden');
+		useTemplateForm?.reset();
+	}
+
+	useTemplateClose?.addEventListener('click', closeUseTemplateModal);
+	useTemplateCancel?.addEventListener('click', closeUseTemplateModal);
+	useTemplateScrim?.addEventListener('click', closeUseTemplateModal);
+
+	useTemplateForm?.addEventListener('submit', (event) => {
+		event.preventDefault();
+		const templateId = useTemplateIdInput?.value;
+		if (!templateId) return;
+
+		const title = useTemplateTitle?.value.trim() ?? '';
+		if (title.length < 3) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: { title: 'Nombre requerido', message: 'Escribe un nombre de al menos 3 caracteres.', type: 'warning' }
+			}));
+			useTemplateTitle?.focus();
+			return;
+		}
+
+		const leadId = useTemplateLead?.value || undefined;
+		const selectedLead = leadId ? loadLeadOptions().find((lead) => lead.id === leadId) : undefined;
+		const margin = parseFloat(useTemplateMargin?.value ?? '30') || 30;
+
+		const budget = createBudgetFromTemplate({
+			templateId,
+			title,
+			lead_id: leadId,
+			client_name: selectedLead?.client_name,
+			global_margin_percentage: margin,
+			syncCatalogPrices: Boolean(useTemplateSyncPrices?.checked)
+		});
+
+		persistBudget(budget);
+		window.location.href = `/budgets/editor?id=${encodeURIComponent(budget.id)}`;
+	});
+
+	// Modal Duplicar Plantilla
+	function openDuplicateTemplateModal(templateId: string) {
+		const tpl = templates.find((t) => t.id === templateId);
+		if (!tpl) return;
+
+		if (dupTemplateSourceId) dupTemplateSourceId.value = tpl.id;
+		if (dupTplName) dupTplName.value = `Copia de ${tpl.name}`;
+		if (dupTplDesc) dupTplDesc.value = tpl.description || '';
+		if (dupTplCategory) dupTplCategory.value = tpl.category || 'General';
+		if (dupTplMargin) dupTplMargin.value = String(tpl.default_margin_percentage ?? 30);
+		if (dupTplSyncPrices) dupTplSyncPrices.checked = true;
+
+		dupTemplateModal?.classList.remove('hidden');
+		setTimeout(() => dupTplName?.focus(), 40);
+	}
+
+	function closeDuplicateTemplateModal() {
+		dupTemplateModal?.classList.add('hidden');
+		dupTemplateForm?.reset();
+	}
+
+	dupTemplateClose?.addEventListener('click', closeDuplicateTemplateModal);
+	dupTemplateCancel?.addEventListener('click', closeDuplicateTemplateModal);
+	dupTemplateScrim?.addEventListener('click', closeDuplicateTemplateModal);
+
+	dupTemplateForm?.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const sourceId = dupTemplateSourceId?.value;
+		if (!sourceId) return;
+
+		const name = dupTplName?.value.trim() ?? '';
+		if (name.length < 3) {
+			window.dispatchEvent(new CustomEvent('show-toast', {
+				detail: { title: 'Nombre requerido', message: 'Escribe un nombre de al menos 3 caracteres.', type: 'warning' }
+			}));
+			dupTplName?.focus();
+			return;
+		}
+
+		const description = dupTplDesc?.value.trim() || undefined;
+		const category = dupTplCategory?.value || 'General';
+		const margin = parseFloat(dupTplMargin?.value ?? '30') || 30;
+		const syncPrices = Boolean(dupTplSyncPrices?.checked);
+
+		const duplicate = duplicateBudgetTemplate({
+			sourceId,
+			name,
+			description,
+			category,
+			default_margin_percentage: margin,
+			syncCatalogPrices: syncPrices
+		});
+
+		closeDuplicateTemplateModal();
+		renderTemplates();
+		populateTemplateSelect();
+		window.dispatchEvent(new CustomEvent('show-toast', {
+			detail: {
+				title: 'Plantilla duplicada',
+				message: `“${duplicate.name}” está lista en tu biblioteca de plantillas.`,
+				type: 'success'
+			}
+		}));
+	});
+
 	window.addEventListener('keydown', (event) => {
-		if (event.key === 'Escape' && dupModal && !dupModal.classList.contains('hidden')) {
-			closeDuplicateModal();
+		if (event.key === 'Escape') {
+			if (dupModal && !dupModal.classList.contains('hidden')) closeDuplicateModal();
+			if (saveTemplateModal && !saveTemplateModal.classList.contains('hidden')) closeSaveTemplateModal();
+			if (useTemplateModal && !useTemplateModal.classList.contains('hidden')) closeUseTemplateModal();
+			if (createNewTemplateModal && !createNewTemplateModal.classList.contains('hidden')) closeCreateNewTemplateModal();
+			if (dupTemplateModal && !dupTemplateModal.classList.contains('hidden')) closeDuplicateTemplateModal();
 		}
 	});
 
-	applyView();
+	const initialTab = new URLSearchParams(window.location.search).get('tab');
+	if (initialTab === 'templates') {
+		switchTab('templates');
+	} else {
+		applyView();
+	}
 	populateLeadSelect();
+	populateTemplateSelect();
 	// Al volver con el botón del navegador, el listado debe reflejar los cambios del constructor.
 	window.addEventListener('pageshow', (event) => {
-		if (event.persisted) render();
+		if (event.persisted) {
+			render();
+			renderTemplates();
+		}
 	});
 </script>
